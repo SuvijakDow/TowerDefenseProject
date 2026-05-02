@@ -4,12 +4,13 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import logic.Decoration;
 import logic.GameManager;
 import logic.GameMap;
-import logic.Waypoint;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
 
 public class GameView extends StackPane {
     private Canvas canvas;
@@ -32,12 +33,10 @@ public class GameView extends StackPane {
         Image grass = assets.getImage("spr_grass_02.png");
         Image groundSet = assets.getImage("spr_tile_set_ground.png");
         Image castle = assets.getImage("spr_castle_blue.png");
-        Image rock = assets.getImage("spr_rock_01.png");
-        Image tree = assets.getImage("spr_tree_01_normal.png");
 
         GameMap map = gameManager.getCurrentMap();
         int[][] grid = map.getGridLayout();
-        String[][] decorGrid = map.getDecorationGrid();
+        List<Decoration> decorations = map.getDecorations();
 
         if (grid == null) return;
 
@@ -65,35 +64,21 @@ public class GameView extends StackPane {
                     }
                 }
 
-                // Draw decorations if any
-                if (decorGrid != null && decorGrid[r][c] != null) {
-                    String decorName = decorGrid[r][c];
-                    Image decorImg = assets.getImage(decorName);
+            }
+        }
 
-                    if (decorImg != null) {
-                        // 1. Set the base scale multiplier (smaller = smaller image).
-                        double decorScale = 1.5;
+        if (decorations != null && !decorations.isEmpty()) {
+            List<Decoration> sortedDecorations = new ArrayList<>(decorations);
+            sortedDecorations.sort(Comparator.comparingDouble(Decoration::getY));
 
-                        // 2. Adjust scale by asset name to preserve the original proportions.
-                        if (decorName.contains("mushroom")) {
-                            decorScale = 3.0;
-                        } else if (decorName.contains("rock")) {
-                            decorScale = 3.0;
-                        } else if (decorName.contains("tree")) {
-                            decorScale = 2.8;
-                        }
-
-                        // 3. Compute new width and height from the scale.
-                        double drawW = decorImg.getWidth() * decorScale;
-                        double drawH = decorImg.getHeight() * decorScale;
-
-                        // 4. Center within the tile.
-                        double drawX = dx + (TILE_SIZE - drawW) / 2.0;
-                        double drawY = dy + (TILE_SIZE - drawH) / 2.0;
-
-                        gc.drawImage(decorImg, drawX, drawY, drawW, drawH);
-                    }
+            for (Decoration decoration : sortedDecorations) {
+                Image decorImg = assets.getImage(decoration.getSpriteName());
+                if (decorImg == null) {
+                    continue;
                 }
+                double drawW = decorImg.getWidth() * decoration.getScale();
+                double drawH = decorImg.getHeight() * decoration.getScale();
+                gc.drawImage(decorImg, decoration.getX(), decoration.getY(), drawW, drawH);
             }
         }
 

@@ -3,9 +3,11 @@ package application;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import java.util.List;
 import logic.GameManager;
 import logic.GameMap;
 import logic.LevelLoader;
+import logic.Decoration;
 
 public class Main extends Application {
 
@@ -28,19 +30,34 @@ public class Main extends Application {
                 "spr_mushroom_02.png"
         };
 
+        final int tileSize = 50;
         java.util.Random rand = new java.util.Random();
-        String[][] decorGrid = gameMap.getDecorationGrid();
+        List<Decoration> decorations = gameMap.getDecorations();
+        int attemptsPerTile = 2;
 
         // Iterate through the 2D grid
         for (int r = 0; r < gridLayout.length; r++) {
             for (int c = 0; c < gridLayout[0].length; c++) {
                 // Important: place decorations only on grass (0).
                 if (gridLayout[r][c] == 0) {
-                    // Spawn chance (e.g., 0.15 = 15% chance for this grass tile).
-                    if (rand.nextDouble() < 0.20) {
-                        // Pick one random decoration from decorPool
-                        String randomDecor = decorPool[rand.nextInt(decorPool.length)];
-                        decorGrid[r][c] = randomDecor;
+                    for (int attempt = 0; attempt < attemptsPerTile; attempt++) {
+                        // Spawn chance (e.g., 0.15 = 15% chance per attempt).
+                        if (rand.nextDouble() < 0.15) {
+                            // Pick one random decoration from decorPool
+                            String randomDecor = decorPool[rand.nextInt(decorPool.length)];
+                            double baseX = c * tileSize;
+                            double baseY = r * tileSize;
+                            double offsetX = (rand.nextDouble() * 30.0) - 15.0;
+                            double offsetY = (rand.nextDouble() * 30.0) - 15.0;
+                            double scale = getDecorScale(randomDecor);
+
+                            decorations.add(new Decoration(
+                                    randomDecor,
+                                    baseX + offsetX,
+                                    baseY + offsetY,
+                                    scale
+                            ));
+                        }
                     }
                 }
             }
@@ -60,5 +77,18 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private double getDecorScale(String decorName) {
+        if (decorName.contains("mushroom")) {
+            return 2.5;
+        }
+        if (decorName.contains("tree")) {
+            return 3.0;
+        }
+        if (decorName.contains("rock")) {
+            return 3.5;
+        }
+        return 1.2;
     }
 }
