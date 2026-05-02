@@ -1,0 +1,182 @@
+@startuml
+interface logic.Damageable {
+~ void takeDamage(int)
+}
+
+class logic.Waypoint {
+- double x
+- double y
++ <<Create>> Waypoint(double,double)
++ double getX()
++ void setX(double)
++ double getY()
++ void setY(double)
+}
+
+
+class logic.SlimeEnemy {
++ <<Create>> SlimeEnemy()
++ void move(Waypoint)
+}
+
+interface logic.Upgradable {
+~ void upgrade()
+}
+
+class logic.LevelLoader {
+- {static} int[][] FALLBACK_GRID
++ {static} int[][] loadMapGrid(String)
+}
+
+
+class logic.GameMap {
+- int[][] gridLayout
+- List<Decoration> decorations
+- List<Waypoint> pathWaypoints
++ <<Create>> GameMap(int[][])
++ void generateWaypointsFromGrid(int)
++ int[][] getGridLayout()
++ void setGridLayout(int[][])
++ List<Decoration> getDecorations()
++ List<Waypoint> getPathWaypoints()
+}
+
+
+class logic.BatEnemy {
++ <<Create>> BatEnemy()
++ void move(Waypoint)
+}
+
+class logic.ArcherTower {
+- int level
++ <<Create>> ArcherTower()
++ void attack(List<Enemy>)
++ void upgrade()
++ int getLevel()
+}
+
+
+class logic.Decoration {
+- String spriteName
+- double x
+- double y
+- double scale
++ <<Create>> Decoration(String,double,double,double)
++ String getSpriteName()
++ double getX()
++ double getY()
++ double getScale()
+}
+
+
+interface logic.Skillable {
+~ void useActiveSkill(List<Enemy>)
+}
+
+class logic.GameManager {
+- GameMap currentMap
+- List<Enemy> activeEnemies
+- List<Tower> activeTowers
+- int playerMoney
+- int baseHealth
+- boolean isGameOver
++ <<Create>> GameManager(GameMap)
++ boolean placeTower(Tower)
++ void spawnEnemy(Enemy)
++ void update()
++ GameMap getCurrentMap()
++ void setCurrentMap(GameMap)
++ List<Enemy> getActiveEnemies()
++ List<Tower> getActiveTowers()
++ int getPlayerMoney()
++ void setPlayerMoney(int)
++ int getBaseHealth()
++ void setBaseHealth(int)
++ boolean isGameOver()
++ void setGameOver(boolean)
+}
+
+
+abstract class logic.Enemy {
+# int maxHealth
+# int currentHealth
+# double speed
+# int rewardMoney
+# double x
+# double y
+# int currentWaypointIndex
+# boolean isFlying
++ <<Create>> Enemy(int,double,int,boolean)
++ {abstract}void move(Waypoint)
++ void takeDamage(int)
++ boolean isDead()
++ int getMaxHealth()
++ void setMaxHealth(int)
++ int getCurrentHealth()
++ void setCurrentHealth(int)
++ double getSpeed()
++ void setSpeed(double)
++ int getRewardMoney()
++ void setRewardMoney(int)
++ double getX()
++ void setX(double)
++ double getY()
++ void setY(double)
++ int getCurrentWaypointIndex()
++ void setCurrentWaypointIndex(int)
++ boolean isFlying()
++ void setFlying(boolean)
+}
+
+
+abstract class logic.Tower {
+# int damage
+# double range
+# double attackCooldown
+# double currentCooldown
+# double x
+# double y
+# int cost
++ <<Create>> Tower(int,double,double,int)
++ {abstract}void attack(List<Enemy>)
++ void updateCooldown(double)
+# boolean isEnemyInRange(Enemy)
++ int getDamage()
++ void setDamage(int)
++ double getRange()
++ void setRange(double)
++ double getAttackCooldown()
++ void setAttackCooldown(double)
++ double getCurrentCooldown()
++ void setCurrentCooldown(double)
++ double getX()
++ void setX(double)
++ double getY()
++ void setY(double)
++ int getCost()
++ void setCost(int)
+}
+
+
+class logic.PoisonWizardTower {
+- int level
+- int poisonDamage
++ <<Create>> PoisonWizardTower()
++ void attack(List<Enemy>)
++ void upgrade()
++ void useActiveSkill(List<Enemy>)
++ int getLevel()
++ int getPoisonDamage()
+}
+
+
+
+
+logic.Enemy <|-- logic.SlimeEnemy
+logic.Enemy <|-- logic.BatEnemy
+logic.Tower <|-- logic.ArcherTower
+logic.Damageable <|.. logic.Enemy
+logic.Upgradable <|.. logic.Tower
+logic.Skillable <|.. logic.PoisonWizardTower
+logic.Tower <|-- logic.PoisonWizardTower
+@enduml
