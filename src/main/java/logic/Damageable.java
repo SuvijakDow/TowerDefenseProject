@@ -1,8 +1,6 @@
 package logic;
 
-// Contract for objects that can receive damage.
+// Represents an entity that can take damage
 public interface Damageable {
-
-    // Applies incoming damage to this object.
     void takeDamage(int amount);
 }
