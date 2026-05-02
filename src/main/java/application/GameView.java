@@ -125,10 +125,10 @@ public class GameView extends StackPane {
         int cols = grid[0].length;
 
         // Check for path or castle (2) around the tile.
-        boolean up = (r == 0) || (grid[r - 1][c] == 1) || (grid[r - 1][c] == 2);
-        boolean down = (r == rows - 1) || (grid[r + 1][c] == 1) || (grid[r + 1][c] == 2);
-        boolean left = (c == 0) || (grid[r][c - 1] == 1) || (grid[r][c - 1] == 2);
-        boolean right = (c == cols - 1) || (grid[r][c + 1] == 1) || (grid[r][c + 1] == 2);
+        boolean up = (r > 0) && ((grid[r - 1][c] == 1) || (grid[r - 1][c] == 2));
+        boolean down = (r < rows - 1) && ((grid[r + 1][c] == 1) || (grid[r + 1][c] == 2));
+        boolean left = (c > 0) && ((grid[r][c - 1] == 1) || (grid[r][c - 1] == 2));
+        boolean right = (c < cols - 1) && ((grid[r][c + 1] == 1) || (grid[r][c + 1] == 2));
 
         int SRC_TILE_SIZE = 16;
         int sx = 16; // Default X (center of the sprite sheet)
@@ -154,11 +154,17 @@ public class GameView extends StackPane {
             // Bottom-right corner (turns up/left)
             sx = 32; sy = 32;
         } else if (right && !left && !up && !down) {
-            // Left end (dead end)
-            sx = 0; sy = 16;
+            // Horizontal end (connects right)
+            sx = 16; sy = 0;
         } else if (left && !right && !up && !down) {
-            // Right end (dead end)
-            sx = 32; sy = 16;
+            // Horizontal end (connects left)
+            sx = 16; sy = 0;
+        } else if (up && !down && !left && !right) {
+            // Vertical end (connects up)
+            sx = 0; sy = 16;
+        } else if (down && !up && !left && !right) {
+            // Vertical end (connects down)
+            sx = 0; sy = 16;
         }
 
         return new int[]{sx, sy};
