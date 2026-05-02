@@ -5,10 +5,12 @@ import java.util.List;
 
 public class GameMap {
     private int[][] gridLayout;
+    private String[][] decorationGrid;
     private List<Waypoint> pathWaypoints;
 
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
+        this.decorationGrid = new String[gridLayout.length][gridLayout[0].length];
         this.pathWaypoints = new ArrayList<>();
     }
 
@@ -30,5 +32,7 @@ public class GameMap {
 
     public int[][] getGridLayout() { return gridLayout; }
     public void setGridLayout(int[][] gridLayout) { this.gridLayout = gridLayout; }
+    public String[][] getDecorationGrid() { return decorationGrid; }
+    public void setDecorationGrid(String[][] decorationGrid) { this.decorationGrid = decorationGrid; }
     public List<Waypoint> getPathWaypoints() { return pathWaypoints; }
 }

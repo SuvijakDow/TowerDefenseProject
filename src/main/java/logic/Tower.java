@@ -9,12 +9,14 @@ public abstract class Tower implements Upgradable {
     protected double currentCooldown;
     protected double x;
     protected double y;
+    protected int cost;
 
-    public Tower(int damage, double range, double attackCooldown) {
+    public Tower(int damage, double range, double attackCooldown, int cost) {
         this.damage = damage;
         this.range = range;
         this.attackCooldown = attackCooldown;
         this.currentCooldown = 0.0;
+        this.cost = cost;
     }
 
     public abstract void attack(List<Enemy> enemies);
@@ -43,4 +45,6 @@ public abstract class Tower implements Upgradable {
     public void setX(double x) { this.x = x; }
     public double getY() { return y; }
     public void setY(double y) { this.y = y; }
+    public int getCost() { return cost; }
+    public void setCost(int cost) { this.cost = cost; }
 }

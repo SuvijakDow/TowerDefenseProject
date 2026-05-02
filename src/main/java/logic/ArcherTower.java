@@ -6,7 +6,7 @@ public class ArcherTower extends Tower {
     private int level;
 
     public ArcherTower() {
-        super(15, 100.0, 0.5);
+        super(15, 100.0, 0.5, 100);
         this.level = 1;
     }
 

@@ -29,6 +29,8 @@ public abstract class Enemy implements Damageable {
         }
     }
 
+    public boolean isDead() { return currentHealth <= 0; }
+
     public int getMaxHealth() { return maxHealth; }
     public void setMaxHealth(int maxHealth) { this.maxHealth = maxHealth; }
     public int getCurrentHealth() { return currentHealth; }
