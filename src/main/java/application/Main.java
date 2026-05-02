@@ -5,30 +5,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 import logic.GameManager;
 import logic.GameMap;
+import logic.LevelLoader;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Sample 2D int array map (0=grass, 1=path)
-        int[][] gridLayout = {
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // จุดเกิดศัตรู
-                {0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 2, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, // <--- แก้ไขจุดนี้ เติม 0 ให้ครบ 16 ตัวแล้วครับ
-                {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-        };
-
+        int[][] gridLayout = LevelLoader.loadMapGrid("/maps/level1.txt");
         GameMap gameMap = new GameMap(gridLayout);
 
-        // สร้างรายการของตกแต่งที่ต้องการให้สุ่มโผล่ขึ้นมา (คุณเพิ่มเห็ด หรือต้นไม้ฤดูใบไม้ร่วงเข้าไปได้เลย)
+        // Create a pool of decorations to spawn randomly (add mushrooms or autumn trees here).
         String[] decorPool = {
                 "spr_rock_01.png",
                 "spr_tree_01_normal.png",
@@ -45,14 +31,14 @@ public class Main extends Application {
         java.util.Random rand = new java.util.Random();
         String[][] decorGrid = gameMap.getDecorationGrid();
 
-        // อัลกอริทึมวิ่งเช็คตาราง 2D Matrix
+        // Iterate through the 2D grid
         for (int r = 0; r < gridLayout.length; r++) {
             for (int c = 0; c < gridLayout[0].length; c++) {
-                // เงื่อนไขสำคัญ: วางของตกแต่งเฉพาะบน "หญ้า" (เลข 0) เท่านั้น!
+                // Important: place decorations only on grass (0).
                 if (gridLayout[r][c] == 0) {
-                    // กำหนดโอกาสเกิด (เช่น 0.15 คือมีโอกาส 15% ที่ช่องหญ้านี้จะมีของตกแต่งโผล่มา)
+                    // Spawn chance (e.g., 0.15 = 15% chance for this grass tile).
                     if (rand.nextDouble() < 0.20) {
-                        // สุ่มหยิบของตกแต่งจาก decorPool มา 1 ชิ้น
+                        // Pick one random decoration from decorPool
                         String randomDecor = decorPool[rand.nextInt(decorPool.length)];
                         decorGrid[r][c] = randomDecor;
                     }

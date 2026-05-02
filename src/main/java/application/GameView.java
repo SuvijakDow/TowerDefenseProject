@@ -57,7 +57,7 @@ public class GameView extends StackPane {
 
                 if (grid[r][c] == 1) {
                     if (groundSet != null) {
-                        // เรียกใช้งานระบบเช็คบล็อกรอบข้างเพื่อหาตำแหน่ง x, y ของรูปที่ถูกต้อง
+                        // Use neighbor checks to select the correct source x, y.
                         int[] srcCoords = getPathTileSourceCoords(r, c, grid);
                         int sx = srcCoords[0];
                         int sy = srcCoords[1];
@@ -71,10 +71,10 @@ public class GameView extends StackPane {
                     Image decorImg = assets.getImage(decorName);
 
                     if (decorImg != null) {
-                        // 1. กำหนดตัวคูณขนาดเริ่มต้น (ยิ่งค่าน้อย รูปยิ่งเล็ก)
+                        // 1. Set the base scale multiplier (smaller = smaller image).
                         double decorScale = 1.5;
 
-                        // 2. แยกปรับขนาดตามชื่อไฟล์ เพื่อให้สัดส่วนเป๊ะเหมือนรูปต้นฉบับ
+                        // 2. Adjust scale by asset name to preserve the original proportions.
                         if (decorName.contains("mushroom")) {
                             decorScale = 3.0;
                         } else if (decorName.contains("rock")) {
@@ -83,11 +83,11 @@ public class GameView extends StackPane {
                             decorScale = 2.8;
                         }
 
-                        // 3. คำนวณความกว้างและความสูงใหม่ตามตัวคูณ
+                        // 3. Compute new width and height from the scale.
                         double drawW = decorImg.getWidth() * decorScale;
                         double drawH = decorImg.getHeight() * decorScale;
 
-                        // 4. จัดตำแหน่งให้อยู่กึ่งกลางของช่องพอดี
+                        // 4. Center within the tile.
                         double drawX = dx + (TILE_SIZE - drawW) / 2.0;
                         double drawY = dy + (TILE_SIZE - drawH) / 2.0;
 
@@ -101,14 +101,14 @@ public class GameView extends StackPane {
         if (castle != null) {
             double frameWidth = castle.getWidth() / 4.0;
             double frameHeight = castle.getHeight();
-            double castleDrawWidth = TILE_SIZE * 3.0; // กว้าง 3 บล็อกเต็มๆ
+            double castleDrawWidth = TILE_SIZE * 3.0; // Exactly 3 tiles wide
             double castleDrawHeight = TILE_SIZE * 2.0;
 
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < cols; c++) {
-                    // ถ้าเจอเลข 2 ให้วาดปราสาทตรงนี้!
+                    // If you find a 2, draw the castle here.
                     if (grid[r][c] == 2) {
-                        // คำนวณพิกัดให้เลข 2 อยู่กึ่งกลางด้านล่างของปราสาทพอดี
+                        // Position so the 2 cell aligns with the castle bottom-center.
                         double dx = (c * TILE_SIZE) - (castleDrawWidth / 2.0) + (TILE_SIZE / 2.0);
                         double dy = (r * TILE_SIZE) - castleDrawHeight + TILE_SIZE;
 
@@ -119,45 +119,45 @@ public class GameView extends StackPane {
         }
     }
 
-    // ระบบเช็คบล็อกรอบข้าง เพื่อเลือกรูปกระเบื้องให้ถูกต้อง
+    // Neighbor-check autotiling to select the correct tile.
     private int[] getPathTileSourceCoords(int r, int c, int[][] grid) {
         int rows = grid.length;
         int cols = grid[0].length;
 
-        // เช็คว่ามีทางเดิน หรือมีฐานทัพ (เลข 2) อยู่รอบๆ ไหม
+        // Check for path or castle (2) around the tile.
         boolean up = (r == 0) || (grid[r - 1][c] == 1) || (grid[r - 1][c] == 2);
         boolean down = (r == rows - 1) || (grid[r + 1][c] == 1) || (grid[r + 1][c] == 2);
         boolean left = (c == 0) || (grid[r][c - 1] == 1) || (grid[r][c - 1] == 2);
         boolean right = (c == cols - 1) || (grid[r][c + 1] == 1) || (grid[r][c + 1] == 2);
 
         int SRC_TILE_SIZE = 16;
-        int sx = 16; // ค่า Default แกน X (ตั้งไว้ตรงกลางของ Sprite Sheet)
-        int sy = 16; // ค่า Default แกน Y
+        int sx = 16; // Default X (center of the sprite sheet)
+        int sy = 16; // Default Y
 
-        // เช็คเงื่อนไขทางเดิน (อ้างอิงจาก Sprite Sheet 3x3 มาตรฐาน)
+        // Path adjacency rules (based on a standard 3x3 sprite sheet).
         if (left && right && !up && !down) {
-            // ทางตรงแนวนอน
+            // Horizontal straight
             sx = 16; sy = 0;
         } else if (up && down && !left && !right) {
-            // ทางตรงแนวตั้ง
+            // Vertical straight
             sx = 0; sy = 16;
         } else if (right && down && !up && !left) {
-            // โค้งซ้ายบน (เลี้ยวลง/ขวา)
+            // Top-left corner (turns down/right)
             sx = 0; sy = 0;
         } else if (left && down && !up && !right) {
-            // โค้งขวาบน (เลี้ยวลง/ซ้าย)
+            // Top-right corner (turns down/left)
             sx = 32; sy = 0;
         } else if (right && up && !down && !left) {
-            // โค้งซ้ายล่าง (เลี้ยวขึ้น/ขวา)
+            // Bottom-left corner (turns up/right)
             sx = 0; sy = 32;
         } else if (left && up && !down && !right) {
-            // โค้งขวาล่าง (เลี้ยวขึ้น/ซ้าย)
+            // Bottom-right corner (turns up/left)
             sx = 32; sy = 32;
         } else if (right && !left && !up && !down) {
-            // ปลายทางด้านซ้าย (ตัน)
+            // Left end (dead end)
             sx = 0; sy = 16;
         } else if (left && !right && !up && !down) {
-            // ปลายทางด้านขวา (ตัน)
+            // Right end (dead end)
             sx = 32; sy = 16;
         }
 
