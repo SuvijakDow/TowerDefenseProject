@@ -8,10 +8,18 @@ import logic.enemy.Enemy;
 import logic.enemy.SlimeEnemy;
 import logic.map.GameMap;
 import logic.map.Waypoint;
+import logic.tower.ArcherTower;
+import logic.tower.CannonTower;
+import logic.tower.CrossbowTower;
+import logic.tower.IceWizardTower;
+import logic.tower.LightningWizardTower;
+import logic.tower.PoisonWizardTower;
 import logic.tower.Projectile;
 import logic.tower.Tower;
 
 public class GameManager {
+    public enum TowerType { ARCHER, CANNON, CROSSBOW, ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD }
+    
     private GameMap currentMap;
     private List<Enemy> activeEnemies;
     private List<Tower> activeTowers;
@@ -19,15 +27,17 @@ public class GameManager {
     private int playerMoney;
     private int baseHealth;
     private boolean isGameOver;
+    private TowerType selectedTowerType;
 
     public GameManager(GameMap map) {
         this.currentMap = map;
         this.activeEnemies = new ArrayList<>();
         this.activeTowers = new ArrayList<>();
         this.activeProjectiles = new ArrayList<>();
-        this.playerMoney = 99999;
+        this.playerMoney = 500;
         this.baseHealth = 100;
         this.isGameOver = false;
+        this.selectedTowerType = TowerType.ARCHER;
     }
 
     // Places a tower if the player has enough money (no grid validation; tests /
@@ -46,7 +56,7 @@ public class GameManager {
      * tile not
      * already occupied by another placed tower.
      */
-    public boolean placeTower(Tower tower, int row, int col) {
+    public boolean placeTower(int row, int col) {
         if (currentMap == null || isGameOver) {
             return false;
         }
@@ -58,7 +68,14 @@ public class GameManager {
                 return false;
             }
         }
+        
+        Tower tower = createTowerFromType(selectedTowerType);
+        if (tower == null) {
+            return false;
+        }
+        
         if (playerMoney < tower.getCost()) {
+            System.out.println("Not enough money! Need: " + tower.getCost() + ", Have: " + playerMoney);
             return false;
         }
 
@@ -69,6 +86,7 @@ public class GameManager {
 
         playerMoney -= tower.getCost();
         activeTowers.add(tower);
+        System.out.println("Placed " + selectedTowerType + " tower at (" + row + "," + col + "). Money remaining: " + playerMoney);
         return true;
     }
 
@@ -104,10 +122,12 @@ public class GameManager {
 
             // Reached end of path (past last waypoint)
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
-                baseHealth--;
+                baseHealth -= enemy.getDamage();
+                System.out.println("Enemy reached base! Base health: " + baseHealth);
                 enemyIterator.remove();
                 if (baseHealth <= 0) {
                     isGameOver = true;
+                    System.out.println("Game Over! Base destroyed.");
                 }
             }
         }
@@ -136,7 +156,8 @@ public class GameManager {
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
             if (enemy.isDead()) {
-                playerMoney += enemy.getRewardMoney();
+                playerMoney += enemy.getBounty();
+                System.out.println("Enemy defeated! Earned: " + enemy.getBounty() + ", Total money: " + playerMoney);
                 enemyIterator.remove();
             }
         }
@@ -185,5 +206,33 @@ public class GameManager {
 
     public void setGameOver(boolean isGameOver) {
         this.isGameOver = isGameOver;
+    }
+    
+    public TowerType getSelectedTowerType() {
+        return selectedTowerType;
+    }
+    
+    public void setSelectedTowerType(TowerType selectedTowerType) {
+        this.selectedTowerType = selectedTowerType;
+        System.out.println("Selected tower type: " + selectedTowerType);
+    }
+    
+    private Tower createTowerFromType(TowerType type) {
+        switch (type) {
+            case ARCHER:
+                return new ArcherTower();
+            case CANNON:
+                return new CannonTower();
+            case CROSSBOW:
+                return new CrossbowTower();
+            case ICE_WIZARD:
+                return new IceWizardTower();
+            case LIGHTNING_WIZARD:
+                return new LightningWizardTower();
+            case POISON_WIZARD:
+                return new PoisonWizardTower();
+            default:
+                return null;
+        }
     }
 }

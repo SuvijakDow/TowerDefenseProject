@@ -23,16 +23,12 @@ public class AssetManager {
 
     private void loadAssets() {
         String[] assets = {
+                // Environment
                 "Environment/Grass/spr_grass_01.png",
                 "Environment/Grass/spr_grass_02.png",
                 "Environment/Grass/spr_grass_03.png",
                 "Environment/Tile Set/spr_tile_set_ground.png",
                 "Environment/Tile Set/spr_tile_set_stone.png",
-                "Towers/Castle/spr_castle_blue.png",
-                "Towers/Castle/spr_castle_green.png",
-                "Towers/Castle/spr_castle_red.png",
-                "Towers/Combat Towers/spr_tower_archer.png",
-                "Towers/Combat Towers Projectiles/spr_tower_archer_projectile.png",
                 "Environment/Decoration/spr_rock_01.png",
                 "Environment/Decoration/spr_rock_02.png",
                 "Environment/Decoration/spr_rock_03.png",
@@ -44,6 +40,27 @@ public class AssetManager {
                 "Environment/Decoration/spr_tree_02_spruce.png",
                 "Environment/Decoration/spr_mushroom_01.png",
                 "Environment/Decoration/spr_mushroom_02.png",
+                
+                // Towers
+                "Towers/Castle/spr_castle_blue.png",
+                "Towers/Castle/spr_castle_green.png",
+                "Towers/Castle/spr_castle_red.png",
+                "Towers/Combat Towers/spr_tower_archer.png",
+                "Towers/Combat Towers/spr_tower_cannon.png",
+                "Towers/Combat Towers/spr_tower_crossbow.png",
+                "Towers/Combat Towers/spr_tower_ice_wizard.png",
+                "Towers/Combat Towers/spr_tower_lightning_tower.png",
+                "Towers/Combat Towers/spr_tower_poison_wizard.png",
+                
+                // Projectiles
+                "Towers/Combat Towers Projectiles/spr_tower_archer_projectile.png",
+                "Towers/Combat Towers Projectiles/spr_tower_cannon_projectile.png",
+                "Towers/Combat Towers Projectiles/spr_tower_crossbow_projectile.png",
+                "Towers/Combat Towers Projectiles/spr_tower_ice_wizard_projectile.png",
+                "Towers/Combat Towers Projectiles/spr_tower_lightning_tower_projectile.png",
+                "Towers/Combat Towers Projectiles/spr_tower_poison_wizard_projectile.png",
+                
+                // Enemies
                 "Enemies/spr_big_slime.png",
                 "Enemies/spr_normal_slime.png",
                 "Enemies/spr_king_slime.png",

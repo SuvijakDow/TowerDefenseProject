@@ -11,6 +11,8 @@ public abstract class Enemy implements Damageable {
     protected int hp;
     protected double speed;
     protected int rewardMoney;
+    protected int bounty;
+    protected int damage;
     protected double x;
     protected double y;
     protected int currentWaypointIndex;
@@ -21,11 +23,13 @@ public abstract class Enemy implements Damageable {
 
     private static final int ANIM_TICK_THRESHOLD = 10;
 
-    public Enemy(int maxHealth, double speed, int rewardMoney, boolean isFlying, String spriteName) {
+    public Enemy(int maxHealth, double speed, int rewardMoney, boolean isFlying, String spriteName, int damage) {
         this.maxHealth = maxHealth;
         this.hp = maxHealth;
         this.speed = speed;
         this.rewardMoney = rewardMoney;
+        this.bounty = rewardMoney; // Use rewardMoney as bounty
+        this.damage = damage;
         this.isFlying = isFlying;
         this.spriteName = spriteName != null ? spriteName : "";
         this.currentWaypointIndex = 0;
@@ -135,4 +139,10 @@ public abstract class Enemy implements Damageable {
 
     public int getAnimTick() { return animTick; }
     public void setAnimTick(int animTick) { this.animTick = animTick; }
+    
+    public int getBounty() { return bounty; }
+    public void setBounty(int bounty) { this.bounty = bounty; }
+    
+    public int getDamage() { return damage; }
+    public void setDamage(int damage) { this.damage = damage; }
 }

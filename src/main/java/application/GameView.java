@@ -10,13 +10,13 @@ import logic.enemy.Enemy;
 import logic.map.Decoration;
 import logic.map.GameMap;
 import logic.map.Theme;
-import logic.tower.ArcherTower;
 import logic.tower.Projectile;
 import logic.tower.Tower;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import javafx.scene.input.KeyEvent;
 
 public class GameView extends StackPane {
     private Canvas canvas;
@@ -38,7 +38,7 @@ public class GameView extends StackPane {
         canvas.setOnMouseClicked(e -> {
             int col = (int) (e.getX() / TILE_SIZE);
             int row = (int) (e.getY() / TILE_SIZE);
-            gameManager.placeTower(new ArcherTower(), row, col);
+            gameManager.placeTower(row, col);
         });
 
         canvas.setOnMouseMoved(e -> {
@@ -50,6 +50,10 @@ public class GameView extends StackPane {
         canvas.setOnMouseExited(e -> {
             updateHover(-1, -1);
         });
+        
+        // Add keyboard shortcuts for tower selection
+        canvas.setFocusTraversable(true);
+        canvas.setOnKeyPressed(e -> handleKeyPress(e));
     }
 
     private void updateHover(int row, int col) {
@@ -369,5 +373,30 @@ public class GameView extends StackPane {
         }
 
         return new int[]{sx, sy};
+    }
+    
+    private void handleKeyPress(KeyEvent e) {
+        switch (e.getCode()) {
+            case DIGIT1:
+                gameManager.setSelectedTowerType(GameManager.TowerType.ARCHER);
+                break;
+            case DIGIT2:
+                gameManager.setSelectedTowerType(GameManager.TowerType.CANNON);
+                break;
+            case DIGIT3:
+                gameManager.setSelectedTowerType(GameManager.TowerType.CROSSBOW);
+                break;
+            case DIGIT4:
+                gameManager.setSelectedTowerType(GameManager.TowerType.ICE_WIZARD);
+                break;
+            case DIGIT5:
+                gameManager.setSelectedTowerType(GameManager.TowerType.LIGHTNING_WIZARD);
+                break;
+            case DIGIT6:
+                gameManager.setSelectedTowerType(GameManager.TowerType.POISON_WIZARD);
+                break;
+            default:
+                break;
+        }
     }
 }
