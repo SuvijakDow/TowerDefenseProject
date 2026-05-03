@@ -20,7 +20,8 @@ public class Main extends Application {
         int[][] gridLayout = LevelLoader.loadMapGrid("/Maps/level1.txt");
         GameMap gameMap = new GameMap(gridLayout);
 
-        // Create a pool of decorations to spawn randomly (add mushrooms or autumn trees here).
+        // Create a pool of decorations to spawn randomly (add mushrooms or autumn trees
+        // here).
         String[] decorPool;
         switch (gameMap.getTheme()) {
             case AUTUMN:
@@ -28,6 +29,10 @@ public class Main extends Application {
                         "Environment/Decoration/spr_rock_01.png",
                         "Environment/Decoration/spr_rock_02.png",
                         "Environment/Decoration/spr_rock_03.png",
+                        "Environment/Decoration/spr_tree_01_autumn.png",
+                        "Environment/Decoration/spr_tree_02_autumn.png",
+                        "Environment/Decoration/spr_tree_01_autumn.png",
+                        "Environment/Decoration/spr_tree_02_autumn.png",
                         "Environment/Decoration/spr_tree_01_autumn.png",
                         "Environment/Decoration/spr_tree_02_autumn.png",
                         "Environment/Decoration/spr_mushroom_01.png",
@@ -41,6 +46,10 @@ public class Main extends Application {
                         "Environment/Decoration/spr_rock_03.png",
                         "Environment/Decoration/spr_tree_01_cherry_blossom.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_01_cherry_blossom.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_01_cherry_blossom.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
                         "Environment/Decoration/spr_mushroom_01.png",
                         "Environment/Decoration/spr_mushroom_02.png"
                 };
@@ -51,6 +60,10 @@ public class Main extends Application {
                         "Environment/Decoration/spr_rock_01.png",
                         "Environment/Decoration/spr_rock_02.png",
                         "Environment/Decoration/spr_rock_03.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_spruce.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
                         "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_mushroom_01.png",
@@ -74,21 +87,25 @@ public class Main extends Application {
                     }
                     for (int attempt = 0; attempt < attemptsPerTile; attempt++) {
                         // Spawn chance (e.g., 0.15 = 15% chance per attempt).
-                        if (rand.nextDouble() < 0.15) {
+                        if (rand.nextDouble() < 0.25) {
                             // Pick one random decoration from decorPool
                             String randomDecor = decorPool[rand.nextInt(decorPool.length)];
-                            double baseX = c * tileSize;
-                            double baseY = r * tileSize;
-                            double offsetX = (rand.nextDouble() * 30.0) - 15.0;
-                            double offsetY = (rand.nextDouble() * 30.0) - 15.0;
                             double scale = getDecorScale(randomDecor);
 
                             decorations.add(new Decoration(
                                     randomDecor,
-                                    baseX + offsetX,
-                                    baseY + offsetY,
-                                    scale
-                            ));
+                                    r,
+                                    c,
+                                    scale));
+
+                            // 30% chance to add a mushroom if the placed decor is a rock
+                            if (randomDecor.contains("rock") && rand.nextDouble() < 0.3) {
+                                String mushroom = rand.nextBoolean() ? "Environment/Decoration/spr_mushroom_01.png"
+                                        : "Environment/Decoration/spr_mushroom_02.png";
+                                decorations.add(new Decoration(mushroom, r, c, getDecorScale(mushroom)));
+                            }
+
+                            break; // One decoration per grid tile max (plus an optional mushroom on rock)
                         }
                     }
                 }

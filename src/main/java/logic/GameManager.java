@@ -25,12 +25,13 @@ public class GameManager {
         this.activeEnemies = new ArrayList<>();
         this.activeTowers = new ArrayList<>();
         this.activeProjectiles = new ArrayList<>();
-        this.playerMoney = 500;
+        this.playerMoney = 99999;
         this.baseHealth = 100;
         this.isGameOver = false;
     }
 
-    // Places a tower if the player has enough money (no grid validation; tests / legacy).
+    // Places a tower if the player has enough money (no grid validation; tests /
+    // legacy).
     public boolean placeTower(Tower tower) {
         if (playerMoney >= tower.getCost()) {
             playerMoney -= tower.getCost();
@@ -41,7 +42,8 @@ public class GameManager {
     }
 
     /**
-     * Places {@code tower} at tile {@code (row, col)} if buildable, affordable, and tile not
+     * Places {@code tower} at tile {@code (row, col)} if buildable, affordable, and
+     * tile not
      * already occupied by another placed tower.
      */
     public boolean placeTower(Tower tower, int row, int col) {
@@ -72,8 +74,9 @@ public class GameManager {
 
     // Spawns an enemy at the first waypoint
     public void spawnEnemy(Enemy enemy) {
-        if (currentMap == null || currentMap.getPathWaypoints().isEmpty()) return;
-        
+        if (currentMap == null || currentMap.getPathWaypoints().isEmpty())
+            return;
+
         Waypoint start = currentMap.getPathWaypoints().get(0);
         enemy.setX(start.getX());
         enemy.setY(start.getY());
@@ -88,7 +91,8 @@ public class GameManager {
 
     // Core game tick logic
     public void update() {
-        if (isGameOver) return;
+        if (isGameOver)
+            return;
 
         List<Waypoint> waypoints = currentMap != null ? currentMap.getPathWaypoints() : List.of();
 
@@ -139,15 +143,47 @@ public class GameManager {
     }
 
     // Getters and Setters
-    public GameMap getCurrentMap() { return currentMap; }
-    public void setCurrentMap(GameMap currentMap) { this.currentMap = currentMap; }
-    public List<Enemy> getActiveEnemies() { return activeEnemies; }
-    public List<Tower> getActiveTowers() { return activeTowers; }
-    public List<Projectile> getActiveProjectiles() { return activeProjectiles; }
-    public int getPlayerMoney() { return playerMoney; }
-    public void setPlayerMoney(int playerMoney) { this.playerMoney = playerMoney; }
-    public int getBaseHealth() { return baseHealth; }
-    public void setBaseHealth(int baseHealth) { this.baseHealth = baseHealth; }
-    public boolean isGameOver() { return isGameOver; }
-    public void setGameOver(boolean isGameOver) { this.isGameOver = isGameOver; }
+    public GameMap getCurrentMap() {
+        return currentMap;
+    }
+
+    public void setCurrentMap(GameMap currentMap) {
+        this.currentMap = currentMap;
+    }
+
+    public List<Enemy> getActiveEnemies() {
+        return activeEnemies;
+    }
+
+    public List<Tower> getActiveTowers() {
+        return activeTowers;
+    }
+
+    public List<Projectile> getActiveProjectiles() {
+        return activeProjectiles;
+    }
+
+    public int getPlayerMoney() {
+        return playerMoney;
+    }
+
+    public void setPlayerMoney(int playerMoney) {
+        this.playerMoney = playerMoney;
+    }
+
+    public int getBaseHealth() {
+        return baseHealth;
+    }
+
+    public void setBaseHealth(int baseHealth) {
+        this.baseHealth = baseHealth;
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    public void setGameOver(boolean isGameOver) {
+        this.isGameOver = isGameOver;
+    }
 }

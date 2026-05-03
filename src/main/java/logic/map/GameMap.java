@@ -14,7 +14,7 @@ public class GameMap {
     private int[][] gridLayout;
     private List<Decoration> decorations = new ArrayList<>();
     private List<Waypoint> pathWaypoints;
-    private Theme theme = Theme.AUTUMN;
+    private Theme theme = Theme.SPRING;
 
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
@@ -22,9 +22,12 @@ public class GameMap {
     }
 
     /**
-     * Builds an ordered path from a border path tile ({@code 1}) along walkable path/castle cells
-     * to the castle ({@code 2}) via BFS. Updates {@link #pathWaypoints}. If no castle exists,
-     * falls back to {@link #generateWaypointsFromGrid(int)} with {@link #PATH_TILE_PIXEL_SIZE}.
+     * Builds an ordered path from a border path tile ({@code 1}) along walkable
+     * path/castle cells
+     * to the castle ({@code 2}) via BFS. Updates {@link #pathWaypoints}. If no
+     * castle exists,
+     * falls back to {@link #generateWaypointsFromGrid(int)} with
+     * {@link #PATH_TILE_PIXEL_SIZE}.
      */
     public List<Waypoint> generatePath() {
         pathWaypoints = new ArrayList<>();
@@ -83,14 +86,18 @@ public class GameMap {
     }
 
     /**
-     * 3×2 clearance aligned with castle rendering: rows {@code castleR-1..castleR}, cols
+     * 3×2 clearance aligned with castle rendering: rows {@code castleR-1..castleR},
+     * cols
      * {@code castleC-1..castleC+1}.
      */
     public static boolean isCastleClearanceTile(int row, int col, int castleR, int castleC) {
         return row >= castleR - 1 && row <= castleR && col >= castleC - 1 && col <= castleC + 1;
     }
 
-    /** {@code true} if {@code (row,col)} lies in the castle footprint clearance zone. */
+    /**
+     * {@code true} if {@code (row,col)} lies in the castle footprint clearance
+     * zone.
+     */
     public boolean isInCastleClearanceZone(int row, int col) {
         int[] castle = getCastleBaseCell();
         if (castle == null) {
@@ -100,7 +107,8 @@ public class GameMap {
     }
 
     /**
-     * {@code true} if a tower may be built at {@code (row, col)}: grass tile, outside castle
+     * {@code true} if a tower may be built at {@code (row, col)}: grass tile,
+     * outside castle
      * clearance, no decoration anchor {@code (x,y)} inside this tile.
      */
     public boolean isBuildable(int row, int col, List<Decoration> decorations) {
@@ -116,16 +124,10 @@ public class GameMap {
         if (isInCastleClearanceZone(row, col)) {
             return false;
         }
-        int ts = PATH_TILE_PIXEL_SIZE;
-        double tx0 = col * ts;
-        double ty0 = row * ts;
-        double tx1 = tx0 + ts;
-        double ty1 = ty0 + ts;
+        
         if (decorations != null) {
-            for (Decoration d : decorations) {
-                double px = d.getX();
-                double py = d.getY();
-                if (px >= tx0 && px < tx1 && py >= ty0 && py < ty1) {
+            for (Decoration dec : decorations) {
+                if (dec.getRow() == row && dec.getCol() == col) {
                     return false;
                 }
             }
@@ -133,7 +135,10 @@ public class GameMap {
         return true;
     }
 
-    /** Border tiles ({@code 1}) valid as path entrances, distinct cells, deterministic order. */
+    /**
+     * Border tiles ({@code 1}) valid as path entrances, distinct cells,
+     * deterministic order.
+     */
     private static List<int[]> borderPathStarts(int[][] g) {
         int rows = g.length;
         int cols = g[0].length;
@@ -161,7 +166,8 @@ public class GameMap {
     }
 
     /**
-     * BFS on cells {@code 1} (path) and {@code 2} (castle goal). Returns grid cells from start to
+     * BFS on cells {@code 1} (path) and {@code 2} (castle goal). Returns grid cells
+     * from start to
      * castle inclusive, or empty if unreachable.
      */
     private static List<int[]> bfsPathToCastle(int[][] g, int sr, int sc, int er, int ec) {
@@ -241,8 +247,9 @@ public class GameMap {
     // Scans gridLayout (0=Grass, 1=Path) and calculates actual coordinates
     public void generateWaypointsFromGrid(int tileSize) {
         pathWaypoints.clear();
-        if (gridLayout == null) return;
-        
+        if (gridLayout == null)
+            return;
+
         for (int row = 0; row < gridLayout.length; row++) {
             for (int col = 0; col < gridLayout[row].length; col++) {
                 if (gridLayout[row][col] == 1) {
@@ -254,10 +261,27 @@ public class GameMap {
         }
     }
 
-    public int[][] getGridLayout() { return gridLayout; }
-    public void setGridLayout(int[][] gridLayout) { this.gridLayout = gridLayout; }
-    public List<Decoration> getDecorations() { return decorations; }
-    public List<Waypoint> getPathWaypoints() { return pathWaypoints; }
-    public Theme getTheme() { return theme; }
-    public void setTheme(Theme theme) { this.theme = (theme == null) ? Theme.NORMAL : theme; }
+    public int[][] getGridLayout() {
+        return gridLayout;
+    }
+
+    public void setGridLayout(int[][] gridLayout) {
+        this.gridLayout = gridLayout;
+    }
+
+    public List<Decoration> getDecorations() {
+        return decorations;
+    }
+
+    public List<Waypoint> getPathWaypoints() {
+        return pathWaypoints;
+    }
+
+    public Theme getTheme() {
+        return theme;
+    }
+
+    public void setTheme(Theme theme) {
+        this.theme = (theme == null) ? Theme.NORMAL : theme;
+    }
 }

@@ -4,6 +4,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
 import logic.GameManager;
 import logic.enemy.Enemy;
 import logic.map.Decoration;
@@ -24,6 +25,10 @@ public class GameView extends StackPane {
     private static final int TILE_SIZE = 50;
     private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
 
+    private int hoverRow = -1;
+    private int hoverCol = -1;
+    private boolean hoverValid = false;
+
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
         canvas = new Canvas(800, 600);
@@ -35,6 +40,41 @@ public class GameView extends StackPane {
             int row = (int) (e.getY() / TILE_SIZE);
             gameManager.placeTower(new ArcherTower(), row, col);
         });
+
+        canvas.setOnMouseMoved(e -> {
+            int col = (int) (e.getX() / TILE_SIZE);
+            int row = (int) (e.getY() / TILE_SIZE);
+            updateHover(row, col);
+        });
+
+        canvas.setOnMouseExited(e -> {
+            updateHover(-1, -1);
+        });
+    }
+
+    private void updateHover(int row, int col) {
+        this.hoverRow = row;
+        this.hoverCol = col;
+        if (row < 0 || col < 0) {
+            hoverValid = false;
+            return;
+        }
+        GameMap map = gameManager.getCurrentMap();
+        if (map == null) {
+            hoverValid = false;
+            return;
+        }
+        
+        boolean valid = map.isBuildable(row, col, map.getDecorations());
+        if (valid) {
+            for (Tower t : gameManager.getActiveTowers()) {
+                if (t.getGridRow() == row && t.getGridCol() == col) {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        hoverValid = valid;
 
         drawMap();
     }
@@ -103,6 +143,16 @@ public class GameView extends StackPane {
             }
         }
 
+        // Draw hover indicator
+        if (hoverRow >= 0 && hoverCol >= 0) {
+            if (hoverValid) {
+                gc.setFill(Color.rgb(255, 255, 255, 0.4));
+            } else {
+                gc.setFill(Color.rgb(255, 0, 0, 0.4));
+            }
+            gc.fillRect(hoverCol * TILE_SIZE, hoverRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+
         double castleDrawWidth = TILE_SIZE * 3.0;
         double castleDrawHeight = TILE_SIZE * 2.0;
         double castleDx = 0;
@@ -153,7 +203,10 @@ public class GameView extends StackPane {
                 if (img != null) {
                     double drawW = img.getWidth() * dec.getScale();
                     double drawH = img.getHeight() * dec.getScale();
-                    gc.drawImage(img, dec.getX(), dec.getY(), drawW, drawH);
+                    double footprintBottom = dec.getY() + TILE_SIZE / 2.0;
+                    double drawX = dec.getX() - (drawW / 2.0);
+                    double drawY = footprintBottom - drawH;
+                    gc.drawImage(img, drawX, drawY, drawW, drawH);
                 }
             } else if (item.enemy != null) {
                 drawEnemy(gc, assets, item.enemy);
@@ -256,9 +309,7 @@ public class GameView extends StackPane {
     }
 
     private static double decorationBottomY(Decoration dec, AssetManager assets) {
-        Image img = assets.getImage(dec.getSpriteName());
-        double h = (img != null) ? img.getHeight() * dec.getScale() : TILE_SIZE;
-        return dec.getY() + h;
+        return dec.getY() + TILE_SIZE / 2.0;
     }
 
     private static void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
