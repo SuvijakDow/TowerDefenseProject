@@ -8,29 +8,17 @@ public class CrossbowTower extends Tower {
     private int level;
 
     public CrossbowTower() {
-        super(15, 150.0, 0.3, 130);
+        super(15, 150.0, 18, 130, "Towers/Combat Towers/spr_tower_crossbow.png");
         this.level = 1;
     }
 
-    @Override
-    public void attack(List<Enemy> enemies) {
-        if (currentCooldown <= 0) {
-            for (Enemy enemy : enemies) {
-                if (isEnemyInRange(enemy)) {
-                    enemy.takeDamage(damage);
-                    currentCooldown = attackCooldown;
-                    break; // Attack one target at a time
-                }
-            }
-        }
-    }
 
     @Override
     public void upgrade() {
         this.level++;
         this.damage += 4;
         this.range += 12.0;
-        this.attackCooldown = Math.max(0.05, this.attackCooldown - 0.05);
+        this.fireCooldown = Math.max(3, this.fireCooldown - 3);
     }
 
     public int getLevel() {

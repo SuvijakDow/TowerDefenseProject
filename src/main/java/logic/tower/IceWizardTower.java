@@ -10,23 +10,11 @@ public class IceWizardTower extends Tower implements Skillable {
     private int poisonDamage;
 
     public IceWizardTower() {
-        super(30, 150.0, 2.0, 150);
+        super(30, 150.0, 120, 150, "Towers/Combat Towers/spr_tower_ice_wizard.png");
         this.level = 1;
         this.poisonDamage = 5;
     }
 
-    @Override
-    public void attack(List<Enemy> enemies) {
-        if (currentCooldown <= 0) {
-            for (Enemy enemy : enemies) {
-                if (isEnemyInRange(enemy)) {
-                    enemy.takeDamage(damage);
-                    currentCooldown = attackCooldown;
-                    break; // Attack one target at a time
-                }
-            }
-        }
-    }
 
     @Override
     public void upgrade() {

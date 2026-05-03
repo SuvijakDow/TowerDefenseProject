@@ -35,10 +35,13 @@ public class ArcherTowerTest {
         enemies.add(outOfRange); 
         enemies.add(inRange);
         
-        tower.attack(enemies);
+        List<logic.tower.Projectile> activeProjectiles = new ArrayList<>();
+        tower.update(enemies, activeProjectiles);
         
         assertEquals(100, outOfRange.getCurrentHealth()); 
-        assertEquals(80, inRange.getCurrentHealth()); 
-        assertEquals(tower.getAttackCooldown(), tower.getCurrentCooldown()); 
+        assertEquals(100, inRange.getCurrentHealth()); // Health is not reduced instantly anymore
+        assertEquals(1, activeProjectiles.size());
+        assertEquals(inRange, activeProjectiles.get(0).getTarget());
+        assertEquals(tower.getFireCooldown(), tower.getCurrentCooldown()); 
     }
 }
