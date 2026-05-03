@@ -10,7 +10,6 @@ import logic.GameMap;
 import logic.Theme;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 public class GameView extends StackPane {
@@ -91,6 +90,29 @@ public class GameView extends StackPane {
             }
         }
 
+        double castleDrawWidth = TILE_SIZE * 3.0;
+        double castleDrawHeight = TILE_SIZE * 2.0;
+        double castleDx = 0;
+        double castleDy = 0;
+        boolean hasCastleCell = false;
+
+        if (castle != null) {
+            outerCastle:
+            for (int r = 0; r < rows; r++) {
+                for (int c = 0; c < cols; c++) {
+                    if (grid[r][c] == 2) {
+                        castleDx = (c * TILE_SIZE) - (castleDrawWidth / 2.0) + (TILE_SIZE / 2.0);
+                        castleDy = (r * TILE_SIZE) - castleDrawHeight + TILE_SIZE;
+                        hasCastleCell = true;
+                        break outerCastle;
+                    }
+                }
+            }
+        }
+
+        double castleBottomY = castleDy + castleDrawHeight;
+        boolean castleDrawn = false;
+
         if (decorations != null && !decorations.isEmpty()) {
             List<Decoration> sortedDecorations = new ArrayList<>(decorations);
 
@@ -109,7 +131,15 @@ public class GameView extends StackPane {
             });
 
             // Draw in order: lower (front) drawn last, higher (back) drawn first.
+            // Castle is inserted when the first decoration sits in front of it (lower on screen).
             for (Decoration dec : sortedDecorations) {
+                double decBottomY = decorationBottomY(dec, assets);
+
+                if (castle != null && hasCastleCell && !castleDrawn && decBottomY > castleBottomY) {
+                    drawCastleSprite(gc, castle, castleDx, castleDy);
+                    castleDrawn = true;
+                }
+
                 Image img = assets.getImage(dec.getSpriteName());
                 if (img != null) {
                     double drawW = img.getWidth() * dec.getScale();
@@ -119,26 +149,23 @@ public class GameView extends StackPane {
             }
         }
 
-        // Draw castle at the exact coordinate marked by '2'
-        if (castle != null) {
-            double frameWidth = castle.getWidth() / 4.0;
-            double frameHeight = castle.getHeight();
-            double castleDrawWidth = TILE_SIZE * 3.0; // Exactly 3 tiles wide
-            double castleDrawHeight = TILE_SIZE * 2.0;
-
-            for (int r = 0; r < rows; r++) {
-                for (int c = 0; c < cols; c++) {
-                    // If you find a 2, draw the castle here.
-                    if (grid[r][c] == 2) {
-                        // Position so the 2 cell aligns with the castle bottom-center.
-                        double dx = (c * TILE_SIZE) - (castleDrawWidth / 2.0) + (TILE_SIZE / 2.0);
-                        double dy = (r * TILE_SIZE) - castleDrawHeight + TILE_SIZE;
-
-                        gc.drawImage(castle, 0, 0, frameWidth, frameHeight, dx, dy, castleDrawWidth, castleDrawHeight);
-                    }
-                }
-            }
+        if (castle != null && hasCastleCell && !castleDrawn) {
+            drawCastleSprite(gc, castle, castleDx, castleDy);
         }
+    }
+
+    private static double decorationBottomY(Decoration dec, AssetManager assets) {
+        Image img = assets.getImage(dec.getSpriteName());
+        double h = (img != null) ? img.getHeight() * dec.getScale() : TILE_SIZE;
+        return dec.getY() + h;
+    }
+
+    private static void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
+        double frameWidth = castle.getWidth() / 4.0;
+        double frameHeight = castle.getHeight();
+        double castleDrawWidth = TILE_SIZE * 3.0;
+        double castleDrawHeight = TILE_SIZE * 2.0;
+        gc.drawImage(castle, 0, 0, frameWidth, frameHeight, dx, dy, castleDrawWidth, castleDrawHeight);
     }
 
     // Neighbor-check autotiling to select the correct tile.

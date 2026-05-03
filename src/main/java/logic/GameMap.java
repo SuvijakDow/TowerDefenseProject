@@ -7,7 +7,7 @@ public class GameMap {
     private int[][] gridLayout;
     private List<Decoration> decorations = new ArrayList<>();
     private List<Waypoint> pathWaypoints;
-    private Theme theme = Theme.SPRING;
+    private Theme theme = Theme.AUTUMN;
 
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
