@@ -27,7 +27,7 @@ public class GameManager {
         this.isGameOver = false;
     }
 
-    // Places a tower if the player has enough money
+    // Places a tower if the player has enough money (no grid validation; tests / legacy).
     public boolean placeTower(Tower tower) {
         if (playerMoney >= tower.getCost()) {
             playerMoney -= tower.getCost();
@@ -35,6 +35,36 @@ public class GameManager {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Places {@code tower} at tile {@code (row, col)} if buildable, affordable, and tile not
+     * already occupied by another placed tower.
+     */
+    public boolean placeTower(Tower tower, int row, int col) {
+        if (currentMap == null || isGameOver) {
+            return false;
+        }
+        if (!currentMap.isBuildable(row, col, currentMap.getDecorations())) {
+            return false;
+        }
+        for (Tower t : activeTowers) {
+            if (t.getGridRow() == row && t.getGridCol() == col) {
+                return false;
+            }
+        }
+        if (playerMoney < tower.getCost()) {
+            return false;
+        }
+
+        int ts = GameMap.PATH_TILE_PIXEL_SIZE;
+        tower.setX(col * ts + ts / 2.0);
+        tower.setY(row * ts + ts / 2.0);
+        tower.setPlacementTile(row, col);
+
+        playerMoney -= tower.getCost();
+        activeTowers.add(tower);
+        return true;
     }
 
     // Spawns an enemy at the first waypoint

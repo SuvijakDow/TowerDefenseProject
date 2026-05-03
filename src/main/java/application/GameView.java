@@ -9,6 +9,8 @@ import logic.enemy.Enemy;
 import logic.map.Decoration;
 import logic.map.GameMap;
 import logic.map.Theme;
+import logic.tower.ArcherTower;
+import logic.tower.Tower;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -26,6 +28,13 @@ public class GameView extends StackPane {
         canvas = new Canvas(800, 600);
         gc = canvas.getGraphicsContext2D();
         getChildren().add(canvas);
+
+        canvas.setOnMouseClicked(e -> {
+            int col = (int) (e.getX() / TILE_SIZE);
+            int row = (int) (e.getY() / TILE_SIZE);
+            gameManager.placeTower(new ArcherTower(), row, col);
+        });
+
         drawMap();
     }
 
@@ -125,6 +134,9 @@ public class GameView extends StackPane {
         for (Enemy e : gameManager.getActiveEnemies()) {
             depthSprites.add(DepthSprite.enemy(e, e.getY()));
         }
+        for (Tower t : gameManager.getActiveTowers()) {
+            depthSprites.add(DepthSprite.tower(t, towerBottomY(t)));
+        }
 
         depthSprites.sort(Comparator.comparingDouble(d -> d.bottomY));
 
@@ -144,12 +156,45 @@ public class GameView extends StackPane {
                 }
             } else if (item.enemy != null) {
                 drawEnemy(gc, assets, item.enemy);
+            } else if (item.tower != null) {
+                drawTower(gc, assets, item.tower);
             }
         }
 
         if (castle != null && hasCastleCell && !castleDrawn) {
             drawCastleSprite(gc, castle, castleDx, castleDy);
         }
+    }
+
+    /**
+     * Depth sort key = bottom of tower's 1×1 logical footprint. Placement stores tile center
+     * {@code (x,y)}, so footprint bottom is {@code y + TILE_SIZE/2}. (If {@code y} were base
+     * top-left, use {@code y + TILE_SIZE} instead.)
+     */
+    private static double towerBottomY(Tower tower) {
+        return tower.getY() + TILE_SIZE / 2.0;
+    }
+
+    /**
+     * Tower: fixed width 1 tile, height from sprite aspect ratio (avoids stretching when art is
+     * not exactly 2 tiles tall). Feet align with bottom of logical 1×1 footprint.
+     */
+    private static void drawTower(GraphicsContext gc, AssetManager assets, Tower tower) {
+        Image img = assets.getImage(tower.getSpriteName());
+        if (img == null) {
+            return;
+        }
+        double iw = img.getWidth();
+        double ih = img.getHeight();
+        if (iw <= 0 || ih <= 0) {
+            return;
+        }
+        double destW = TILE_SIZE;
+        double destH = (ih / iw) * destW;
+        double footprintBottom = tower.getY() + TILE_SIZE / 2.0;
+        double drawX = tower.getX() - destW / 2.0;
+        double drawY = footprintBottom - destH;
+        gc.drawImage(img, 0, 0, iw, ih, drawX, drawY, destW, destH);
     }
 
     private static void drawEnemy(GraphicsContext gc, AssetManager assets, Enemy enemy) {
@@ -171,19 +216,25 @@ public class GameView extends StackPane {
         final double bottomY;
         final Decoration decoration;
         final Enemy enemy;
+        final Tower tower;
 
-        private DepthSprite(double bottomY, Decoration decoration, Enemy enemy) {
+        private DepthSprite(double bottomY, Decoration decoration, Enemy enemy, Tower tower) {
             this.bottomY = bottomY;
             this.decoration = decoration;
             this.enemy = enemy;
+            this.tower = tower;
         }
 
         static DepthSprite decoration(Decoration d, double bottomY) {
-            return new DepthSprite(bottomY, d, null);
+            return new DepthSprite(bottomY, d, null, null);
         }
 
         static DepthSprite enemy(Enemy e, double bottomY) {
-            return new DepthSprite(bottomY, null, e);
+            return new DepthSprite(bottomY, null, e, null);
+        }
+
+        static DepthSprite tower(Tower t, double bottomY) {
+            return new DepthSprite(bottomY, null, null, t);
         }
     }
 

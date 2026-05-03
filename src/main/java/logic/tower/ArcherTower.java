@@ -8,7 +8,7 @@ public class ArcherTower extends Tower {
     private int level;
 
     public ArcherTower() {
-        super(15, 100.0, 0.5, 100);
+        super(15, 100.0, 0.5, 100, "Towers/Combat Towers/spr_tower_archer.png");
         this.level = 1;
     }
 

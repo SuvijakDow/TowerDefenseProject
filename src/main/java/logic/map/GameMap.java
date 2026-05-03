@@ -74,6 +74,65 @@ public class GameMap {
         return null;
     }
 
+    /** Castle base cell ({@code 2}), or {@code null}. */
+    public int[] getCastleBaseCell() {
+        if (gridLayout == null || gridLayout.length == 0) {
+            return null;
+        }
+        return findCastleCell(gridLayout);
+    }
+
+    /**
+     * 3×2 clearance aligned with castle rendering: rows {@code castleR-1..castleR}, cols
+     * {@code castleC-1..castleC+1}.
+     */
+    public static boolean isCastleClearanceTile(int row, int col, int castleR, int castleC) {
+        return row >= castleR - 1 && row <= castleR && col >= castleC - 1 && col <= castleC + 1;
+    }
+
+    /** {@code true} if {@code (row,col)} lies in the castle footprint clearance zone. */
+    public boolean isInCastleClearanceZone(int row, int col) {
+        int[] castle = getCastleBaseCell();
+        if (castle == null) {
+            return false;
+        }
+        return isCastleClearanceTile(row, col, castle[0], castle[1]);
+    }
+
+    /**
+     * {@code true} if a tower may be built at {@code (row, col)}: grass tile, outside castle
+     * clearance, no decoration anchor {@code (x,y)} inside this tile.
+     */
+    public boolean isBuildable(int row, int col, List<Decoration> decorations) {
+        if (gridLayout == null || gridLayout.length == 0) {
+            return false;
+        }
+        if (row < 0 || col < 0 || row >= gridLayout.length || col >= gridLayout[row].length) {
+            return false;
+        }
+        if (gridLayout[row][col] != 0) {
+            return false;
+        }
+        if (isInCastleClearanceZone(row, col)) {
+            return false;
+        }
+        int ts = PATH_TILE_PIXEL_SIZE;
+        double tx0 = col * ts;
+        double ty0 = row * ts;
+        double tx1 = tx0 + ts;
+        double ty1 = ty0 + ts;
+        if (decorations != null) {
+            for (Decoration d : decorations) {
+                double px = d.getX();
+                double py = d.getY();
+                if (px >= tx0 && px < tx1 && py >= ty0 && py < ty1) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     /** Border tiles ({@code 1}) valid as path entrances, distinct cells, deterministic order. */
     private static List<int[]> borderPathStarts(int[][] g) {
         int rows = g.length;

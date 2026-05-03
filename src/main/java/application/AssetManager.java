@@ -31,6 +31,7 @@ public class AssetManager {
                 "Towers/Castle/spr_castle_blue.png",
                 "Towers/Castle/spr_castle_green.png",
                 "Towers/Castle/spr_castle_red.png",
+                "Towers/Combat Towers/spr_tower_archer.png",
                 "Environment/Decoration/spr_rock_01.png",
                 "Environment/Decoration/spr_rock_02.png",
                 "Environment/Decoration/spr_rock_03.png",

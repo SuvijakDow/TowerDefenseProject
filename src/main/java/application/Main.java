@@ -64,19 +64,17 @@ public class Main extends Application {
         List<Decoration> decorations = gameMap.getDecorations();
         int attemptsPerTile = 2;
 
-        int[] castleBase = findCastleBaseCell(gridLayout);
-
         // Iterate through the 2D grid
         for (int r = 0; r < gridLayout.length; r++) {
             for (int c = 0; c < gridLayout[0].length; c++) {
                 // Important: place decorations only on grass (0).
                 if (gridLayout[r][c] == 0) {
-                    if (castleBase != null && isInCastleClearanceZone(r, c, castleBase[0], castleBase[1])) {
+                    if (gameMap.isInCastleClearanceZone(r, c)) {
                         continue;
                     }
                     for (int attempt = 0; attempt < attemptsPerTile; attempt++) {
                         // Spawn chance (e.g., 0.15 = 15% chance per attempt).
-                        if (rand.nextDouble() < 0.30) {
+                        if (rand.nextDouble() < 0.15) {
                             // Pick one random decoration from decorPool
                             String randomDecor = decorPool[rand.nextInt(decorPool.length)];
                             double baseX = c * tileSize;
@@ -137,26 +135,4 @@ public class Main extends Application {
         return 2.0;
     }
 
-    /** First grid cell marked {@code 2} (castle base), or {@code null} if none. */
-    private static int[] findCastleBaseCell(int[][] gridLayout) {
-        if (gridLayout == null || gridLayout.length == 0) {
-            return null;
-        }
-        for (int r = 0; r < gridLayout.length; r++) {
-            for (int c = 0; c < gridLayout[r].length; c++) {
-                if (gridLayout[r][c] == 2) {
-                    return new int[] { r, c };
-                }
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Castle footprint clearance: rows {@code castleR-1..castleR}, cols {@code castleC-1..castleC+1}
-     * (3×2 tiles aligned with the rendered castle).
-     */
-    private static boolean isInCastleClearanceZone(int r, int c, int castleR, int castleC) {
-        return r >= castleR - 1 && r <= castleR && c >= castleC - 1 && c <= castleC + 1;
-    }
 }

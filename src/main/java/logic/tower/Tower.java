@@ -13,13 +13,19 @@ public abstract class Tower implements Upgradable {
     protected double x;
     protected double y;
     protected int cost;
+    protected String spriteName;
+    /** Tile row where placed; {@code -1} if not grid-placed (e.g. legacy/tests). */
+    protected int gridRow = -1;
+    /** Tile column where placed; {@code -1} if not grid-placed. */
+    protected int gridCol = -1;
 
-    public Tower(int damage, double range, double attackCooldown, int cost) {
+    public Tower(int damage, double range, double attackCooldown, int cost, String spriteName) {
         this.damage = damage;
         this.range = range;
         this.attackCooldown = attackCooldown;
         this.currentCooldown = 0.0;
         this.cost = cost;
+        this.spriteName = spriteName != null ? spriteName : "";
     }
 
     public abstract void attack(List<Enemy> enemies);
@@ -50,4 +56,15 @@ public abstract class Tower implements Upgradable {
     public void setY(double y) { this.y = y; }
     public int getCost() { return cost; }
     public void setCost(int cost) { this.cost = cost; }
+
+    public String getSpriteName() { return spriteName; }
+    public void setSpriteName(String spriteName) { this.spriteName = spriteName != null ? spriteName : ""; }
+
+    public int getGridRow() { return gridRow; }
+    public int getGridCol() { return gridCol; }
+
+    public void setPlacementTile(int row, int col) {
+        this.gridRow = row;
+        this.gridCol = col;
+    }
 }
