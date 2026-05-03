@@ -2,9 +2,9 @@ package logic.enemy;
 
 import logic.map.Waypoint;
 
-public class BatEnemy extends Enemy {
-    public BatEnemy() {
-        super(50, 2.5, 15, true, "Enemies/spr_bat.png");
+public class ZombieEnemy extends Enemy {
+    public ZombieEnemy() {
+        super(170, 0.9, 22, false, "Enemies/spr_zombie.png");
     }
 
     @Override

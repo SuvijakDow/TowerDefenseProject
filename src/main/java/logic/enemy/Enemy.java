@@ -62,6 +62,29 @@ public abstract class Enemy implements Damageable {
 
     public abstract void move(Waypoint target);
 
+    protected void moveTowards(Waypoint target) {
+        double dx = target.getX() - this.x;
+        double dy = target.getY() - this.y;
+        double distance = Math.sqrt(dx * dx + dy * dy);
+
+        if (distance > 0) {
+            double moveX = (dx / distance) * speed;
+            double moveY = (dy / distance) * speed;
+
+            if (Math.abs(moveX) > Math.abs(dx)) {
+                this.x = target.getX();
+            } else {
+                this.x += moveX;
+            }
+
+            if (Math.abs(moveY) > Math.abs(dy)) {
+                this.y = target.getY();
+            } else {
+                this.y += moveY;
+            }
+        }
+    }
+
     @Override
     public void takeDamage(int amount) {
         this.hp -= amount;

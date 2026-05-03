@@ -1,8 +1,15 @@
 package logic;
 
 import logic.enemy.BatEnemy;
+import logic.enemy.BigSlimeEnemy;
+import logic.enemy.DemonEnemy;
 import logic.enemy.Enemy;
+import logic.enemy.GhostEnemy;
+import logic.enemy.GoblinEnemy;
+import logic.enemy.KingSlimeEnemy;
+import logic.enemy.SkeletonEnemy;
 import logic.enemy.SlimeEnemy;
+import logic.enemy.ZombieEnemy;
 import logic.map.Waypoint;
 
 import org.junit.jupiter.api.Test;
@@ -53,5 +60,37 @@ public class EnemyTest {
         slime.takeDamage(100);
         assertEquals(0, slime.getCurrentHealth());
         assertTrue(slime.isDead());
+    }
+
+    @Test
+    void testAllEnemySpritesFromResourcesAreImplemented() {
+        // Reason for testing: Guarantee every sprite under resources/Enemies has a matching enemy class using that sprite path.
+        Enemy[] enemies = {
+            new SlimeEnemy(),
+            new BatEnemy(),
+            new BigSlimeEnemy(),
+            new KingSlimeEnemy(),
+            new GoblinEnemy(),
+            new SkeletonEnemy(),
+            new ZombieEnemy(),
+            new GhostEnemy(),
+            new DemonEnemy()
+        };
+
+        String[] expectedSprites = {
+            "Enemies/spr_normal_slime.png",
+            "Enemies/spr_bat.png",
+            "Enemies/spr_big_slime.png",
+            "Enemies/spr_king_slime.png",
+            "Enemies/spr_goblin.png",
+            "Enemies/spr_skeleton.png",
+            "Enemies/spr_zombie.png",
+            "Enemies/spr_ghost.png",
+            "Enemies/spr_demon.png"
+        };
+
+        for (int i = 0; i < enemies.length; i++) {
+            assertEquals(expectedSprites[i], enemies[i].getSpriteName());
+        }
     }
 }

@@ -44,7 +44,14 @@ public class AssetManager {
                 "Environment/Decoration/spr_tree_02_spruce.png",
                 "Environment/Decoration/spr_mushroom_01.png",
                 "Environment/Decoration/spr_mushroom_02.png",
+                "Enemies/spr_big_slime.png",
                 "Enemies/spr_normal_slime.png",
+                "Enemies/spr_king_slime.png",
+                "Enemies/spr_goblin.png",
+                "Enemies/spr_skeleton.png",
+                "Enemies/spr_zombie.png",
+                "Enemies/spr_ghost.png",
+                "Enemies/spr_demon.png",
                 "Enemies/spr_bat.png"
         };
 
