@@ -7,7 +7,8 @@ import logic.map.Waypoint;
 
 public abstract class Enemy implements Damageable {
     protected int maxHealth;
-    protected int currentHealth;
+    /** Current hit points ({@link #takeDamage} reduces this). */
+    protected int hp;
     protected double speed;
     protected int rewardMoney;
     protected double x;
@@ -22,7 +23,7 @@ public abstract class Enemy implements Damageable {
 
     public Enemy(int maxHealth, double speed, int rewardMoney, boolean isFlying, String spriteName) {
         this.maxHealth = maxHealth;
-        this.currentHealth = maxHealth;
+        this.hp = maxHealth;
         this.speed = speed;
         this.rewardMoney = rewardMoney;
         this.isFlying = isFlying;
@@ -63,18 +64,33 @@ public abstract class Enemy implements Damageable {
 
     @Override
     public void takeDamage(int amount) {
-        this.currentHealth -= amount;
-        if (this.currentHealth < 0) {
-            this.currentHealth = 0;
+        this.hp -= amount;
+        if (this.hp < 0) {
+            this.hp = 0;
         }
     }
 
-    public boolean isDead() { return currentHealth <= 0; }
+    public boolean isDead() {
+        return hp <= 0;
+    }
 
     public int getMaxHealth() { return maxHealth; }
     public void setMaxHealth(int maxHealth) { this.maxHealth = maxHealth; }
-    public int getCurrentHealth() { return currentHealth; }
-    public void setCurrentHealth(int currentHealth) { this.currentHealth = currentHealth; }
+    public int getHp() {
+        return hp;
+    }
+
+    public void setHp(int hp) {
+        this.hp = hp;
+    }
+
+    public int getCurrentHealth() {
+        return hp;
+    }
+
+    public void setCurrentHealth(int currentHealth) {
+        this.hp = currentHealth;
+    }
     public double getSpeed() { return speed; }
     public void setSpeed(double speed) { this.speed = speed; }
     public int getRewardMoney() { return rewardMoney; }

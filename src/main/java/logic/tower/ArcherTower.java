@@ -1,28 +1,11 @@
 package logic.tower;
 
-import java.util.List;
-
-import logic.enemy.Enemy;
-
 public class ArcherTower extends Tower {
     private int level;
 
     public ArcherTower() {
-        super(15, 100.0, 0.5, 100, "Towers/Combat Towers/spr_tower_archer.png");
+        super(20, 150.0, 60, 100, "Towers/Combat Towers/spr_tower_archer.png");
         this.level = 1;
-    }
-
-    @Override
-    public void attack(List<Enemy> enemies) {
-        if (currentCooldown <= 0) {
-            for (Enemy enemy : enemies) {
-                if (isEnemyInRange(enemy)) {
-                    enemy.takeDamage(damage);
-                    currentCooldown = attackCooldown;
-                    break; // Attack one target at a time
-                }
-            }
-        }
     }
 
     @Override
@@ -30,7 +13,7 @@ public class ArcherTower extends Tower {
         this.level++;
         this.damage += 5;
         this.range += 10.0;
-        this.attackCooldown = Math.max(0.1, this.attackCooldown - 0.05);
+        this.fireCooldown = Math.max(1, this.fireCooldown - 2);
     }
 
     public int getLevel() {

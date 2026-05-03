@@ -10,20 +10,25 @@ public class PoisonWizardTower extends Tower implements Skillable {
     private int poisonDamage;
 
     public PoisonWizardTower() {
-        super(30, 150.0, 2.0, 150, "");
+        super(30, 150.0, 120, 150, "");
         this.level = 1;
         this.poisonDamage = 5;
     }
 
+    /** Instant hit-scan damage (no projectile). */
     @Override
-    public void attack(List<Enemy> enemies) {
-        if (currentCooldown <= 0) {
-            for (Enemy enemy : enemies) {
-                if (isEnemyInRange(enemy)) {
-                    enemy.takeDamage(damage);
-                    currentCooldown = attackCooldown;
-                    break; // Attack one target at a time
-                }
+    public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
+        if (currentCooldown > 0) {
+            currentCooldown--;
+        }
+        if (currentCooldown > 0) {
+            return;
+        }
+        for (Enemy enemy : enemies) {
+            if (!enemy.isDead() && isEnemyInRange(enemy)) {
+                enemy.takeDamage(damage);
+                currentCooldown = fireCooldown;
+                break;
             }
         }
     }

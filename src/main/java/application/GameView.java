@@ -10,6 +10,7 @@ import logic.map.Decoration;
 import logic.map.GameMap;
 import logic.map.Theme;
 import logic.tower.ArcherTower;
+import logic.tower.Projectile;
 import logic.tower.Tower;
 
 import java.util.ArrayList;
@@ -163,6 +164,22 @@ public class GameView extends StackPane {
 
         if (castle != null && hasCastleCell && !castleDrawn) {
             drawCastleSprite(gc, castle, castleDx, castleDy);
+        }
+
+        drawProjectiles(gc, assets);
+    }
+
+    private static final double PROJECTILE_DRAW_SIZE = 16.0;
+
+    private void drawProjectiles(GraphicsContext gc, AssetManager assets) {
+        for (Projectile p : gameManager.getActiveProjectiles()) {
+            Image img = assets.getImage(p.getSpriteName());
+            if (img == null) {
+                continue;
+            }
+            double half = PROJECTILE_DRAW_SIZE / 2.0;
+            gc.drawImage(img, 0, 0, img.getWidth(), img.getHeight(),
+                    p.getX() - half, p.getY() - half, PROJECTILE_DRAW_SIZE, PROJECTILE_DRAW_SIZE);
         }
     }
 

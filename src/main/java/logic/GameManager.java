@@ -8,12 +8,14 @@ import logic.enemy.Enemy;
 import logic.enemy.SlimeEnemy;
 import logic.map.GameMap;
 import logic.map.Waypoint;
+import logic.tower.Projectile;
 import logic.tower.Tower;
 
 public class GameManager {
     private GameMap currentMap;
     private List<Enemy> activeEnemies;
     private List<Tower> activeTowers;
+    private List<Projectile> activeProjectiles;
     private int playerMoney;
     private int baseHealth;
     private boolean isGameOver;
@@ -22,6 +24,7 @@ public class GameManager {
         this.currentMap = map;
         this.activeEnemies = new ArrayList<>();
         this.activeTowers = new ArrayList<>();
+        this.activeProjectiles = new ArrayList<>();
         this.playerMoney = 500;
         this.baseHealth = 100;
         this.isGameOver = false;
@@ -105,12 +108,26 @@ public class GameManager {
             }
         }
 
-        // Towers attack
-        for (Tower tower : activeTowers) {
-            tower.attack(activeEnemies);
+        if (isGameOver) {
+            return;
         }
 
-        // Post-attack check for dead enemies
+        for (Tower tower : activeTowers) {
+            tower.update(activeEnemies, activeProjectiles);
+        }
+
+        Iterator<Projectile> projectileIterator = activeProjectiles.iterator();
+        while (projectileIterator.hasNext()) {
+            Projectile p = projectileIterator.next();
+            if (p.update()) {
+                Enemy target = p.getTarget();
+                if (target != null && !target.isDead()) {
+                    target.takeDamage(p.getDamage());
+                }
+                projectileIterator.remove();
+            }
+        }
+
         enemyIterator = activeEnemies.iterator();
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
@@ -126,6 +143,7 @@ public class GameManager {
     public void setCurrentMap(GameMap currentMap) { this.currentMap = currentMap; }
     public List<Enemy> getActiveEnemies() { return activeEnemies; }
     public List<Tower> getActiveTowers() { return activeTowers; }
+    public List<Projectile> getActiveProjectiles() { return activeProjectiles; }
     public int getPlayerMoney() { return playerMoney; }
     public void setPlayerMoney(int playerMoney) { this.playerMoney = playerMoney; }
     public int getBaseHealth() { return baseHealth; }
