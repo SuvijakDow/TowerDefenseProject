@@ -4,12 +4,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
-import logic.Decoration;
 import logic.GameManager;
-import logic.GameMap;
-import logic.Theme;
+import logic.enemy.Enemy;
+import logic.map.Decoration;
+import logic.map.GameMap;
+import logic.map.Theme;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class GameView extends StackPane {
@@ -17,6 +19,7 @@ public class GameView extends StackPane {
     private GraphicsContext gc;
     private GameManager gameManager;
     private static final int TILE_SIZE = 50;
+    private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
 
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
@@ -113,44 +116,74 @@ public class GameView extends StackPane {
         double castleBottomY = castleDy + castleDrawHeight;
         boolean castleDrawn = false;
 
-        if (decorations != null && !decorations.isEmpty()) {
-            List<Decoration> sortedDecorations = new ArrayList<>(decorations);
+        List<DepthSprite> depthSprites = new ArrayList<>();
+        if (decorations != null) {
+            for (Decoration d : decorations) {
+                depthSprites.add(DepthSprite.decoration(d, decorationBottomY(d, assets)));
+            }
+        }
+        for (Enemy e : gameManager.getActiveEnemies()) {
+            depthSprites.add(DepthSprite.enemy(e, e.getY()));
+        }
 
-            // Sort by each sprite's ground contact (base Y) for correct overlap.
-            sortedDecorations.sort((d1, d2) -> {
-                Image img1 = assets.getImage(d1.getSpriteName());
-                Image img2 = assets.getImage(d2.getSpriteName());
+        depthSprites.sort(Comparator.comparingDouble(d -> d.bottomY));
 
-                // Compute scaled sprite height (fallback to TILE_SIZE if image missing).
-                double h1 = (img1 != null) ? img1.getHeight() * d1.getScale() : TILE_SIZE;
-                double h2 = (img2 != null) ? img2.getHeight() * d2.getScale() : TILE_SIZE;
+        for (DepthSprite item : depthSprites) {
+            if (castle != null && hasCastleCell && !castleDrawn && item.bottomY > castleBottomY) {
+                drawCastleSprite(gc, castle, castleDx, castleDy);
+                castleDrawn = true;
+            }
 
-                double bottom1 = d1.getY() + h1;
-                double bottom2 = d2.getY() + h2;
-                return Double.compare(bottom1, bottom2);
-            });
-
-            // Draw in order: lower (front) drawn last, higher (back) drawn first.
-            // Castle is inserted when the first decoration sits in front of it (lower on screen).
-            for (Decoration dec : sortedDecorations) {
-                double decBottomY = decorationBottomY(dec, assets);
-
-                if (castle != null && hasCastleCell && !castleDrawn && decBottomY > castleBottomY) {
-                    drawCastleSprite(gc, castle, castleDx, castleDy);
-                    castleDrawn = true;
-                }
-
+            if (item.decoration != null) {
+                Decoration dec = item.decoration;
                 Image img = assets.getImage(dec.getSpriteName());
                 if (img != null) {
                     double drawW = img.getWidth() * dec.getScale();
                     double drawH = img.getHeight() * dec.getScale();
                     gc.drawImage(img, dec.getX(), dec.getY(), drawW, drawH);
                 }
+            } else if (item.enemy != null) {
+                drawEnemy(gc, assets, item.enemy);
             }
         }
 
         if (castle != null && hasCastleCell && !castleDrawn) {
             drawCastleSprite(gc, castle, castleDx, castleDy);
+        }
+    }
+
+    private static void drawEnemy(GraphicsContext gc, AssetManager assets, Enemy enemy) {
+        Image img = assets.getImage(enemy.getSpriteName());
+        if (img == null) {
+            return;
+        }
+        double frameW = img.getWidth() / 4.0;
+        double frameH = img.getHeight();
+        double sx = enemy.getCurrentFrame() * frameW;
+        double destW = frameW * ENEMY_SPRITE_DRAW_SCALE;
+        double destH = frameH * ENEMY_SPRITE_DRAW_SCALE;
+        double drawX = enemy.getX() - destW / 2.0;
+        double drawY = enemy.getY() - destH;
+        gc.drawImage(img, sx, 0, frameW, frameH, drawX, drawY, destW, destH);
+    }
+
+    private static final class DepthSprite {
+        final double bottomY;
+        final Decoration decoration;
+        final Enemy enemy;
+
+        private DepthSprite(double bottomY, Decoration decoration, Enemy enemy) {
+            this.bottomY = bottomY;
+            this.decoration = decoration;
+            this.enemy = enemy;
+        }
+
+        static DepthSprite decoration(Decoration d, double bottomY) {
+            return new DepthSprite(bottomY, d, null);
+        }
+
+        static DepthSprite enemy(Enemy e, double bottomY) {
+            return new DepthSprite(bottomY, null, e);
         }
     }
 

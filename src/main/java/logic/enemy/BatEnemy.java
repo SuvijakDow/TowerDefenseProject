@@ -1,8 +1,10 @@
-package logic;
+package logic.enemy;
 
-public class SlimeEnemy extends Enemy {
-    public SlimeEnemy() {
-        super(100, 1.0, 10, false);
+import logic.map.Waypoint;
+
+public class BatEnemy extends Enemy {
+    public BatEnemy() {
+        super(50, 2.5, 15, true, "Enemies/spr_bat.png");
     }
 
     @Override

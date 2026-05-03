@@ -4,6 +4,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import logic.enemy.Enemy;
+import logic.enemy.SlimeEnemy;
+import logic.map.GameMap;
+import logic.map.Waypoint;
+import logic.tower.Tower;
+
 public class GameManager {
     private GameMap currentMap;
     private List<Enemy> activeEnemies;
@@ -42,29 +48,24 @@ public class GameManager {
         activeEnemies.add(enemy);
     }
 
+    /** Spawns one {@link SlimeEnemy} at path start (for testing / demo). */
+    public void spawnTestSlime() {
+        spawnEnemy(new SlimeEnemy());
+    }
+
     // Core game tick logic
     public void update() {
         if (isGameOver) return;
 
-        // Move enemies and check for waypoint completion
+        List<Waypoint> waypoints = currentMap != null ? currentMap.getPathWaypoints() : List.of();
+
+        // Move enemies (logic + animation inside Enemy.update)
         Iterator<Enemy> enemyIterator = activeEnemies.iterator();
         while (enemyIterator.hasNext()) {
             Enemy enemy = enemyIterator.next();
-            List<Waypoint> waypoints = currentMap.getPathWaypoints();
-            
-            if (enemy.getCurrentWaypointIndex() < waypoints.size()) {
-                Waypoint target = waypoints.get(enemy.getCurrentWaypointIndex());
-                enemy.move(target);
-                
-                // Check if reached waypoint
-                double dx = target.getX() - enemy.getX();
-                double dy = target.getY() - enemy.getY();
-                if (Math.sqrt(dx * dx + dy * dy) <= 0.1) { // Very close or exact
-                    enemy.setCurrentWaypointIndex(enemy.getCurrentWaypointIndex() + 1);
-                }
-            }
-            
-            // Check if reached the end
+            enemy.update(waypoints);
+
+            // Reached end of path (past last waypoint)
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
                 baseHealth--;
                 enemyIterator.remove();

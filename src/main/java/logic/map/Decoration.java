@@ -1,4 +1,4 @@
-package logic;
+package logic.map;
 
 public class Decoration {
     private final String spriteName;

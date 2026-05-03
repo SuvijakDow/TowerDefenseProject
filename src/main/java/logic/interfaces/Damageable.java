@@ -1,4 +1,4 @@
-package logic;
+package logic.interfaces;
 
 // Represents an entity that can take damage
 public interface Damageable {

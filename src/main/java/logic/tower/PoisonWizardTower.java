@@ -1,6 +1,9 @@
-package logic;
+package logic.tower;
 
 import java.util.List;
+
+import logic.enemy.Enemy;
+import logic.interfaces.Skillable;
 
 public class PoisonWizardTower extends Tower implements Skillable {
     private int level;

@@ -1,6 +1,8 @@
-package logic;
+package logic.tower;
 
 import java.util.List;
+
+import logic.enemy.Enemy;
 
 public class ArcherTower extends Tower {
     private int level;

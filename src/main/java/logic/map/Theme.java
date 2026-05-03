@@ -1,4 +1,4 @@
-package logic;
+package logic.map;
 
 public enum Theme {
     NORMAL,

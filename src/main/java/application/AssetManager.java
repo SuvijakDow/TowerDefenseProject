@@ -41,7 +41,9 @@ public class AssetManager {
                 "Environment/Decoration/spr_tree_02_autumn.png",
                 "Environment/Decoration/spr_tree_02_spruce.png",
                 "Environment/Decoration/spr_mushroom_01.png",
-                "Environment/Decoration/spr_mushroom_02.png"
+                "Environment/Decoration/spr_mushroom_02.png",
+                "Enemies/spr_normal_slime.png",
+                "Enemies/spr_bat.png"
         };
 
         for (String asset : assets) {

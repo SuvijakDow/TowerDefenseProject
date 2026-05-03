@@ -1,4 +1,4 @@
-package logic;
+package logic.map;
 
 import java.io.BufferedReader;
 import java.io.IOException;

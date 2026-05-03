@@ -1,6 +1,9 @@
-package logic;
+package logic.tower;
 
 import java.util.List;
+
+import logic.enemy.Enemy;
+import logic.interfaces.Upgradable;
 
 public abstract class Tower implements Upgradable {
     protected int damage;

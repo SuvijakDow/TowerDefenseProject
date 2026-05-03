@@ -1,14 +1,16 @@
 package application;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.util.List;
 import logic.GameManager;
-import logic.GameMap;
-import logic.LevelLoader;
-import logic.Decoration;
-import logic.Theme;
+import logic.enemy.BatEnemy;
+import logic.map.Decoration;
+import logic.map.GameMap;
+import logic.map.LevelLoader;
+import logic.map.Theme;
 
 public class Main extends Application {
 
@@ -94,16 +96,26 @@ public class Main extends Application {
             }
         }
 
-        gameMap.generateWaypointsFromGrid(50); // TILE_SIZE is 50 in GameView
+        gameMap.generatePath();
         GameManager gameManager = new GameManager(gameMap);
 
         GameView gameView = new GameView(gameManager);
+        gameManager.spawnEnemy(new BatEnemy());
 
         Scene scene = new Scene(gameView, 800, 600);
         primaryStage.setTitle("Tower Defense");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
         primaryStage.show();
+
+        AnimationTimer gameLoop = new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                gameManager.update();
+                gameView.drawMap();
+            }
+        };
+        gameLoop.start();
     }
 
     public static void main(String[] args) {

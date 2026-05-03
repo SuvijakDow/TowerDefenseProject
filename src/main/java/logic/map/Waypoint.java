@@ -1,4 +1,4 @@
-package logic;
+package logic.map;
 
 public class Waypoint {
     private double x;
