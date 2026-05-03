@@ -1,5 +1,10 @@
 package logic;
 
+import logic.enemy.BatEnemy;
+import logic.enemy.Enemy;
+import logic.enemy.SlimeEnemy;
+import logic.map.Waypoint;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

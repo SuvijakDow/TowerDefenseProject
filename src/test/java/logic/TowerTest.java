@@ -1,5 +1,9 @@
 package logic;
 
+import logic.enemy.Enemy;
+import logic.enemy.SlimeEnemy;
+import logic.tower.ArcherTower;
+
 import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;

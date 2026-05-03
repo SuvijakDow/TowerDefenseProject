@@ -1,5 +1,12 @@
 package logic;
 
+import logic.enemy.Enemy;
+import logic.enemy.SlimeEnemy;
+import logic.map.GameMap;
+import logic.tower.ArcherTower;
+import logic.tower.PoisonWizardTower;
+import logic.tower.Tower;
+
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
