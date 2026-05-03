@@ -13,6 +13,7 @@ import logic.map.Theme;
 import logic.tower.Projectile;
 import logic.tower.Tower;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -56,7 +57,7 @@ public class GameView extends StackPane {
         canvas.setOnKeyPressed(e -> handleKeyPress(e));
     }
 
-    private void updateHover(int row, int col) {
+    public void updateHover(int row, int col) {
         this.hoverRow = row;
         this.hoverCol = col;
         if (row < 0 || col < 0) {
@@ -78,6 +79,39 @@ public class GameView extends StackPane {
                 }
             }
         }
+        
+        // Check if player can afford the selected tower
+        if (valid) {
+            // Get tower cost using simple inline switch
+            int towerCost;
+            switch (gameManager.getSelectedTowerType()) {
+                case ARCHER:
+                    towerCost = 100;
+                    break;
+                case CANNON:
+                    towerCost = 120;
+                    break;
+                case CROSSBOW:
+                    towerCost = 130;
+                    break;
+                case ICE_WIZARD:
+                    towerCost = 150;
+                    break;
+                case LIGHTNING_WIZARD:
+                    towerCost = 150;
+                    break;
+                case POISON_WIZARD:
+                    towerCost = 150;
+                    break;
+                default:
+                    towerCost = 100;
+                    break;
+            }
+            if (gameManager.getPlayerMoney() < towerCost) {
+                valid = false; // Cannot afford, mark as invalid for red hover
+            }
+        }
+        
         hoverValid = valid;
 
         drawMap();
@@ -156,7 +190,7 @@ public class GameView extends StackPane {
             }
             gc.fillRect(hoverCol * TILE_SIZE, hoverRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             
-            // Draw range indicator
+            // Draw range indicator (only when valid)
             if (hoverValid) {
                 double range = gameManager.getTowerRange(gameManager.getSelectedTowerType());
                 double centerX = hoverCol * TILE_SIZE + TILE_SIZE / 2.0;
@@ -165,6 +199,9 @@ public class GameView extends StackPane {
                 gc.setFill(Color.rgb(255, 255, 255, 0.15));
                 gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
             }
+            
+            // Draw ghost tower preview (always show when hovering)
+            drawGhostTower(gc, hoverCol * TILE_SIZE, hoverRow * TILE_SIZE);
         }
 
         double castleDrawWidth = TILE_SIZE * 3.0;
@@ -394,6 +431,63 @@ public class GameView extends StackPane {
         }
 
         return new int[]{sx, sy};
+    }
+    
+    private void drawGhostTower(GraphicsContext gc, int tileX, int tileY) {
+        // Get tower sprite path based on selected tower type
+        String spritePath = getTowerSpritePath(gameManager.getSelectedTowerType());
+        if (spritePath == null) {
+            return;
+        }
+        
+        // Try to load image directly instead of through AssetManager
+        try {
+            InputStream imageStream = getClass().getResourceAsStream(spritePath);
+            if (imageStream == null) {
+                return;
+            }
+            Image towerSprite = new Image(imageStream);
+            if (towerSprite.isError()) {
+                return;
+            }
+            
+            // Use same drawing logic as drawTower method
+            double iw = towerSprite.getWidth();
+            double ih = towerSprite.getHeight();
+            if (iw <= 0 || ih <= 0) {
+                return;
+            }
+            
+            // Calculate position and size like actual tower
+            // Note: drawTower expects tower.getX() and tower.getY() as center positions
+            double towerCenterX = tileX + TILE_SIZE / 2.0; // Center of tile
+            double towerCenterY = tileY + TILE_SIZE / 2.0; // Center of tile
+            
+            double destW = TILE_SIZE;
+            double destH = (ih / iw) * destW; // Maintain aspect ratio
+            double footprintBottom = towerCenterY + TILE_SIZE / 2.0;
+            double drawX = towerCenterX - destW / 2.0;
+            double drawY = footprintBottom - destH;
+            
+            // Draw semi-transparent ghost tower
+            gc.setGlobalAlpha(0.5); // Semi-transparent
+            gc.drawImage(towerSprite, 0, 0, iw, ih, drawX, drawY, destW, destH);
+            gc.setGlobalAlpha(1.0); // Reset to normal
+        } catch (Exception e) {
+            // Silently handle exceptions
+        }
+    }
+    
+    private String getTowerSpritePath(GameManager.TowerType towerType) {
+        switch (towerType) {
+            case ARCHER: return "/Towers/Combat Towers/spr_tower_archer.png";
+            case CANNON: return "/Towers/Combat Towers/spr_tower_cannon.png";
+            case CROSSBOW: return "/Towers/Combat Towers/spr_tower_crossbow.png";
+            case ICE_WIZARD: return "/Towers/Combat Towers/spr_tower_ice_wizard.png";
+            case LIGHTNING_WIZARD: return "/Towers/Combat Towers/spr_tower_lightning_tower.png";
+            case POISON_WIZARD: return "/Towers/Combat Towers/spr_tower_poison_wizard.png";
+            default: return "/Towers/Combat Towers/spr_tower_archer.png";
+        }
     }
     
     private void handleKeyPress(KeyEvent e) {
