@@ -155,6 +155,16 @@ public class GameView extends StackPane {
                 gc.setFill(Color.rgb(255, 0, 0, 0.4));
             }
             gc.fillRect(hoverCol * TILE_SIZE, hoverRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+            
+            // Draw range indicator
+            if (hoverValid) {
+                double range = gameManager.getTowerRange(gameManager.getSelectedTowerType());
+                double centerX = hoverCol * TILE_SIZE + TILE_SIZE / 2.0;
+                double centerY = hoverRow * TILE_SIZE + TILE_SIZE / 2.0;
+                
+                gc.setFill(Color.rgb(255, 255, 255, 0.15));
+                gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
+            }
         }
 
         double castleDrawWidth = TILE_SIZE * 3.0;
@@ -235,8 +245,19 @@ public class GameView extends StackPane {
                 continue;
             }
             double half = PROJECTILE_DRAW_SIZE / 2.0;
+            
+            // Calculate rotation angle based on target position
+            double dx = p.getTarget().getX() - p.getX();
+            double dy = p.getTarget().getY() - p.getY();
+            double angle = Math.toDegrees(Math.atan2(dy, dx));
+            
+            // Save context, translate, rotate, draw, restore
+            gc.save();
+            gc.translate(p.getX(), p.getY());
+            gc.rotate(angle);
             gc.drawImage(img, 0, 0, img.getWidth(), img.getHeight(),
-                    p.getX() - half, p.getY() - half, PROJECTILE_DRAW_SIZE, PROJECTILE_DRAW_SIZE);
+                    -half, -half, PROJECTILE_DRAW_SIZE, PROJECTILE_DRAW_SIZE);
+            gc.restore();
         }
     }
 

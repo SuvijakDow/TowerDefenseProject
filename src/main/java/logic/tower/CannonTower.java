@@ -10,7 +10,7 @@ public class CannonTower extends Tower {
     private static final String CANNON_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_cannon_projectile.png";
 
     public CannonTower() {
-        super(30, 120.0, 48, 120, "Towers/Combat Towers/spr_tower_cannon.png");
+        super(50, 120.0, 48, 120, "Towers/Combat Towers/spr_tower_cannon.png");
         this.level = 1;
     }
 
@@ -28,7 +28,7 @@ public class CannonTower extends Tower {
         }
         int T = GameMap.PATH_TILE_PIXEL_SIZE;
         double sx = x + T / 2.0;
-        double sy = y + T;
+        double sy = y + T - (T * 0.8); // Offset upwards from tower head
         activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target, CANNON_PROJECTILE_SPRITE));
         currentCooldown = fireCooldown;
     }

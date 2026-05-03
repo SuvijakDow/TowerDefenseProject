@@ -12,7 +12,7 @@ public class LightningWizardTower extends Tower implements Skillable {
     private static final String LIGHTNING_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_lightning_tower_projectile.png";
 
     public LightningWizardTower() {
-        super(30, 1000.0, 120, 150, "Towers/Combat Towers/spr_tower_lightning_tower.png");
+        super(60, 300.0, 60, 150, "Towers/Combat Towers/spr_tower_lightning_tower.png");
         this.level = 1;
         this.lightningDamage = 5;
     }
@@ -31,7 +31,7 @@ public class LightningWizardTower extends Tower implements Skillable {
         }
         int T = GameMap.PATH_TILE_PIXEL_SIZE;
         double sx = x + T / 2.0;
-        double sy = y + T;
+        double sy = y + T - (T * 0.8); // Offset upwards from tower head
         activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target, LIGHTNING_PROJECTILE_SPRITE));
         currentCooldown = fireCooldown;
     }

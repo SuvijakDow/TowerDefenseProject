@@ -5,11 +5,18 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import java.util.List;
+import application.AssetManager;
+import application.GameView;
 import logic.GameManager;
+import logic.map.GameMap;
+import logic.map.Waypoint;
 import logic.enemy.BatEnemy;
 import logic.enemy.SlimeEnemy;
+import logic.enemy.BigSlimeEnemy;
+import logic.enemy.GoblinEnemy;
+import logic.enemy.DemonEnemy;
+import logic.enemy.KingSlimeEnemy;
 import logic.map.Decoration;
-import logic.map.GameMap;
 import logic.map.LevelLoader;
 import logic.map.Theme;
 
@@ -120,6 +127,9 @@ public class Main extends Application {
         GameView gameView = new GameView(gameManager);
         gameManager.spawnEnemy(new BatEnemy());
         gameManager.spawnEnemy(new SlimeEnemy());
+        
+        // Test the new delayed spawn system
+        gameManager.spawnEnemyWave(10);
 
         Scene scene = new Scene(gameView, 800, 600);
         primaryStage.setTitle("Tower Defense");

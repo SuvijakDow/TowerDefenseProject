@@ -16,6 +16,10 @@ import logic.tower.LightningWizardTower;
 import logic.tower.PoisonWizardTower;
 import logic.tower.Projectile;
 import logic.tower.Tower;
+import logic.enemy.BigSlimeEnemy;
+import logic.enemy.GoblinEnemy;
+import logic.enemy.DemonEnemy;
+import logic.enemy.KingSlimeEnemy;
 
 public class GameManager {
     public enum TowerType { ARCHER, CANNON, CROSSBOW, ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD }
@@ -105,6 +109,41 @@ public class GameManager {
     /** Spawns one {@link SlimeEnemy} at path start (for testing / demo). */
     public void spawnTestSlime() {
         spawnEnemy(new SlimeEnemy());
+    }
+    
+    /** Spawns enemies with delay to prevent overlap */
+    public void spawnEnemyWave(int count) {
+        new Thread(() -> {
+            try {
+                for (int i = 0; i < count; i++) {
+                    final int enemyIndex = i; // Make effectively final for lambda
+                    Thread.sleep(500); // 0.5 second delay between spawns
+                    javafx.application.Platform.runLater(() -> {
+                        // Spawn different enemy types for variety
+                        switch (enemyIndex % 5) {
+                            case 0:
+                                spawnEnemy(new SlimeEnemy());
+                                break;
+                            case 1:
+                                spawnEnemy(new BigSlimeEnemy());
+                                break;
+                            case 2:
+                                spawnEnemy(new GoblinEnemy());
+                                break;
+                            case 3:
+                                spawnEnemy(new DemonEnemy());
+                                break;
+                            case 4:
+                                spawnEnemy(new KingSlimeEnemy());
+                                break;
+                        }
+                    });
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+        System.out.println("Spawned enemy wave of " + count + " enemies with delay!");
     }
 
     // Core game tick logic
@@ -234,5 +273,10 @@ public class GameManager {
             default:
                 return null;
         }
+    }
+    
+    public double getTowerRange(TowerType type) {
+        Tower tempTower = createTowerFromType(type);
+        return tempTower != null ? tempTower.getRange() : 100.0;
     }
 }

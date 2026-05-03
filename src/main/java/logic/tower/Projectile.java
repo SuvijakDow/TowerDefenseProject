@@ -28,7 +28,7 @@ public class Projectile {
      * (impact or invalid target).
      */
     public boolean update() {
-        if (target == null || target.isDead()) {
+        if (target == null) {
             return true;
         }
         double tx = target.getX();
@@ -37,6 +37,10 @@ public class Projectile {
         double dy = ty - y;
         double dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < HIT_RADIUS) {
+            // Apply damage BEFORE checking if dead
+            if (!target.isDead()) {
+                target.takeDamage(damage);
+            }
             return true;
         }
         if (dist > 0) {

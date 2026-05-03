@@ -10,7 +10,7 @@ public class CrossbowTower extends Tower {
     private static final String CROSSBOW_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_crossbow_projectile.png";
 
     public CrossbowTower() {
-        super(15, 150.0, 18, 130, "Towers/Combat Towers/spr_tower_crossbow.png");
+        super(35, 150.0, 40, 130, "Towers/Combat Towers/spr_tower_crossbow.png");
         this.level = 1;
     }
 
@@ -28,7 +28,7 @@ public class CrossbowTower extends Tower {
         }
         int T = GameMap.PATH_TILE_PIXEL_SIZE;
         double sx = x + T / 2.0;
-        double sy = y + T;
+        double sy = y + T - (T * 0.8); // Offset upwards from tower head
         activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target, CROSSBOW_PROJECTILE_SPRITE));
         currentCooldown = fireCooldown;
     }

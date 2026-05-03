@@ -12,7 +12,7 @@ public class IceWizardTower extends Tower implements Skillable {
     private static final String ICE_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_ice_wizard_projectile.png";
 
     public IceWizardTower() {
-        super(30, 150.0, 120, 150, "Towers/Combat Towers/spr_tower_ice_wizard.png");
+        super(60, 150.0, 120, 150, "Towers/Combat Towers/spr_tower_ice_wizard.png");
         this.level = 1;
         this.iceDamage = 5;
     }
@@ -31,7 +31,7 @@ public class IceWizardTower extends Tower implements Skillable {
         }
         int T = GameMap.PATH_TILE_PIXEL_SIZE;
         double sx = x + T / 2.0;
-        double sy = y + T;
+        double sy = y + T - (T * 0.8); // Offset upwards from tower head
         activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target, ICE_PROJECTILE_SPRITE));
         currentCooldown = fireCooldown;
     }
