@@ -7,6 +7,7 @@ import javafx.stage.Stage;
 import java.util.List;
 import logic.GameManager;
 import logic.enemy.BatEnemy;
+import logic.enemy.SlimeEnemy;
 import logic.map.Decoration;
 import logic.map.GameMap;
 import logic.map.LevelLoader;
@@ -101,6 +102,7 @@ public class Main extends Application {
 
         GameView gameView = new GameView(gameManager);
         gameManager.spawnEnemy(new BatEnemy());
+        gameManager.spawnEnemy(new SlimeEnemy());
 
         Scene scene = new Scene(gameView, 800, 600);
         primaryStage.setTitle("Tower Defense");
