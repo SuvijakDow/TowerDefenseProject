@@ -23,19 +23,25 @@ public class AssetManager {
 
     private void loadAssets() {
         String[] assets = {
-                "spr_grass_02.png",
-                "spr_tile_set_ground.png",
-                "spr_castle_blue.png",
-                "spr_rock_01.png",
-                "spr_tree_01_normal.png",
-                "spr_rock_01.png",
-                "spr_rock_02.png",
-                "spr_rock_03.png",
-                "spr_tree_01_normal.png",
-                "spr_tree_02_normal.png",
-                "spr_tree_01_autumn.png",
-                "spr_mushroom_01.png",
-                "spr_mushroom_02.png"
+                "Environment/Grass/spr_grass_01.png",
+                "Environment/Grass/spr_grass_02.png",
+                "Environment/Grass/spr_grass_03.png",
+                "Environment/Tile Set/spr_tile_set_ground.png",
+                "Environment/Tile Set/spr_tile_set_stone.png",
+                "Towers/Castle/spr_castle_blue.png",
+                "Towers/Castle/spr_castle_green.png",
+                "Towers/Castle/spr_castle_red.png",
+                "Environment/Decoration/spr_rock_01.png",
+                "Environment/Decoration/spr_rock_02.png",
+                "Environment/Decoration/spr_rock_03.png",
+                "Environment/Decoration/spr_tree_01_normal.png",
+                "Environment/Decoration/spr_tree_01_autumn.png",
+                "Environment/Decoration/spr_tree_01_cherry_blossom.png",
+                "Environment/Decoration/spr_tree_02_normal.png",
+                "Environment/Decoration/spr_tree_02_autumn.png",
+                "Environment/Decoration/spr_tree_02_spruce.png",
+                "Environment/Decoration/spr_mushroom_01.png",
+                "Environment/Decoration/spr_mushroom_02.png"
         };
 
         for (String asset : assets) {

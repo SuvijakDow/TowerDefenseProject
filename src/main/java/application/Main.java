@@ -8,27 +8,44 @@ import logic.GameManager;
 import logic.GameMap;
 import logic.LevelLoader;
 import logic.Decoration;
+import logic.Theme;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        int[][] gridLayout = LevelLoader.loadMapGrid("/maps/level1.txt");
+        int[][] gridLayout = LevelLoader.loadMapGrid("/Maps/level1.txt");
         GameMap gameMap = new GameMap(gridLayout);
 
         // Create a pool of decorations to spawn randomly (add mushrooms or autumn trees here).
-        String[] decorPool = {
-                "spr_rock_01.png",
-                "spr_tree_01_normal.png",
-                "spr_rock_01.png",
-                "spr_rock_02.png",
-                "spr_rock_03.png",
-                "spr_tree_01_normal.png",
-                "spr_tree_02_normal.png",
-                "spr_tree_01_autumn.png",
-                "spr_mushroom_01.png",
-                "spr_mushroom_02.png"
-        };
+        String[] decorPool;
+        switch (gameMap.getTheme()) {
+            case AUTUMN:
+                decorPool = new String[] {
+                        "Environment/Decoration/spr_rock_02.png",
+                        "Environment/Decoration/spr_tree_01_autumn.png",
+                        "Environment/Decoration/spr_tree_02_autumn.png",
+                        "Environment/Decoration/spr_mushroom_02.png"
+                };
+                break;
+            case SPRING:
+                decorPool = new String[] {
+                        "Environment/Decoration/spr_rock_03.png",
+                        "Environment/Decoration/spr_tree_01_cherry_blossom.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_mushroom_01.png"
+                };
+                break;
+            case NORMAL:
+            default:
+                decorPool = new String[] {
+                        "Environment/Decoration/spr_rock_01.png",
+                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_spruce.png",
+                        "Environment/Decoration/spr_mushroom_01.png"
+                };
+                break;
+        }
 
         final int tileSize = 50;
         java.util.Random rand = new java.util.Random();
@@ -42,7 +59,7 @@ public class Main extends Application {
                 if (gridLayout[r][c] == 0) {
                     for (int attempt = 0; attempt < attemptsPerTile; attempt++) {
                         // Spawn chance (e.g., 0.15 = 15% chance per attempt).
-                        if (rand.nextDouble() < 0.15) {
+                        if (rand.nextDouble() < 0.30) {
                             // Pick one random decoration from decorPool
                             String randomDecor = decorPool[rand.nextInt(decorPool.length)];
                             double baseX = c * tileSize;
@@ -87,8 +104,8 @@ public class Main extends Application {
             return 3.0;
         }
         if (decorName.contains("rock")) {
-            return 3.5;
+            return 3.0;
         }
-        return 1.2;
+        return 2.0;
     }
 }

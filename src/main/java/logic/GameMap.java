@@ -7,6 +7,7 @@ public class GameMap {
     private int[][] gridLayout;
     private List<Decoration> decorations = new ArrayList<>();
     private List<Waypoint> pathWaypoints;
+    private Theme theme = Theme.SPRING;
 
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
@@ -33,4 +34,6 @@ public class GameMap {
     public void setGridLayout(int[][] gridLayout) { this.gridLayout = gridLayout; }
     public List<Decoration> getDecorations() { return decorations; }
     public List<Waypoint> getPathWaypoints() { return pathWaypoints; }
+    public Theme getTheme() { return theme; }
+    public void setTheme(Theme theme) { this.theme = (theme == null) ? Theme.NORMAL : theme; }
 }

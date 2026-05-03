@@ -7,6 +7,7 @@ import javafx.scene.image.Image;
 import logic.Decoration;
 import logic.GameManager;
 import logic.GameMap;
+import logic.Theme;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -30,11 +31,34 @@ public class GameView extends StackPane {
         gc.setImageSmoothing(false); // Fix blurry pixel art
 
         AssetManager assets = AssetManager.getInstance();
-        Image grass = assets.getImage("spr_grass_02.png");
-        Image groundSet = assets.getImage("spr_tile_set_ground.png");
-        Image castle = assets.getImage("spr_castle_blue.png");
 
         GameMap map = gameManager.getCurrentMap();
+        String grassPath;
+        String pathPath;
+        String castlePath;
+        Theme theme = map.getTheme();
+        switch (theme) {
+            case AUTUMN:
+                grassPath = "Environment/Grass/spr_grass_03.png";
+                pathPath = "Environment/Tile Set/spr_tile_set_stone.png";
+                castlePath = "Towers/Castle/spr_castle_red.png";
+                break;
+            case SPRING:
+                grassPath = "Environment/Grass/spr_grass_01.png";
+                pathPath = "Environment/Tile Set/spr_tile_set_ground.png";
+                castlePath = "Towers/Castle/spr_castle_green.png";
+                break;
+            case NORMAL:
+            default:
+                grassPath = "Environment/Grass/spr_grass_02.png";
+                pathPath = "Environment/Tile Set/spr_tile_set_ground.png";
+                castlePath = "Towers/Castle/spr_castle_blue.png";
+                break;
+        }
+        Image grass = assets.getImage(grassPath);
+        Image groundSet = assets.getImage(pathPath);
+        Image castle = assets.getImage(castlePath);
+
         int[][] grid = map.getGridLayout();
         List<Decoration> decorations = map.getDecorations();
 
@@ -69,16 +93,29 @@ public class GameView extends StackPane {
 
         if (decorations != null && !decorations.isEmpty()) {
             List<Decoration> sortedDecorations = new ArrayList<>(decorations);
-            sortedDecorations.sort(Comparator.comparingDouble(Decoration::getY));
 
-            for (Decoration decoration : sortedDecorations) {
-                Image decorImg = assets.getImage(decoration.getSpriteName());
-                if (decorImg == null) {
-                    continue;
+            // Sort by each sprite's ground contact (base Y) for correct overlap.
+            sortedDecorations.sort((d1, d2) -> {
+                Image img1 = assets.getImage(d1.getSpriteName());
+                Image img2 = assets.getImage(d2.getSpriteName());
+
+                // Compute scaled sprite height (fallback to TILE_SIZE if image missing).
+                double h1 = (img1 != null) ? img1.getHeight() * d1.getScale() : TILE_SIZE;
+                double h2 = (img2 != null) ? img2.getHeight() * d2.getScale() : TILE_SIZE;
+
+                double bottom1 = d1.getY() + h1;
+                double bottom2 = d2.getY() + h2;
+                return Double.compare(bottom1, bottom2);
+            });
+
+            // Draw in order: lower (front) drawn last, higher (back) drawn first.
+            for (Decoration dec : sortedDecorations) {
+                Image img = assets.getImage(dec.getSpriteName());
+                if (img != null) {
+                    double drawW = img.getWidth() * dec.getScale();
+                    double drawH = img.getHeight() * dec.getScale();
+                    gc.drawImage(img, dec.getX(), dec.getY(), drawW, drawH);
                 }
-                double drawW = decorImg.getWidth() * decoration.getScale();
-                double drawH = decorImg.getHeight() * decoration.getScale();
-                gc.drawImage(decorImg, decoration.getX(), decoration.getY(), drawW, drawH);
             }
         }
 
