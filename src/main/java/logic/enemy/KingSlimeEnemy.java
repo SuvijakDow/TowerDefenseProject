@@ -7,6 +7,8 @@ public class KingSlimeEnemy extends Enemy {
         super(320, 0.6, 45, false, "Enemies/spr_king_slime.png");
     }
 
+    
+
     @Override
     public void move(Waypoint target) {
         moveTowards(target);

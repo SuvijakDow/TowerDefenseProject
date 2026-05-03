@@ -14,7 +14,7 @@ public class GameMap {
     private int[][] gridLayout;
     private List<Decoration> decorations = new ArrayList<>();
     private List<Waypoint> pathWaypoints;
-    private Theme theme = Theme.SPRING;
+    private Theme theme = Theme.NORMAL;
 
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
@@ -124,7 +124,7 @@ public class GameMap {
         if (isInCastleClearanceZone(row, col)) {
             return false;
         }
-        
+
         if (decorations != null) {
             for (Decoration dec : decorations) {
                 if (dec.getRow() == row && dec.getCol() == col) {

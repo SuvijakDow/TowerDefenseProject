@@ -46,10 +46,12 @@ public class Main extends Application {
                         "Environment/Decoration/spr_rock_03.png",
                         "Environment/Decoration/spr_tree_01_cherry_blossom.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_normal.png",
+                        "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_tree_01_cherry_blossom.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
-                        "Environment/Decoration/spr_tree_01_cherry_blossom.png",
-                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_normal.png",
+                        "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_mushroom_01.png",
                         "Environment/Decoration/spr_mushroom_02.png"
                 };
@@ -61,10 +63,10 @@ public class Main extends Application {
                         "Environment/Decoration/spr_rock_02.png",
                         "Environment/Decoration/spr_rock_03.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_normal.png",
                         "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_tree_01_normal.png",
-                        "Environment/Decoration/spr_tree_02_spruce.png",
-                        "Environment/Decoration/spr_tree_01_normal.png",
+                        "Environment/Decoration/spr_tree_02_normal.png",
                         "Environment/Decoration/spr_tree_02_spruce.png",
                         "Environment/Decoration/spr_mushroom_01.png",
                         "Environment/Decoration/spr_mushroom_02.png"
@@ -141,7 +143,7 @@ public class Main extends Application {
 
     private double getDecorScale(String decorName) {
         if (decorName.contains("mushroom")) {
-            return 2.5;
+            return 3.0;
         }
         if (decorName.contains("tree")) {
             return 3.0;
@@ -149,7 +151,7 @@ public class Main extends Application {
         if (decorName.contains("rock")) {
             return 3.0;
         }
-        return 2.0;
+        return 3.0;
     }
 
 }
