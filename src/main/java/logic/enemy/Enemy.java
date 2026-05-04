@@ -20,8 +20,11 @@ public abstract class Enemy implements Damageable {
     protected String spriteName;
     protected int currentFrame;
     protected int animTick;
+    protected double hitTimer;
+    protected boolean isHit;
 
     private static final int ANIM_TICK_THRESHOLD = 10;
+    private static final double HIT_FLASH_DURATION = 0.08; // seconds - reduced for better performance
 
     public Enemy(int maxHealth, double speed, int rewardMoney, boolean isFlying, String spriteName, int damage) {
         this.maxHealth = maxHealth;
@@ -35,6 +38,8 @@ public abstract class Enemy implements Damageable {
         this.currentWaypointIndex = 0;
         this.currentFrame = 0;
         this.animTick = 0;
+        this.hitTimer = 0.0;
+        this.isHit = false;
     }
 
     /**
@@ -45,6 +50,15 @@ public abstract class Enemy implements Damageable {
         if (animTick > ANIM_TICK_THRESHOLD) {
             animTick = 0;
             currentFrame = (currentFrame + 1) % 4;
+        }
+
+        // Update hit flash timer
+        if (isHit) {
+            hitTimer -= 0.016; // Assuming 60 FPS, approximately 1/60 second
+            if (hitTimer <= 0) {
+                isHit = false;
+                hitTimer = 0.0;
+            }
         }
 
         if (waypoints == null || waypoints.isEmpty()) {
@@ -95,6 +109,9 @@ public abstract class Enemy implements Damageable {
         if (this.hp < 0) {
             this.hp = 0;
         }
+        // Trigger hit flash effect
+        isHit = true;
+        hitTimer = HIT_FLASH_DURATION;
     }
 
     public boolean isDead() {
@@ -145,4 +162,10 @@ public abstract class Enemy implements Damageable {
     
     public int getDamage() { return damage; }
     public void setDamage(int damage) { this.damage = damage; }
+    
+    public boolean isHit() { return isHit; }
+    public void setHit(boolean hit) { this.isHit = hit; }
+    
+    public double getHitTimer() { return hitTimer; }
+    public void setHitTimer(double hitTimer) { this.hitTimer = hitTimer; }
 }

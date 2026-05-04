@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.text.Font;
+import logic.DamageText;
 
 public class GameView extends StackPane {
     private Canvas canvas;
@@ -258,6 +260,7 @@ public class GameView extends StackPane {
         }
 
         drawProjectiles(gc, assets);
+        drawDamageTexts(gc, assets);
     }
 
     private static final double PROJECTILE_DRAW_SIZE = 16.0;
@@ -329,6 +332,66 @@ public class GameView extends StackPane {
         double drawX = enemy.getX() - destW / 2.0;
         double drawY = enemy.getY() - destH;
         gc.drawImage(img, sx, 0, frameW, frameH, drawX, drawY, destW, destH);
+        
+        // Draw red flash effect if enemy is hit
+        if (enemy.isHit()) {
+            gc.save();
+            gc.setGlobalAlpha(0.6);
+            gc.setFill(javafx.scene.paint.Color.rgb(255, 0, 0));
+            gc.fillRect(drawX, drawY, destW, destH);
+            gc.restore();
+        }
+    }
+
+    // Cache font to avoid repeated loading
+    private Font damageFont = null;
+    
+    /**
+     * Draws floating damage texts with drop shadow for readability.
+     * Optimized to reduce font loading and improve performance.
+     */
+    private void drawDamageTexts(GraphicsContext gc, AssetManager assets) {
+        // Load font once and cache it
+        if (damageFont == null) {
+            try {
+                damageFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 28);
+                if (damageFont == null) {
+                    damageFont = new Font("Arial", 28);
+                }
+            } catch (Exception e) {
+                damageFont = new Font("Arial", 28);
+            }
+        }
+        
+        gc.setFont(damageFont);
+        
+        for (DamageText damageText : gameManager.getActiveDamageTexts()) {
+            if (damageText.getOpacity() <= 0) {
+                continue;
+            }
+            
+            gc.save();
+            
+            // Apply opacity
+            gc.setGlobalAlpha(damageText.getOpacity());
+            
+            // Draw drop shadow (black outline) - optimized to fewer calls
+            gc.setFill(javafx.scene.paint.Color.BLACK);
+            String text = damageText.getText();
+            double x = damageText.getX();
+            double y = damageText.getY();
+            
+            gc.fillText(text, x + 1, y + 1);
+            gc.fillText(text, x - 1, y + 1);
+            gc.fillText(text, x + 1, y - 1);
+            gc.fillText(text, x - 1, y - 1);
+            
+            // Draw main text
+            gc.setFill(damageText.getColor());
+            gc.fillText(text, x, y);
+            
+            gc.restore();
+        }
     }
 
     private static final class DepthSprite {

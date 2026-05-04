@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import javafx.scene.paint.Color;
 import logic.enemy.Enemy;
 import logic.enemy.SlimeEnemy;
 import logic.enemy.BatEnemy;
@@ -32,6 +33,7 @@ public class GameManager {
     private List<Enemy> activeEnemies;
     private List<Tower> activeTowers;
     private List<Projectile> activeProjectiles;
+    private List<DamageText> activeDamageTexts;
     private int playerMoney;
     private int baseHealth;
     private boolean isGameOver;
@@ -47,6 +49,7 @@ public class GameManager {
         this.activeEnemies = new ArrayList<>();
         this.activeTowers = new ArrayList<>();
         this.activeProjectiles = new ArrayList<>();
+        this.activeDamageTexts = new ArrayList<>();
         this.playerMoney = 500;
         this.baseHealth = 100;
         this.isGameOver = false;
@@ -177,8 +180,19 @@ public class GameManager {
                 Enemy target = p.getTarget();
                 if (target != null && !target.isDead()) {
                     target.takeDamage(p.getDamage());
+                    // Create damage text at enemy position
+                    createDamageText(String.valueOf(p.getDamage()), target.getX(), target.getY(), Color.WHITE);
                 }
                 projectileIterator.remove();
+            }
+        }
+
+        // Update damage texts
+        Iterator<DamageText> damageTextIterator = activeDamageTexts.iterator();
+        while (damageTextIterator.hasNext()) {
+            DamageText damageText = damageTextIterator.next();
+            if (damageText.update(deltaTime)) {
+                damageTextIterator.remove();
             }
         }
 
@@ -372,6 +386,7 @@ public class GameManager {
         activeEnemies.clear();
         activeTowers.clear();
         activeProjectiles.clear();
+        activeDamageTexts.clear();
         
         // Reset player stats
         baseHealth = 100;
@@ -403,5 +418,24 @@ public class GameManager {
         int minutes = (int) (timeRemaining / 60);
         int seconds = (int) (timeRemaining % 60);
         return String.format("%02d:%02d", minutes, seconds);
+    }
+    
+    /**
+     * Creates a floating damage text at the specified position.
+     * Limits damage texts to prevent performance issues.
+     */
+    public void createDamageText(String text, double x, double y, Color color) {
+        // Limit maximum damage texts to prevent lag
+        if (activeDamageTexts.size() >= 50) {
+            return;
+        }
+        activeDamageTexts.add(new DamageText(text, x, y, color));
+    }
+    
+    /**
+     * Gets the list of active damage texts for rendering.
+     */
+    public List<DamageText> getActiveDamageTexts() {
+        return activeDamageTexts;
     }
 }

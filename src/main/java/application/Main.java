@@ -23,6 +23,7 @@ import java.net.URL;
 import application.AssetManager;
 import application.GameView;
 import application.MainMenu;
+import application.UIUtils;
 import logic.GameManager;
 import logic.tower.Tower;
 import logic.tower.ArcherTower;
@@ -40,6 +41,7 @@ import logic.enemy.DemonEnemy;
 import logic.enemy.KingSlimeEnemy;
 import logic.map.Decoration;
 import logic.map.LevelLoader;
+import logic.map.PathGenerator;
 import logic.map.GameMap;
 import logic.map.Theme;
 
@@ -80,8 +82,14 @@ public class Main extends Application {
     }
     
     private static void initializeGame() {
-        int[][] gridLayout = LevelLoader.loadMapGrid("/Maps/level1.txt");
+        int[][] gridLayout = PathGenerator.generateRandomPath(); // can use LevelLoader.loadMapGrid("/Paths/path1.txt") for custom levels.
         Main.gameMap = new GameMap(gridLayout);
+        
+        // Random theme selection
+        Theme[] themes = Theme.values();
+        Theme randomTheme = themes[(int)(Math.random() * themes.length)];
+        gameMap.setTheme(randomTheme);
+        System.out.println("Selected theme: " + randomTheme);
 
         // Create a pool of decorations to spawn randomly
         String[] decorPool;
