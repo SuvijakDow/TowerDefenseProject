@@ -7,7 +7,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.scene.image.ImageView;
@@ -15,11 +14,13 @@ import javafx.scene.image.Image;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
-import javafx.scene.input.MouseButton;
+import javafx.scene.control.Button;
+import javafx.scene.effect.DropShadow;
 import javafx.stage.Stage;
 import java.util.List;
 import application.AssetManager;
 import application.GameView;
+import application.MainMenu;
 import logic.GameManager;
 import logic.map.GameMap;
 import logic.map.Waypoint;
@@ -34,14 +35,38 @@ import logic.map.LevelLoader;
 import logic.map.Theme;
 
 public class Main extends Application {
+    
+    public static Stage primaryStage;
+    private static GameView gameView;
+    private static GameManager gameManager;
+    private static AnimationTimer gameLoop;
+    private static MainMenu mainMenu;
+    private static GameMap gameMap;
 
     @Override
     public void start(Stage primaryStage) {
+        Main.primaryStage = primaryStage;
+        
+        // Create main menu first
+        Main.mainMenu = new MainMenu(primaryStage);
+        primaryStage.setTitle("Tower Defense");
+        primaryStage.setScene(mainMenu.getScene());
+        primaryStage.setResizable(false);
+        primaryStage.show();
+    }
+    
+    public static void startGameFromMenu() {
+        if (primaryStage != null) {
+            initializeGame();
+            startGameLoop();
+        }
+    }
+    
+    private static void initializeGame() {
         int[][] gridLayout = LevelLoader.loadMapGrid("/Maps/level1.txt");
-        GameMap gameMap = new GameMap(gridLayout);
+        Main.gameMap = new GameMap(gridLayout);
 
-        // Create a pool of decorations to spawn randomly (add mushrooms or autumn trees
-        // here).
+        // Create a pool of decorations to spawn randomly
         String[] decorPool;
         switch (gameMap.getTheme()) {
             case AUTUMN:
@@ -93,13 +118,12 @@ public class Main extends Application {
                 };
                 break;
         }
-
-        final int tileSize = 50;
+        
         java.util.Random rand = new java.util.Random();
         List<Decoration> decorations = gameMap.getDecorations();
         int attemptsPerTile = 2;
-
-        // Iterate through the 2D grid
+        
+        // Iterate through 2D grid
         for (int r = 0; r < gridLayout.length; r++) {
             for (int c = 0; c < gridLayout[0].length; c++) {
                 // Important: place decorations only on grass (0).
@@ -113,61 +137,106 @@ public class Main extends Application {
                             // Pick one random decoration from decorPool
                             String randomDecor = decorPool[rand.nextInt(decorPool.length)];
                             double scale = getDecorScale(randomDecor);
-
+                            
                             decorations.add(new Decoration(
                                     randomDecor,
                                     r,
                                     c,
                                     scale));
-
+                            
                             // 30% chance to add a mushroom if the placed decor is a rock
                             if (randomDecor.contains("rock") && rand.nextDouble() < 0.3) {
                                 String mushroom = rand.nextBoolean() ? "Environment/Decoration/spr_mushroom_01.png"
                                         : "Environment/Decoration/spr_mushroom_02.png";
                                 decorations.add(new Decoration(mushroom, r, c, getDecorScale(mushroom)));
                             }
-
+                            
                             break; // One decoration per grid tile max (plus an optional mushroom on rock)
                         }
                     }
                 }
             }
         }
-
+        
         gameMap.generatePath();
-        GameManager gameManager = new GameManager(gameMap);
-
-        GameView gameView = new GameView(gameManager);
+    }
+    
+    private static VBox createGameOverOverlay() {
+        VBox gameOverOverlay = new VBox(10);
+        gameOverOverlay.setAlignment(Pos.CENTER);
+        gameOverOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.8);");
+        gameOverOverlay.setPrefSize(800, 600); // Match canvas size
+        
+        // GAME OVER text
+        Font gameOverFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 120);
+        Text gameOverText = new Text("GAME OVER");
+        gameOverText.setFont(gameOverFont);
+        gameOverText.setFill(Color.RED);
+        gameOverText.setEffect(new DropShadow(10, 3, 3, Color.BLACK));
+        
+        // Base Destroyed text
+        Font statsFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 50);
+        Text destroyedText = new Text("Base Destroyed!");
+        destroyedText.setFont(statsFont);
+        destroyedText.setFill(Color.WHITE);
+        
+        // RETURN TO MENU button
+        Font buttonFont = Font.font("Verdana", 30); 
+        Button returnButton = UIUtils.createStyledButton("RETURN TO MAIN MENU", buttonFont, 500, 60);
+        returnButton.setOnAction(e -> returnToMenu());
+        
+        gameOverOverlay.getChildren().addAll(gameOverText, destroyedText, returnButton);
+        return gameOverOverlay;
+    }
+    
+    private static void showGameOverOverlay() {
+        // Find the game over overlay in the scene and show it
+        if (Main.primaryStage != null && Main.primaryStage.getScene() != null) {
+            StackPane gameWithHUD = (StackPane) ((HBox) Main.primaryStage.getScene().getRoot()).getChildren().get(0);
+            VBox gameOverOverlay = (VBox) gameWithHUD.getChildren().get(2); // Index 2: gameView(0), topLeftHUD(1), gameOverOverlay(2)
+            gameOverOverlay.setVisible(true);
+            gameOverOverlay.toFront();
+        }
+    }
+    
+    private static void startGameLoop() {
+        Main.gameManager = new GameManager(gameMap);
+        Main.gameView = new GameView(gameManager);
         gameManager.spawnEnemy(new BatEnemy());
         gameManager.spawnEnemy(new SlimeEnemy());
-        
-        // Test the new delayed spawn system
         gameManager.spawnEnemyWave(40);
 
         // Load custom font with larger size
-        Font customFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
-        
+        Font customFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
+
         // Create Top-Left HUD
         HBox topLeftHUD = createTopLeftHUD(gameManager, customFont);
         StackPane.setAlignment(topLeftHUD, Pos.TOP_LEFT);
-        
+
         // Store HUD text references for game loop updates
         Text[] hudTexts = new Text[2]; // [hpText, moneyText]
         extractHUDTexts(topLeftHUD, hudTexts);
-        
+
         // Create Right-Side Tower Shop in separate container
         VBox towerShop = createTowerShop(gameManager, customFont);
         towerShop.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE); // Let it size naturally
         towerShop.setMaxWidth(380); // Allow wider to prevent clipping
-        
+
         // Store shop row references for selection updates
         HBox[] shopRows = new HBox[GameManager.TowerType.values().length];
         extractShopRows(towerShop, shopRows);
         updateShopSelectionUI(gameManager, shopRows);
-        
+
         // Add HUD as overlay on game canvas only
         StackPane gameWithHUD = new StackPane();
-        gameWithHUD.getChildren().addAll(gameView, topLeftHUD);
+        gameWithHUD.getChildren().addAll(Main.gameView, topLeftHUD);
+        
+        // Create Game Over overlay (hidden by default)
+        VBox gameOverOverlay = createGameOverOverlay();
+        gameOverOverlay.setVisible(false);
+        
+        // Add game over overlay to the same StackPane
+        gameWithHUD.getChildren().add(gameOverOverlay);
         
         // Create side-by-side HBox layout
         HBox rootPane = new HBox();
@@ -177,18 +246,22 @@ public class Main extends Application {
         // Scene dimensions to fit both canvas and shop perfectly
         Scene scene = new Scene(rootPane);
         scene.setFill(javafx.scene.paint.Color.BLACK); // Black fill just in case
-        
+
         // Ensure game view gets mouse events by setting scene event handlers
         scene.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.SECONDARY) {
+            // Right-click cancels tower selection
+            if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
                 gameManager.setSelectedTowerType(null);
-                gameView.updateHover(-1, -1);
+                Main.gameView.updateHover(-1, -1);
                 e.consume();
                 return;
             }
-            if (e.getButton() != MouseButton.PRIMARY) {
+            
+            // Only process left-click for tower placement
+            if (e.getButton() != javafx.scene.input.MouseButton.PRIMARY) {
                 return;
             }
+            
             // Check if click is on game area (left side)
             if (e.getX() < 800) { // Game area width
                 int col = (int) (e.getX() / 50); // TILE_SIZE = 50
@@ -196,86 +269,77 @@ public class Main extends Application {
                 gameManager.placeTower(row, col);
             }
         });
-        
+
         scene.setOnMouseMoved(e -> {
             // Update hover only for game area
             if (e.getX() < 800) {
                 int col = (int) (e.getX() / 50);
                 int row = (int) (e.getY() / 50);
                 // Update hover by calling public method
-                gameView.updateHover(row, col);
+                Main.gameView.updateHover(row, col);
             } else {
                 // Clear hover when mouse leaves game area
-                gameView.updateHover(-1, -1);
+                Main.gameView.updateHover(-1, -1);
             }
         });
-        
+
         scene.setOnMouseExited(e -> {
             // Clear hover when mouse leaves entire scene
-            gameView.updateHover(-1, -1);
+            Main.gameView.updateHover(-1, -1);
         });
-        primaryStage.setTitle("Tower Defense");
-        primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
+        Main.primaryStage.setTitle("Tower Defense");
+        Main.primaryStage.setScene(scene);
+        Main.primaryStage.setResizable(false);
+        Main.primaryStage.show();
 
-        AnimationTimer gameLoop = new AnimationTimer() {
+        Main.gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 // Check game over state and stop if needed
-                if (gameManager.isGameOver()) {
+                if (Main.gameManager.isGameOver()) {
                     this.stop();
-                    // Draw game over screen directly here
-                    GraphicsContext gc = gameView.getGraphicsContext2D();
-                    if (gc != null) {
-                        // Draw semi-transparent overlay
-                        gc.setFill(Color.rgb(0, 0, 0, 0.7));
-                        gc.fillRect(0, 0, 800, 600);
-                        
-                        // Load custom font
-                        Font gameOverFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 80);
-                        if (gameOverFont == null) {
-                            gameOverFont = new Font("Arial", 80);
-                        }
-                        
-                        // Draw GAME OVER text
-                        gc.setFill(Color.RED);
-                        gc.setFont(gameOverFont);
-                        gc.setTextAlign(javafx.scene.text.TextAlignment.CENTER);
-                        gc.fillText("GAME OVER", 400, 300);
-                        
-                        // Draw "Base Destroyed!" text
-                        Font statsFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 36);
-                        if (statsFont == null) {
-                            statsFont = new Font("Arial", 36);
-                        }
-                        gc.setFill(Color.WHITE);
-                        gc.setFont(statsFont);
-                        gc.fillText("Base Destroyed!", 400, 360);
-                    }
+                    // Show game over overlay instead of drawing on canvas
+                    showGameOverOverlay();
                     return;
                 }
-                
-                gameManager.update();
-                gameView.drawMap();
-                
+
+                Main.gameManager.update();
+                Main.gameView.drawMap();
+
                 // Update HUD text every frame
-                updateHUDTexts(gameManager, hudTexts);
-                
+                updateHUDTexts(Main.gameManager, hudTexts);
+
                 // Update shop selection highlight
-                updateShopSelectionUI(gameManager, shopRows);
+                updateShopSelectionUI(Main.gameManager, shopRows);
             }
         };
-        gameLoop.start();
+        Main.gameLoop.start();
     }
 
-    private void extractHUDTexts(HBox hud, Text[] hudTexts) {
+    private static void returnToMenu() {
+        // Stop game loop
+        if (Main.gameLoop != null) {
+            Main.gameLoop.stop();
+        }
+
+        // Reset game state
+        if (Main.gameManager != null) {
+            Main.gameManager.resetGameState();
+        }
+
+        // Show main menu
+        if (Main.primaryStage != null && Main.mainMenu != null) {
+            Main.primaryStage.setScene(Main.mainMenu.getScene());
+        }
+    }
+
+    private static void extractHUDTexts(HBox hud, Text[] hudTexts) {
         // Extract HP and Money text references
         hudTexts[0] = (Text) hud.getChildren().get(1); // HP text after heart icon
         hudTexts[1] = (Text) hud.getChildren().get(3); // Money text after coin icon
     }
     
-    private void updateHUDTexts(GameManager gameManager, Text[] hudTexts) {
+    private static void updateHUDTexts(GameManager gameManager, Text[] hudTexts) {
         // Update HP and Money text manually every frame
         if (hudTexts[0] != null) {
             hudTexts[0].setText(String.valueOf(gameManager.getBaseHealth()));
@@ -285,7 +349,7 @@ public class Main extends Application {
         }
     }
     
-    private void extractShopRows(VBox shop, HBox[] shopRows) {
+    private static void extractShopRows(VBox shop, HBox[] shopRows) {
         // Extract tower row references from GridPane
         javafx.scene.layout.GridPane gridPane = (javafx.scene.layout.GridPane) shop.getChildren().get(1);
         GameManager.TowerType[] towerTypes = GameManager.TowerType.values();
@@ -296,10 +360,9 @@ public class Main extends Application {
         }
     }
     
-    private void updateShopSelectionUI(GameManager gameManager, HBox[] shopRows) {
+    private static void updateShopSelectionUI(GameManager gameManager, HBox[] shopRows) {
         GameManager.TowerType selectedType = gameManager.getSelectedTowerType();
         GameManager.TowerType[] towerTypes = GameManager.TowerType.values();
-        
         for (int i = 0; i < towerTypes.length; i++) {
             HBox row = shopRows[i];
             if (row != null) {
@@ -312,7 +375,20 @@ public class Main extends Application {
         }
     }
     
-    private HBox createTopLeftHUD(GameManager gameManager, Font customFont) {
+    private static double getDecorScale(String decorName) {
+        if (decorName.contains("mushroom")) {
+            return 3.0;
+        }
+        if (decorName.contains("tree")) {
+            return 3.0;
+        }
+        if (decorName.contains("rock")) {
+            return 3.0;
+        }
+        return 3.0;
+    }
+    
+    private static HBox createTopLeftHUD(GameManager gameManager, Font customFont) {
         HBox hud = new HBox(15);
         hud.setPadding(new Insets(10));
         // Remove background for cleaner look
@@ -343,7 +419,7 @@ public class Main extends Application {
         return hud;
     }
     
-    private VBox createTowerShop(GameManager gameManager, Font customFont) {
+    private static VBox createTowerShop(GameManager gameManager, Font customFont) {
         VBox shop = new VBox(10);
         shop.setPadding(new Insets(20)); // Increased padding for proper encapsulation
         shop.setStyle("-fx-background-color: rgba(40, 40, 40, 0.9);"); // Dark gray background
@@ -386,7 +462,7 @@ public class Main extends Application {
         return shop;
     }
     
-    private HBox createTowerShopRow(GameManager gameManager, GameManager.TowerType towerType, Font customFont) {
+    private static HBox createTowerShopRow(GameManager gameManager, GameManager.TowerType towerType, Font customFont) {
         HBox row = new HBox(8);
         row.setPadding(new Insets(6));
         row.setStyle("-fx-background-color: rgba(255,255,255,0.1);"); // Remove border radius
@@ -415,7 +491,16 @@ public class Main extends Application {
         
         // Click handler with input separation
         row.setOnMouseClicked(e -> {
-            if (e.getButton() == MouseButton.PRIMARY) {
+            // Right-click cancels tower selection
+            if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
+                gameManager.setSelectedTowerType(null);
+                Main.gameView.updateHover(-1, -1);
+                e.consume();
+                return;
+            }
+            
+            // Left-click selects tower
+            if (e.getButton() == javafx.scene.input.MouseButton.PRIMARY) {
                 gameManager.setSelectedTowerType(towerType);
                 e.consume(); // Prevent tower placement on map beneath
             }
@@ -424,7 +509,7 @@ public class Main extends Application {
         return row;
     }
     
-    private String getTowerSpritePath(GameManager.TowerType towerType) {
+    private static String getTowerSpritePath(GameManager.TowerType towerType) {
         switch (towerType) {
             case ARCHER: return "/Towers/Combat Towers/spr_tower_archer.png";
             case CANNON: return "/Towers/Combat Towers/spr_tower_cannon.png";
@@ -436,7 +521,7 @@ public class Main extends Application {
         }
     }
     
-    private String getTowerDisplayName(GameManager.TowerType towerType) {
+    private static String getTowerDisplayName(GameManager.TowerType towerType) {
         switch (towerType) {
             case ARCHER: return "Archer";
             case CANNON: return "Cannon";
@@ -448,7 +533,7 @@ public class Main extends Application {
         }
     }
     
-    private int getTowerCost(GameManager.TowerType towerType) {
+    private static int getTowerCost(GameManager.TowerType towerType) {
         switch (towerType) {
             case ARCHER: return 100;
             case CANNON: return 120;
@@ -459,22 +544,8 @@ public class Main extends Application {
             default: return 100;
         }
     }
-    
-    private double getDecorScale(String decorName) {
-        if (decorName.contains("mushroom")) {
-            return 3.0;
-        }
-        if (decorName.contains("tree")) {
-            return 3.0;
-        }
-        if (decorName.contains("rock")) {
-            return 3.0;
-        }
-        return 3.0;
-    }
 
     public static void main(String[] args) {
         launch(args);
     }
-
 }

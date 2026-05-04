@@ -291,4 +291,24 @@ public class GameManager {
         Tower tempTower = createTowerFromType(type);
         return tempTower != null ? tempTower.getRange() : 100.0;
     }
+    
+    public void resetGameState() {
+        // Clear all game entities
+        activeEnemies.clear();
+        activeTowers.clear();
+        activeProjectiles.clear();
+        
+        // Reset player stats
+        baseHealth = 100;
+        playerMoney = 500;
+        
+        // Reset game state
+        isGameOver = false;
+        selectedTowerType = TowerType.ARCHER;
+        
+        // Clear decorations if needed
+        if (currentMap != null) {
+            currentMap.getDecorations().clear();
+        }
+    }
 }
