@@ -11,7 +11,7 @@ public class LightningWizardTower extends Tower implements Skillable {
     private static final String LIGHTNING_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_lightning_tower_projectile.png";
 
     public LightningWizardTower() {
-        super(60, 300.0, 60, 150, "Towers/Combat Towers/spr_tower_lightning_tower.png");
+        super(60, 300.0, 60, 300, "Towers/Combat Towers/spr_tower_lightning_tower.png");
         this.level = 1;
         this.lightningDamage = 5;
     }

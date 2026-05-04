@@ -22,8 +22,14 @@ import application.AssetManager;
 import application.GameView;
 import application.MainMenu;
 import logic.GameManager;
-import logic.map.GameMap;
-import logic.map.Waypoint;
+import logic.tower.Tower;
+import logic.tower.ArcherTower;
+import logic.tower.CannonTower;
+import logic.tower.CrossbowTower;
+import logic.tower.IceWizardTower;
+import logic.tower.LightningWizardTower;
+import logic.tower.PoisonWizardTower;
+import logic.tower.Projectile;
 import logic.enemy.BatEnemy;
 import logic.enemy.SlimeEnemy;
 import logic.enemy.BigSlimeEnemy;
@@ -32,6 +38,7 @@ import logic.enemy.DemonEnemy;
 import logic.enemy.KingSlimeEnemy;
 import logic.map.Decoration;
 import logic.map.LevelLoader;
+import logic.map.GameMap;
 import logic.map.Theme;
 
 public class Main extends Application {
@@ -509,7 +516,7 @@ public class Main extends Application {
         
         // Shop title
         Text shopTitle = new Text("TOWER SHOP");
-        shopTitle.setFont(Font.font(customFont.getFamily(), 46)); // Massive title font
+        shopTitle.setFont(Font.font(customFont.getFamily(), 55)); // Massive title font
         shopTitle.setFill(javafx.scene.paint.Color.GOLD);
         shop.getChildren().add(shopTitle);
         
@@ -564,8 +571,8 @@ public class Main extends Application {
         nameText.setFill(javafx.scene.paint.Color.WHITE);
         nameText.setWrappingWidth(100); // Smaller wrapping width to constrain text
         
-        Text costText = new Text("$" + getTowerCost(towerType));
-        costText.setFont(Font.font(customFont.getFamily(), 22)); // Massive cost font
+        Text costText = new Text("$" + getTowerCost(gameManager, towerType));
+        costText.setFont(Font.font(customFont.getFamily(), 30)); // Massive cost font
         costText.setFill(javafx.scene.paint.Color.GOLD); // Gold color to pop
         
         textContainer.getChildren().addAll(nameText, costText);
@@ -616,15 +623,22 @@ public class Main extends Application {
         }
     }
     
-    private static int getTowerCost(GameManager.TowerType towerType) {
-        switch (towerType) {
-            case ARCHER: return 100;
-            case CANNON: return 120;
-            case CROSSBOW: return 130;
-            case ICE_WIZARD: return 150;
-            case LIGHTNING_WIZARD: return 150;
-            case POISON_WIZARD: return 150;
-            default: return 100;
+    private static int getTowerCost(GameManager gameManager, GameManager.TowerType towerType) {
+        // Get actual cost from tower class instead of hardcoded values
+        try {
+            Tower tempTower = gameManager.createTowerFromType(towerType);
+            return tempTower != null ? tempTower.getCost() : 100;
+        } catch (Exception e) {
+            // Fallback to hardcoded values if there's an error
+            switch (towerType) {
+                case ARCHER: return 100;
+                case CANNON: return 120;
+                case CROSSBOW: return 130;
+                case ICE_WIZARD: return 150;
+                case LIGHTNING_WIZARD: return 150;
+                case POISON_WIZARD: return 150;
+                default: return 100;
+            }
         }
     }
 

@@ -247,7 +247,7 @@ public class GameManager {
         System.out.println("Selected tower type: " + selectedTowerType);
     }
     
-    private Tower createTowerFromType(TowerType type) {
+    public Tower createTowerFromType(TowerType type) {
         if (type == null) {
             return null;
         }
