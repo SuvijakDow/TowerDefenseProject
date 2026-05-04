@@ -53,9 +53,6 @@ public class MainMenu {
         uiContainer.setStyle("-fx-background-color: transparent;");
         uiContainer.setStyle("-fx-translate-y: -50px;");
         
-        // Position container higher up
-        // StackPane.setMargin(uiContainer, new Insets(-100, 0, 0, 0)); // Move up 100px
-        
         // 4. Title Node
         Font titleFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 120);
         Text titleText = new Text("TOWER DEFENSE");

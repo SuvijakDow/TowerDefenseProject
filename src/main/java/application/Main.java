@@ -13,6 +13,8 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
@@ -39,11 +41,11 @@ import logic.enemy.BigSlimeEnemy;
 import logic.enemy.GoblinEnemy;
 import logic.enemy.DemonEnemy;
 import logic.enemy.KingSlimeEnemy;
-import logic.map.Decoration;
 import logic.map.LevelLoader;
 import logic.map.PathGenerator;
 import logic.map.GameMap;
 import logic.map.Theme;
+import logic.map.Decoration;
 
 public class Main extends Application {
     
@@ -53,8 +55,9 @@ public class Main extends Application {
     private static AnimationTimer gameLoop;
     private static MainMenu mainMenu;
     private static GameMap gameMap;
+    private static boolean gameRunning = false;
     private static final String MENU_CLICK_SFX_PATH = "/Audio/click.mp3";
-    private static final double MENU_CLICK_SFX_VOLUME = 0.1;
+    private static final double MENU_CLICK_SFX_VOLUME = 0.5;
     private static final double MENU_CLICK_SFX_RATE = 0.85;
     private static AudioClip menuClickSfx;
 
@@ -585,6 +588,35 @@ public class Main extends Application {
         }
         
         shop.getChildren().add(towerGrid);
+        
+        // Add flexible spacer to push button to bottom
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+        shop.getChildren().add(spacer);
+        
+        // Create MAIN MENU button
+        Button mainMenuButton = new Button("RETURN TO MAIN MENU");
+        mainMenuButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+        mainMenuButton.setMaxWidth(Double.MAX_VALUE);
+        
+        // Add hover effects
+        mainMenuButton.setOnMouseEntered(e -> {
+            mainMenuButton.setStyle("-fx-background-color: rgba(50, 50, 50, 0.9); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+        });
+        
+        mainMenuButton.setOnMouseExited(e -> {
+            mainMenuButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+        });
+        
+        // Set button action to return to main menu
+        mainMenuButton.setOnAction(e -> {
+            playMenuClickSfx();
+            stopGameLoop();
+            resetGameState();
+            returnToMainMenu();
+        });
+        
+        shop.getChildren().add(mainMenuButton);
         return shop;
     }
     
@@ -680,5 +712,28 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+    
+    private static void stopGameLoop() {
+        gameRunning = false;
+        if (gameLoop != null) {
+            gameLoop.stop();
+            gameLoop = null;
+        }
+    }
+    
+    private static void resetGameState() {
+        if (gameManager != null) {
+            gameManager.resetGameState();
+        }
+    }
+    
+    private static void returnToMainMenu() {
+        if (primaryStage != null && mainMenu != null) {
+            stopGameLoop();
+            resetGameState();
+            primaryStage.setScene(mainMenu.getScene());
+            mainMenu.playMenuBgm();
+        }
     }
 }
