@@ -189,6 +189,34 @@ public class Main extends Application {
         return gameOverOverlay;
     }
     
+    private static VBox createVictoryOverlay() {
+        VBox victoryOverlay = new VBox(10);
+        victoryOverlay.setAlignment(Pos.CENTER);
+        victoryOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.8);");
+        victoryOverlay.setPrefSize(800, 600); // Match canvas size
+        
+        // VICTORY text
+        Font victoryFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 120);
+        Text victoryText = new Text("VICTORY!");
+        victoryText.setFont(victoryFont);
+        victoryText.setFill(javafx.scene.paint.Color.GOLD);
+        victoryText.setEffect(new DropShadow(10, 3, 3, Color.BLACK));
+        
+        // Subtext
+        Font statsFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 50);
+        Text subText = new Text("You survived the siege!");
+        subText.setFont(statsFont);
+        subText.setFill(Color.WHITE);
+        
+        // RETURN TO MAIN MENU button
+        Font buttonFont = Font.font("Verdana", 30); 
+        Button returnButton = UIUtils.createStyledButton("RETURN TO MAIN MENU", buttonFont, 500, 60);
+        returnButton.setOnAction(e -> returnToMenu());
+        
+        victoryOverlay.getChildren().addAll(victoryText, subText, returnButton);
+        return victoryOverlay;
+    }
+    
     private static void showGameOverOverlay() {
         // Find the game over overlay in the scene and show it
         if (Main.primaryStage != null && Main.primaryStage.getScene() != null) {
@@ -199,12 +227,26 @@ public class Main extends Application {
         }
     }
     
+    private static void showVictoryOverlay() {
+        // Find the victory overlay in the scene and show it
+        try {
+            if (Main.primaryStage != null && Main.primaryStage.getScene() != null) {
+                StackPane gameWithHUD = (StackPane) ((HBox) Main.primaryStage.getScene().getRoot()).getChildren().get(0);
+                if (gameWithHUD.getChildren().size() > 3) {
+                    VBox victoryOverlay = (VBox) gameWithHUD.getChildren().get(3); // Index 3: gameView(0), topLeftHUD(1), gameOverOverlay(2), victoryOverlay(3)
+                    victoryOverlay.setVisible(true);
+                    victoryOverlay.toFront();
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error showing victory overlay: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     private static void startGameLoop() {
         Main.gameManager = new GameManager(gameMap);
         Main.gameView = new GameView(gameManager);
-        gameManager.spawnEnemy(new BatEnemy());
-        gameManager.spawnEnemy(new SlimeEnemy());
-        gameManager.spawnEnemyWave(40);
 
         // Load custom font with larger size
         Font customFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
@@ -214,7 +256,7 @@ public class Main extends Application {
         StackPane.setAlignment(topLeftHUD, Pos.TOP_LEFT);
 
         // Store HUD text references for game loop updates
-        Text[] hudTexts = new Text[2]; // [hpText, moneyText]
+        Text[] hudTexts = new Text[3]; // [hpText, moneyText, timerText]
         extractHUDTexts(topLeftHUD, hudTexts);
 
         // Create Right-Side Tower Shop in separate container
@@ -235,8 +277,12 @@ public class Main extends Application {
         VBox gameOverOverlay = createGameOverOverlay();
         gameOverOverlay.setVisible(false);
         
-        // Add game over overlay to the same StackPane
-        gameWithHUD.getChildren().add(gameOverOverlay);
+        // Create Victory overlay (hidden by default)
+        VBox victoryOverlay = createVictoryOverlay();
+        victoryOverlay.setVisible(false);
+        
+        // Add both overlays to the same StackPane
+        gameWithHUD.getChildren().addAll(gameOverOverlay, victoryOverlay);
         
         // Create side-by-side HBox layout
         HBox rootPane = new HBox();
@@ -293,24 +339,47 @@ public class Main extends Application {
         Main.primaryStage.show();
 
         Main.gameLoop = new AnimationTimer() {
+            private long lastTime = 0;
+            
             @Override
             public void handle(long now) {
+                // Calculate deltaTime safely
+                double deltaTime = 0.016; // Default 60 FPS fallback
+                if (lastTime > 0) {
+                    deltaTime = (now - lastTime) / 1_000_000_000.0; // Convert nanoseconds to seconds
+                    deltaTime = Math.min(deltaTime, 0.1); // Cap at 100ms to prevent jumps
+                }
+                lastTime = now;
+                
+                // Check victory state
+                if (Main.gameManager != null && Main.gameManager.isVictory()) {
+                    this.stop();
+                    showVictoryOverlay();
+                    return;
+                }
+                
                 // Check game over state and stop if needed
-                if (Main.gameManager.isGameOver()) {
+                if (Main.gameManager != null && Main.gameManager.isGameOver()) {
                     this.stop();
                     // Show game over overlay instead of drawing on canvas
                     showGameOverOverlay();
                     return;
                 }
 
-                Main.gameManager.update();
-                Main.gameView.drawMap();
+                // Safe update call
+                try {
+                    Main.gameManager.update(deltaTime);
+                    Main.gameView.drawMap();
 
-                // Update HUD text every frame
-                updateHUDTexts(Main.gameManager, hudTexts);
+                    // Update HUD text every frame
+                    updateHUDTexts(Main.gameManager, hudTexts);
 
-                // Update shop selection highlight
-                updateShopSelectionUI(Main.gameManager, shopRows);
+                    // Update shop selection highlight
+                    updateShopSelectionUI(Main.gameManager, shopRows);
+                } catch (Exception e) {
+                    System.err.println("Error in game loop: " + e.getMessage());
+                    e.printStackTrace();
+                }
             }
         };
         Main.gameLoop.start();
@@ -334,18 +403,22 @@ public class Main extends Application {
     }
 
     private static void extractHUDTexts(HBox hud, Text[] hudTexts) {
-        // Extract HP and Money text references
+        // Extract HP, Money, and Timer text references
         hudTexts[0] = (Text) hud.getChildren().get(1); // HP text after heart icon
         hudTexts[1] = (Text) hud.getChildren().get(3); // Money text after coin icon
+        hudTexts[2] = (Text) hud.getChildren().get(5); // Timer text after timer icon
     }
     
     private static void updateHUDTexts(GameManager gameManager, Text[] hudTexts) {
-        // Update HP and Money text manually every frame
+        // Update HP, Money, and Timer text manually every frame
         if (hudTexts[0] != null) {
             hudTexts[0].setText(String.valueOf(gameManager.getBaseHealth()));
         }
         if (hudTexts[1] != null) {
             hudTexts[1].setText(String.valueOf(gameManager.getPlayerMoney()));
+        }
+        if (hudTexts[2] != null) {
+            hudTexts[2].setText(gameManager.getFormattedTime());
         }
     }
     
@@ -415,7 +488,17 @@ public class Main extends Application {
         // Set initial value without binding
         moneyText.setText(String.valueOf(gameManager.getPlayerMoney()));
         
-        hud.getChildren().addAll(heartIcon, hpText, coinIcon, moneyText);
+        // Timer icon and Timer text (fallback if icon missing)
+        ImageView timerIcon = new ImageView(new Image("/Icons/timer.png"));
+        timerIcon.setFitWidth(36);
+        timerIcon.setFitHeight(36);
+        
+        Text timerText = new Text();
+        timerText.setFont(Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 36)); // Size 30 as requested
+        timerText.setFill(javafx.scene.paint.Color.AQUA);
+        timerText.setText(gameManager.getFormattedTime());
+        
+        hud.getChildren().addAll(heartIcon, hpText, coinIcon, moneyText, timerIcon, timerText);
         return hud;
     }
     

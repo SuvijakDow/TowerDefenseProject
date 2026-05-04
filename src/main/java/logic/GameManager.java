@@ -6,6 +6,10 @@ import java.util.List;
 
 import logic.enemy.Enemy;
 import logic.enemy.SlimeEnemy;
+import logic.enemy.BatEnemy;
+import logic.enemy.SkeletonEnemy;
+import logic.enemy.GhostEnemy;
+import logic.enemy.ZombieEnemy;
 import logic.map.GameMap;
 import logic.map.Waypoint;
 import logic.tower.ArcherTower;
@@ -32,6 +36,11 @@ public class GameManager {
     private int baseHealth;
     private boolean isGameOver;
     private TowerType selectedTowerType;
+    
+    // Timer and Victory System
+    private double timeRemaining = 180.0; // 3 minutes
+    private boolean isVictory = false;
+    private double spawnCooldown = 0.0;
 
     public GameManager(GameMap map) {
         this.currentMap = map;
@@ -110,50 +119,26 @@ public class GameManager {
         activeEnemies.add(enemy);
     }
 
-    /** Spawns one {@link SlimeEnemy} at path start (for testing / demo). */
-    public void spawnTestSlime() {
-        spawnEnemy(new SlimeEnemy());
-    }
-    
-    /** Spawns enemies with delay to prevent overlap */
-    public void spawnEnemyWave(int count) {
-        new Thread(() -> {
-            try {
-                for (int i = 0; i < count; i++) {
-                    final int enemyIndex = i; // Make effectively final for lambda
-                    Thread.sleep(500); // 0.5 second delay between spawns
-                    javafx.application.Platform.runLater(() -> {
-                        // Spawn different enemy types for variety
-                        switch (enemyIndex % 5) {
-                            case 0:
-                                spawnEnemy(new SlimeEnemy());
-                                break;
-                            case 1:
-                                spawnEnemy(new BigSlimeEnemy());
-                                break;
-                            case 2:
-                                spawnEnemy(new GoblinEnemy());
-                                break;
-                            case 3:
-                                spawnEnemy(new DemonEnemy());
-                                break;
-                            case 4:
-                                spawnEnemy(new KingSlimeEnemy());
-                                break;
-                        }
-                    });
-                }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
-        System.out.println("Spawned enemy wave of " + count + " enemies with delay!");
-    }
-
     // Core game tick logic
-    public void update() {
-        if (isGameOver)
+    public void update(double deltaTime) {
+        if (isGameOver || isVictory)
             return;
+
+        // Update timer
+        if (timeRemaining > 0) {
+            timeRemaining -= deltaTime;
+            timeRemaining = Math.max(0, timeRemaining);
+        }
+        
+        // Victory check: time up, no enemies, and base still alive
+        if (timeRemaining <= 0 && activeEnemies.isEmpty() && baseHealth > 0) {
+            isVictory = true;
+            System.out.println("Victory! You survived the siege!");
+            return;
+        }
+        
+        // Handle spawning
+        handleSpawning(deltaTime);
 
         List<Waypoint> waypoints = currentMap != null ? currentMap.getPathWaypoints() : List.of();
 
@@ -292,6 +277,67 @@ public class GameManager {
         return tempTower != null ? tempTower.getRange() : 100.0;
     }
     
+    // Wave spawning logic with difficulty progression
+    private void handleSpawning(double deltaTime) {
+        if (timeRemaining <= 0) {
+            return; // Stop spawning when time is up
+        }
+        
+        spawnCooldown -= deltaTime;
+        
+        // Determine spawn rate based on time remaining
+        double spawnInterval;
+        if (timeRemaining > 120) {
+            // Minute 1: Weak to medium enemies (faster spawning)
+            spawnInterval = 1.2; // Every 1.2 seconds (was 2.0)
+            if (spawnCooldown <= 0) {
+                int enemyType = (int)(Math.random() * 5); // First 5 enemy types
+                switch (enemyType) {
+                    case 0: spawnEnemy(new SlimeEnemy()); break;
+                    case 1: spawnEnemy(new BatEnemy()); break;
+                    case 2: spawnEnemy(new GoblinEnemy()); break;
+                    case 3: spawnEnemy(new BigSlimeEnemy()); break;
+                    case 4: spawnEnemy(new SkeletonEnemy()); break;
+                }
+                spawnCooldown = spawnInterval;
+            }
+        } else if (timeRemaining > 60) {
+            // Minute 2: Medium to hard enemies (faster spawning)
+            spawnInterval = 0.8; // Every 0.8 seconds (was 1.5)
+            if (spawnCooldown <= 0) {
+                int enemyType = (int)(Math.random() * 7); // First 7 enemy types
+                switch (enemyType) {
+                    case 0: spawnEnemy(new GoblinEnemy()); break;
+                    case 1: spawnEnemy(new BigSlimeEnemy()); break;
+                    case 2: spawnEnemy(new SkeletonEnemy()); break;
+                    case 3: spawnEnemy(new GhostEnemy()); break;
+                    case 4: spawnEnemy(new DemonEnemy()); break;
+                    case 5: spawnEnemy(new ZombieEnemy()); break;
+                    case 6: spawnEnemy(new SlimeEnemy()); break; // Mix in some easy ones
+                }
+                spawnCooldown = spawnInterval;
+            }
+        } else {
+            // Minute 3: All enemies including bosses (fastest spawning)
+            spawnInterval = 0.5; // Every 0.5 seconds (was 1.0)
+            if (spawnCooldown <= 0) {
+                int enemyType = (int)(Math.random() * 9); // All 9 enemy types
+                switch (enemyType) {
+                    case 0: spawnEnemy(new DemonEnemy()); break;
+                    case 1: spawnEnemy(new KingSlimeEnemy()); break;
+                    case 2: spawnEnemy(new ZombieEnemy()); break;
+                    case 3: spawnEnemy(new GhostEnemy()); break;
+                    case 4: spawnEnemy(new SkeletonEnemy()); break;
+                    case 5: spawnEnemy(new GoblinEnemy()); break;
+                    case 6: spawnEnemy(new BigSlimeEnemy()); break;
+                    case 7: spawnEnemy(new BatEnemy()); break;
+                    case 8: spawnEnemy(new SlimeEnemy()); break;
+                }
+                spawnCooldown = spawnInterval;
+            }
+        }
+    }
+    
     public void resetGameState() {
         // Clear all game entities
         activeEnemies.clear();
@@ -304,11 +350,29 @@ public class GameManager {
         
         // Reset game state
         isGameOver = false;
+        isVictory = false;
+        timeRemaining = 180.0;
+        spawnCooldown = 0.0;
         selectedTowerType = TowerType.ARCHER;
         
         // Clear decorations if needed
         if (currentMap != null) {
             currentMap.getDecorations().clear();
         }
+    }
+    
+    // Timer and Victory getters
+    public double getTimeRemaining() {
+        return timeRemaining;
+    }
+    
+    public boolean isVictory() {
+        return isVictory;
+    }
+    
+    public String getFormattedTime() {
+        int minutes = (int) (timeRemaining / 60);
+        int seconds = (int) (timeRemaining % 60);
+        return String.format("%02d:%02d", minutes, seconds);
     }
 }
