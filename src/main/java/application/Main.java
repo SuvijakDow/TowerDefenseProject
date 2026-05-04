@@ -16,8 +16,10 @@ import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import java.util.List;
+import java.net.URL;
 import application.AssetManager;
 import application.GameView;
 import application.MainMenu;
@@ -49,6 +51,10 @@ public class Main extends Application {
     private static AnimationTimer gameLoop;
     private static MainMenu mainMenu;
     private static GameMap gameMap;
+    private static final String MENU_CLICK_SFX_PATH = "/Audio/click.mp3";
+    private static final double MENU_CLICK_SFX_VOLUME = 0.1;
+    private static final double MENU_CLICK_SFX_RATE = 0.85;
+    private static AudioClip menuClickSfx;
 
     @Override
     public void start(Stage primaryStage) {
@@ -60,10 +66,14 @@ public class Main extends Application {
         primaryStage.setScene(mainMenu.getScene());
         primaryStage.setResizable(false);
         primaryStage.show();
+        Main.mainMenu.playMenuBgm();
     }
     
     public static void startGameFromMenu() {
         if (primaryStage != null) {
+            if (Main.mainMenu != null) {
+                Main.mainMenu.stopMenuBgm();
+            }
             initializeGame();
             startGameLoop();
         }
@@ -190,10 +200,27 @@ public class Main extends Application {
         // RETURN TO MENU button
         Font buttonFont = Font.font("Verdana", 30); 
         Button returnButton = UIUtils.createStyledButton("RETURN TO MAIN MENU", buttonFont, 500, 60);
-        returnButton.setOnAction(e -> returnToMenu());
+        returnButton.setOnAction(e -> {
+            playMenuClickSfx();
+            returnToMenu();
+        });
         
         gameOverOverlay.getChildren().addAll(gameOverText, destroyedText, returnButton);
         return gameOverOverlay;
+    }
+
+    public static void playMenuClickSfx() {
+        if (menuClickSfx == null) {
+            URL clickUrl = Main.class.getResource(MENU_CLICK_SFX_PATH);
+            if (clickUrl == null) {
+                System.err.println("Failed to load menu click SFX: " + MENU_CLICK_SFX_PATH);
+                return;
+            }
+            menuClickSfx = new AudioClip(clickUrl.toExternalForm());
+            menuClickSfx.setVolume(MENU_CLICK_SFX_VOLUME);
+            menuClickSfx.setRate(MENU_CLICK_SFX_RATE);
+        }
+        menuClickSfx.play();
     }
     
     private static VBox createVictoryOverlay() {
@@ -406,6 +433,7 @@ public class Main extends Application {
         // Show main menu
         if (Main.primaryStage != null && Main.mainMenu != null) {
             Main.primaryStage.setScene(Main.mainMenu.getScene());
+            Main.mainMenu.playMenuBgm();
         }
     }
 

@@ -16,11 +16,16 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Background;
+import javafx.scene.media.Media;
+import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
+import java.net.URL;
 
 public class MainMenu {
+    private static final String MENU_BGM_PATH = "/Audio/startupMenu.mp3";
     private Scene mainMenuScene;
     public Stage primaryStage;
+    private MediaPlayer menuBgmPlayer;
     
     public MainMenu(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -78,14 +83,54 @@ public class MainMenu {
     }
     
     private void startGame() {
+        Main.playMenuClickSfx();
+        stopMenuBgm();
         Main.startGameFromMenu();
     }
     
     private void exitGame() {
+        Main.playMenuClickSfx();
+        disposeMenuBgm();
         System.exit(0);
     }
     
     public Scene getScene() {
         return mainMenuScene;
+    }
+
+    public void playMenuBgm() {
+        ensureMenuBgmPlayer();
+        if (menuBgmPlayer != null) {
+            menuBgmPlayer.play();
+        }
+    }
+
+    public void stopMenuBgm() {
+        if (menuBgmPlayer != null) {
+            menuBgmPlayer.stop();
+        }
+    }
+
+    private void disposeMenuBgm() {
+        if (menuBgmPlayer != null) {
+            menuBgmPlayer.stop();
+            menuBgmPlayer.dispose();
+            menuBgmPlayer = null;
+        }
+    }
+
+    private void ensureMenuBgmPlayer() {
+        if (menuBgmPlayer != null) {
+            return;
+        }
+        URL bgmUrl = getClass().getResource(MENU_BGM_PATH);
+        if (bgmUrl == null) {
+            System.err.println("Failed to load menu BGM: " + MENU_BGM_PATH);
+            return;
+        }
+        Media media = new Media(bgmUrl.toExternalForm());
+        menuBgmPlayer = new MediaPlayer(media);
+        menuBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
+        menuBgmPlayer.setVolume(0.8);
     }
 }
