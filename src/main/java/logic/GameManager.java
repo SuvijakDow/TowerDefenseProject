@@ -338,6 +338,35 @@ public class GameManager {
         }
     }
     
+    /**
+     * Check if a tower can be placed at the given position without actually placing it.
+     * This is used for hover highlighting (white = can place, red = cannot place).
+     */
+    public boolean canPlaceTower(int row, int col) {
+        if (currentMap == null || isGameOver) {
+            return false;
+        }
+        if (selectedTowerType == null) {
+            return false;
+        }
+        if (!currentMap.isBuildable(row, col, currentMap.getDecorations())) {
+            return false;
+        }
+        for (Tower t : activeTowers) {
+            if (t.getGridRow() == row && t.getGridCol() == col) {
+                return false;
+            }
+        }
+        
+        Tower tower = createTowerFromType(selectedTowerType);
+        if (tower == null) {
+            return false;
+        }
+        
+        // Check if player has enough money
+        return playerMoney >= tower.getCost();
+    }
+    
     public void resetGameState() {
         // Clear all game entities
         activeEnemies.clear();

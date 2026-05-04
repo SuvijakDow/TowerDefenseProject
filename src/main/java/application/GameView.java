@@ -98,39 +98,8 @@ public class GameView extends StackPane {
             return;
         }
 
-        // Check if player can afford the selected tower
-        if (valid) {
-            // Get tower cost using simple inline switch
-            int towerCost;
-            switch (selectedType) {
-                case ARCHER:
-                    towerCost = 100;
-                    break;
-                case CANNON:
-                    towerCost = 120;
-                    break;
-                case CROSSBOW:
-                    towerCost = 130;
-                    break;
-                case ICE_WIZARD:
-                    towerCost = 150;
-                    break;
-                case LIGHTNING_WIZARD:
-                    towerCost = 150;
-                    break;
-                case POISON_WIZARD:
-                    towerCost = 150;
-                    break;
-                default:
-                    towerCost = 100;
-                    break;
-            }
-            if (gameManager.getPlayerMoney() < towerCost) {
-                valid = false; // Cannot afford, mark as invalid for red hover
-            }
-        }
-        
-        hoverValid = valid;
+        // Use the new canPlaceTower method which includes money check
+        hoverValid = gameManager.canPlaceTower(row, col);
 
         drawMap();
     }
