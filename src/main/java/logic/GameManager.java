@@ -89,6 +89,7 @@ public class GameManager {
         tower.setPlacementTile(row, col);
 
         playerMoney -= tower.getCost();
+        playerMoney = Math.max(0, playerMoney); // Prevent negative money
         activeTowers.add(tower);
         System.out.println("Placed " + selectedTowerType + " tower at (" + row + "," + col + "). Money remaining: " + playerMoney);
         return true;
@@ -162,9 +163,11 @@ public class GameManager {
             // Reached end of path (past last waypoint)
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
                 baseHealth -= enemy.getDamage();
+                baseHealth = Math.max(0, baseHealth); // Prevent negative HP
                 System.out.println("Enemy reached base! Base health: " + baseHealth);
                 enemyIterator.remove();
                 if (baseHealth <= 0) {
+                    baseHealth = 0; // Ensure exactly 0
                     isGameOver = true;
                     System.out.println("Game Over! Base destroyed.");
                 }

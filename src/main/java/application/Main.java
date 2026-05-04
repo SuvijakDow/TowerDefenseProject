@@ -3,6 +3,7 @@ package application;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -13,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.Image;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import java.util.List;
 import application.AssetManager;
@@ -139,7 +141,7 @@ public class Main extends Application {
         gameManager.spawnEnemy(new SlimeEnemy());
         
         // Test the new delayed spawn system
-        gameManager.spawnEnemyWave(10);
+        gameManager.spawnEnemyWave(40);
 
         // Load custom font with larger size
         Font customFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
@@ -210,6 +212,40 @@ public class Main extends Application {
         AnimationTimer gameLoop = new AnimationTimer() {
             @Override
             public void handle(long now) {
+                // Check game over state and stop if needed
+                if (gameManager.isGameOver()) {
+                    this.stop();
+                    // Draw game over screen directly here
+                    GraphicsContext gc = gameView.getGraphicsContext2D();
+                    if (gc != null) {
+                        // Draw semi-transparent overlay
+                        gc.setFill(Color.rgb(0, 0, 0, 0.7));
+                        gc.fillRect(0, 0, 800, 600);
+                        
+                        // Load custom font
+                        Font gameOverFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 80);
+                        if (gameOverFont == null) {
+                            gameOverFont = new Font("Arial", 80);
+                        }
+                        
+                        // Draw GAME OVER text
+                        gc.setFill(Color.RED);
+                        gc.setFont(gameOverFont);
+                        gc.setTextAlign(javafx.scene.text.TextAlignment.CENTER);
+                        gc.fillText("GAME OVER", 400, 300);
+                        
+                        // Draw "Base Destroyed!" text
+                        Font statsFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 36);
+                        if (statsFont == null) {
+                            statsFont = new Font("Arial", 36);
+                        }
+                        gc.setFill(Color.WHITE);
+                        gc.setFont(statsFont);
+                        gc.fillText("Base Destroyed!", 400, 360);
+                    }
+                    return;
+                }
+                
                 gameManager.update();
                 gameView.drawMap();
                 
@@ -221,10 +257,6 @@ public class Main extends Application {
             }
         };
         gameLoop.start();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 
     private void extractHUDTexts(HBox hud, Text[] hudTexts) {
@@ -427,6 +459,10 @@ public class Main extends Application {
             return 3.0;
         }
         return 3.0;
+    }
+
+    public static void main(String[] args) {
+        launch(args);
     }
 
 }

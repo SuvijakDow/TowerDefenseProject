@@ -30,6 +30,9 @@ public class GameView extends StackPane {
     private int hoverCol = -1;
     private boolean hoverValid = false;
 
+    public GraphicsContext getGraphicsContext2D() {
+        return gc;
+    }
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
         canvas = new Canvas(800, 600);
