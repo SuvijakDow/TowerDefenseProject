@@ -25,6 +25,7 @@ import logic.enemy.BigSlimeEnemy;
 import logic.enemy.GoblinEnemy;
 import logic.enemy.DemonEnemy;
 import logic.enemy.KingSlimeEnemy;
+import application.GameView;
 
 public class GameManager {
     public enum TowerType { ARCHER, CANNON, CROSSBOW, ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD }
@@ -38,14 +39,16 @@ public class GameManager {
     private int baseHealth;
     private boolean isGameOver;
     private TowerType selectedTowerType;
+    private GameView gameView;
     
     // Timer and Victory System
     private double timeRemaining = 180.0; // 3 minutes
     private boolean isVictory = false;
     private double spawnCooldown = 0.0;
 
-    public GameManager(GameMap map) {
+    public GameManager(GameMap map, GameView gameView) {
         this.currentMap = map;
+        this.gameView = gameView;
         this.activeEnemies = new ArrayList<>();
         this.activeTowers = new ArrayList<>();
         this.activeProjectiles = new ArrayList<>();
@@ -154,11 +157,17 @@ public class GameManager {
             // Reached end of path (past last waypoint)
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
                 baseHealth -= enemy.getDamage();
-                baseHealth = Math.max(0, baseHealth); // Prevent negative HP
+                baseHealth = Math.max(0, baseHealth);
                 System.out.println("Enemy reached base! Base health: " + baseHealth);
+                
+                // Trigger castle hit effect
+                if (gameView != null) {
+                    gameView.playCastleHitEffect();
+                }
+                
                 enemyIterator.remove();
                 if (baseHealth <= 0) {
-                    baseHealth = 0; // Ensure exactly 0
+                    baseHealth = 0;
                     isGameOver = true;
                     System.out.println("Game Over! Base destroyed.");
                 }

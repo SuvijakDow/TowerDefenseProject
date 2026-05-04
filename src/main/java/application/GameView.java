@@ -6,6 +6,9 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
+import javafx.scene.effect.ColorAdjust;
+import javafx.scene.effect.Lighting;
+import javafx.scene.effect.Light;
 import logic.GameManager;
 import logic.enemy.Enemy;
 import logic.map.Decoration;
@@ -28,6 +31,13 @@ public class GameView extends StackPane {
     private GameManager gameManager;
     private static final int TILE_SIZE = 50;
     private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
+    
+    // Castle hit effect fields
+    private double castleHitShakeX = 0;
+    private double castleHitShakeTimer = 0;
+    private boolean castleIsHit = false;
+    private static final double CASTLE_HIT_SHAKE_DURATION = 0.3;
+    private static final double CASTLE_HIT_SHAKE_INTENSITY = 8;
 
     private int hoverRow = -1;
     private int hoverCol = -1;
@@ -35,6 +45,10 @@ public class GameView extends StackPane {
 
     public GraphicsContext getGraphicsContext2D() {
         return gc;
+    }
+    
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
     }
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
@@ -424,12 +438,46 @@ public class GameView extends StackPane {
         return dec.getY() + TILE_SIZE / 2.0;
     }
 
-    private static void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
+    public void playCastleHitEffect() {
+        castleIsHit = true;
+        castleHitShakeTimer = CASTLE_HIT_SHAKE_DURATION;
+    }
+    
+    public void updateCastleHitEffect(double deltaTime) {
+        if (castleIsHit && castleHitShakeTimer > 0) {
+            castleHitShakeTimer -= deltaTime;
+            
+            if (castleHitShakeTimer > 0) {
+                castleHitShakeX = Math.sin(castleHitShakeTimer * 50) * CASTLE_HIT_SHAKE_INTENSITY * (castleHitShakeTimer / CASTLE_HIT_SHAKE_DURATION);
+            } else {
+                castleHitShakeX = 0;
+                castleIsHit = false;
+            }
+        }
+    }
+    
+    private void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
         double frameWidth = castle.getWidth() / 4.0;
         double frameHeight = castle.getHeight();
         double castleDrawWidth = TILE_SIZE * 3.0;
         double castleDrawHeight = TILE_SIZE * 2.0;
-        gc.drawImage(castle, 0, 0, frameWidth, frameHeight, dx, dy, castleDrawWidth, castleDrawHeight);
+        
+        double actualX = dx + castleHitShakeX;
+        
+        if (castleIsHit) {
+            Lighting redTint = new Lighting();
+            Light.Distant light = new Light.Distant();
+            
+            light.setColor(Color.rgb(180, 0, 0));
+            redTint.setLight(light);
+            redTint.setSurfaceScale(0.0); 
+
+            gc.setEffect(redTint);
+            gc.drawImage(castle, 0, 0, frameWidth, frameHeight, actualX, dy, castleDrawWidth, castleDrawHeight);
+            gc.setEffect(null);
+        } else {
+            gc.drawImage(castle, 0, 0, frameWidth, frameHeight, actualX, dy, castleDrawWidth, castleDrawHeight);
+        }
     }
 
     // Neighbor-check autotiling to select the correct tile.

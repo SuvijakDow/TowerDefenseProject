@@ -290,8 +290,9 @@ public class Main extends Application {
     }
     
     private static void startGameLoop() {
-        Main.gameManager = new GameManager(gameMap);
-        Main.gameView = new GameView(gameManager);
+        Main.gameView = new GameView(null);
+        Main.gameManager = new GameManager(gameMap, gameView);
+        gameView.setGameManager(gameManager);
 
         // Load custom font with larger size
         Font customFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
@@ -414,6 +415,7 @@ public class Main extends Application {
                 // Safe update call
                 try {
                     Main.gameManager.update(deltaTime);
+                    Main.gameView.updateCastleHitEffect(deltaTime);
                     Main.gameView.drawMap();
 
                     // Update HUD text every frame
