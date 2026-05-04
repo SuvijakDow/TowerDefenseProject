@@ -4,6 +4,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
 import logic.GameManager;
 import logic.enemy.Enemy;
@@ -42,7 +43,14 @@ public class GameView extends StackPane {
         canvas.setOnMouseClicked(e -> {
             int col = (int) (e.getX() / TILE_SIZE);
             int row = (int) (e.getY() / TILE_SIZE);
-            gameManager.placeTower(row, col);
+            if (e.getButton() == MouseButton.SECONDARY) {
+                gameManager.setSelectedTowerType(null);
+                updateHover(-1, -1);
+                return;
+            }
+            if (e.getButton() == MouseButton.PRIMARY) {
+                gameManager.placeTower(row, col);
+            }
         });
 
         canvas.setOnMouseMoved(e -> {
@@ -83,11 +91,18 @@ public class GameView extends StackPane {
             }
         }
         
+        GameManager.TowerType selectedType = gameManager.getSelectedTowerType();
+        if (selectedType == null) {
+            hoverValid = false;
+            drawMap();
+            return;
+        }
+
         // Check if player can afford the selected tower
         if (valid) {
             // Get tower cost using simple inline switch
             int towerCost;
-            switch (gameManager.getSelectedTowerType()) {
+            switch (selectedType) {
                 case ARCHER:
                     towerCost = 100;
                     break;
@@ -482,6 +497,9 @@ public class GameView extends StackPane {
     }
     
     private String getTowerSpritePath(GameManager.TowerType towerType) {
+        if (towerType == null) {
+            return null;
+        }
         switch (towerType) {
             case ARCHER: return "/Towers/Combat Towers/spr_tower_archer.png";
             case CANNON: return "/Towers/Combat Towers/spr_tower_cannon.png";

@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.paint.Color;
+import javafx.scene.input.MouseButton;
 import javafx.stage.Stage;
 import java.util.List;
 import application.AssetManager;
@@ -179,6 +180,15 @@ public class Main extends Application {
         
         // Ensure game view gets mouse events by setting scene event handlers
         scene.setOnMouseClicked(e -> {
+            if (e.getButton() == MouseButton.SECONDARY) {
+                gameManager.setSelectedTowerType(null);
+                gameView.updateHover(-1, -1);
+                e.consume();
+                return;
+            }
+            if (e.getButton() != MouseButton.PRIMARY) {
+                return;
+            }
             // Check if click is on game area (left side)
             if (e.getX() < 800) { // Game area width
                 int col = (int) (e.getX() / 50); // TILE_SIZE = 50
@@ -405,8 +415,10 @@ public class Main extends Application {
         
         // Click handler with input separation
         row.setOnMouseClicked(e -> {
-            gameManager.setSelectedTowerType(towerType);
-            e.consume(); // Prevent tower placement on map beneath
+            if (e.getButton() == MouseButton.PRIMARY) {
+                gameManager.setSelectedTowerType(towerType);
+                e.consume(); // Prevent tower placement on map beneath
+            }
         });
         
         return row;

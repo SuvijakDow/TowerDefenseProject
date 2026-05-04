@@ -64,6 +64,9 @@ public class GameManager {
         if (currentMap == null || isGameOver) {
             return false;
         }
+        if (selectedTowerType == null) {
+            return false;
+        }
         if (!currentMap.isBuildable(row, col, currentMap.getDecorations())) {
             return false;
         }
@@ -260,6 +263,9 @@ public class GameManager {
     }
     
     private Tower createTowerFromType(TowerType type) {
+        if (type == null) {
+            return null;
+        }
         switch (type) {
             case ARCHER:
                 return new ArcherTower();
@@ -279,6 +285,9 @@ public class GameManager {
     }
     
     public double getTowerRange(TowerType type) {
+        if (type == null) {
+            return 0.0;
+        }
         Tower tempTower = createTowerFromType(type);
         return tempTower != null ? tempTower.getRange() : 100.0;
     }

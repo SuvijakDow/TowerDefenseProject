@@ -83,4 +83,19 @@ public class GameManagerTest {
         assertEquals(0, manager.getActiveEnemies().size()); 
         assertEquals(50, manager.getPlayerMoney()); 
     }
+
+    @Test
+    void testPlaceTowerFailsWhenNoSelection() {
+        int[][] grid = {{0}};
+        GameMap map = new GameMap(grid);
+        GameManager manager = new GameManager(map);
+        manager.setPlayerMoney(500);
+        manager.setSelectedTowerType(null);
+
+        boolean placed = manager.placeTower(0, 0);
+
+        assertFalse(placed);
+        assertEquals(0, manager.getActiveTowers().size());
+        assertEquals(500, manager.getPlayerMoney());
+    }
 }
