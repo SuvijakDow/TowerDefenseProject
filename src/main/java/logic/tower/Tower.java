@@ -36,6 +36,11 @@ public abstract class Tower implements Upgradable {
      * Projectile towers use this implementation; override for other behaviour (e.g. wizard).
      */
     public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
+        updateProjectileAttack(enemies, activeProjectiles, Projectile.DEFAULT_SPRITE);
+    }
+
+    protected void updateProjectileAttack(List<Enemy> enemies, List<Projectile> activeProjectiles,
+            String projectileSprite) {
         if (currentCooldown > 0) {
             currentCooldown--;
         }
@@ -47,10 +52,10 @@ public abstract class Tower implements Upgradable {
             return;
         }
         int T = GameMap.PATH_TILE_PIXEL_SIZE;
-        double sx = x + T / 2.0;
-        double sy = y + T;
+        double sx = x + (T * 0.5);
+        double sy = y + (T * 0.2);
         activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target,
-                Projectile.DEFAULT_SPRITE));
+                projectileSprite));
         currentCooldown = fireCooldown;
     }
 

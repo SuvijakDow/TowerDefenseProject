@@ -3,7 +3,6 @@ package logic.tower;
 import java.util.List;
 
 import logic.enemy.Enemy;
-import logic.map.GameMap;
 
 public class CannonTower extends Tower {
     private int level;
@@ -16,21 +15,7 @@ public class CannonTower extends Tower {
 
     @Override
     public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
-        if (currentCooldown > 0) {
-            currentCooldown--;
-        }
-        if (currentCooldown > 0) {
-            return;
-        }
-        Enemy target = findClosestEnemyInRange(enemies);
-        if (target == null) {
-            return;
-        }
-        int T = GameMap.PATH_TILE_PIXEL_SIZE;
-        double sx = x + T / 2.0;
-        double sy = y + T - (T * 0.8); // Offset upwards from tower head
-        activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target, CANNON_PROJECTILE_SPRITE));
-        currentCooldown = fireCooldown;
+        updateProjectileAttack(enemies, activeProjectiles, CANNON_PROJECTILE_SPRITE);
     }
 
 
