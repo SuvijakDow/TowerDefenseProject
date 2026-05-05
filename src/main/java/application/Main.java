@@ -4,7 +4,6 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.Node;
-import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -23,26 +22,8 @@ import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import java.util.List;
 import java.net.URL;
-import application.AssetManager;
-import application.GameView;
-import application.MainMenu;
-import application.UIUtils;
 import logic.GameManager;
 import logic.tower.Tower;
-import logic.tower.ArcherTower;
-import logic.tower.CannonTower;
-import logic.tower.CrossbowTower;
-import logic.tower.IceWizardTower;
-import logic.tower.LightningWizardTower;
-import logic.tower.PoisonWizardTower;
-import logic.tower.Projectile;
-import logic.enemy.BatEnemy;
-import logic.enemy.SlimeEnemy;
-import logic.enemy.BigSlimeEnemy;
-import logic.enemy.GoblinEnemy;
-import logic.enemy.DemonEnemy;
-import logic.enemy.KingSlimeEnemy;
-import logic.map.LevelLoader;
 import logic.map.PathGenerator;
 import logic.map.GameMap;
 import logic.map.Theme;
@@ -50,6 +31,11 @@ import logic.map.Decoration;
 
 public class Main extends Application {
     
+    private static final double LOGIC_TICKS_PER_SECOND = 60.0;
+    private static final double LOGIC_STEP_SECONDS = 1.0 / LOGIC_TICKS_PER_SECOND;
+    private static final double LOGIC_SPEED_MULTIPLIER = 1.0;
+    private static final int MAX_LOGIC_STEPS_PER_FRAME = 6;
+
     public static Stage primaryStage;
     private static GameView gameView;
     private static GameManager gameManager;
@@ -60,7 +46,6 @@ public class Main extends Application {
     private static VBox towerShopPanel;
     private static VBox towerStatusPanel;
     private static Font gameUiFont;
-    private static boolean gameRunning = false;
     private static final String MENU_CLICK_SFX_PATH = "/Audio/click.mp3";
     private static final double MENU_CLICK_SFX_VOLUME = 0.5;
     private static final double MENU_CLICK_SFX_RATE = 0.85;
@@ -420,16 +405,19 @@ public class Main extends Application {
 
         Main.gameLoop = new AnimationTimer() {
             private long lastTime = 0;
+            private double logicAccumulator = 0.0;
             
             @Override
             public void handle(long now) {
                 // Calculate deltaTime safely
-                double deltaTime = 0.016; // Default 60 FPS fallback
+                double deltaTime = LOGIC_STEP_SECONDS; // Default 60 FPS fallback
                 if (lastTime > 0) {
                     deltaTime = (now - lastTime) / 1_000_000_000.0; // Convert nanoseconds to seconds
                     deltaTime = Math.min(deltaTime, 0.1); // Cap at 100ms to prevent jumps
                 }
                 lastTime = now;
+                logicAccumulator += deltaTime * LOGIC_SPEED_MULTIPLIER;
+                logicAccumulator = Math.min(logicAccumulator, LOGIC_STEP_SECONDS * MAX_LOGIC_STEPS_PER_FRAME);
                 
                 // Check victory state
                 if (Main.gameManager != null && Main.gameManager.isVictory()) {
@@ -448,7 +436,12 @@ public class Main extends Application {
 
                 // Safe update call
                 try {
-                    Main.gameManager.update(deltaTime);
+                    int logicSteps = 0;
+                    while (logicAccumulator >= LOGIC_STEP_SECONDS && logicSteps < MAX_LOGIC_STEPS_PER_FRAME) {
+                        Main.gameManager.update(LOGIC_STEP_SECONDS);
+                        logicAccumulator -= LOGIC_STEP_SECONDS;
+                        logicSteps++;
+                    }
                     Main.gameView.updateCastleHitEffect(deltaTime);
                     Main.gameView.drawMap();
 
@@ -549,7 +542,7 @@ public class Main extends Application {
         // Remove background for cleaner look
         
         // Heart icon and HP text
-        ImageView heartIcon = new ImageView(new Image("/Icons/heart.png"));
+        ImageView heartIcon = new ImageView(loadImageResource("/Icons/heart.png"));
         heartIcon.setFitWidth(36); // Match massive font size
         heartIcon.setFitHeight(36); // Match massive font size
         
@@ -560,7 +553,7 @@ public class Main extends Application {
         hpText.setText(String.valueOf(gameManager.getBaseHealth()));
         
         // Coin icon and Money text
-        ImageView coinIcon = new ImageView(new Image("/Icons/coin.png"));
+        ImageView coinIcon = new ImageView(loadImageResource("/Icons/coin.png"));
         coinIcon.setFitWidth(36); // Match massive font size
         coinIcon.setFitHeight(36); // Match massive font size
         
@@ -571,7 +564,7 @@ public class Main extends Application {
         moneyText.setText(String.valueOf(gameManager.getPlayerMoney()));
         
         // Timer icon and Timer text (fallback if icon missing)
-        ImageView timerIcon = new ImageView(new Image("/Icons/timer.png"));
+        ImageView timerIcon = new ImageView(loadImageResource("/Icons/timer.png"));
         timerIcon.setFitWidth(36);
         timerIcon.setFitHeight(36);
         
@@ -782,7 +775,7 @@ public class Main extends Application {
             spritePath = "/" + spritePath;
         }
 
-        Image sprite = new Image(spritePath, false);
+        Image sprite = loadImageResource(spritePath);
         spriteView.setImage(sprite);
 
         double iw = sprite.getWidth();
@@ -857,7 +850,7 @@ public class Main extends Application {
         
         // Tower sprite
         String spritePath = getTowerSpritePath(towerType);
-        ImageView towerSprite = new ImageView(new Image(spritePath));
+        ImageView towerSprite = new ImageView(loadImageResource(spritePath));
         towerSprite.setFitWidth(40);
         towerSprite.setPreserveRatio(true);
         towerSprite.setSmooth(true);
@@ -945,19 +938,26 @@ public class Main extends Application {
     }
     
     private static void stopGameLoop() {
-        gameRunning = false;
         if (gameLoop != null) {
             gameLoop.stop();
             gameLoop = null;
         }
     }
-    
+
+    private static Image loadImageResource(String resourcePath) {
+        URL imageUrl = Main.class.getResource(resourcePath);
+        if (imageUrl == null) {
+            throw new IllegalStateException("Missing image resource: " + resourcePath);
+        }
+        return new Image(imageUrl.toExternalForm());
+    }
+
     private static void resetGameState() {
         if (gameManager != null) {
             gameManager.resetGameState();
         }
     }
-    
+
     private static void returnToMainMenu() {
         if (primaryStage != null && mainMenu != null) {
             stopGameLoop();
