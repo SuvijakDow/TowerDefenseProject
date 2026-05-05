@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Font;
 import logic.DamageText;
@@ -42,6 +43,8 @@ public class GameView extends StackPane {
     private int hoverRow = -1;
     private int hoverCol = -1;
     private boolean hoverValid = false;
+    private Tower selectedPlacedTower = null;
+    private Consumer<Tower> placedTowerSelectionListener;
 
     public GraphicsContext getGraphicsContext2D() {
         return gc;
@@ -57,15 +60,25 @@ public class GameView extends StackPane {
         getChildren().add(canvas);
 
         canvas.setOnMouseClicked(e -> {
+            if (gameManager == null) {
+                return;
+            }
             int col = (int) (e.getX() / TILE_SIZE);
             int row = (int) (e.getY() / TILE_SIZE);
             if (e.getButton() == MouseButton.SECONDARY) {
                 gameManager.setSelectedTowerType(null);
+                clearPlacedTowerSelection();
                 updateHover(-1, -1);
+                e.consume();
                 return;
             }
             if (e.getButton() == MouseButton.PRIMARY) {
-                gameManager.placeTower(row, col);
+                boolean towerClickHandled = togglePlacedTowerRangeAt(row, col);
+                if (!towerClickHandled) {
+                    clearPlacedTowerSelection();
+                    gameManager.placeTower(row, col);
+                }
+                e.consume();
             }
         });
 
@@ -118,6 +131,56 @@ public class GameView extends StackPane {
         hoverValid = gameManager.canPlaceTower(row, col);
 
         drawMap();
+    }
+
+    public boolean togglePlacedTowerRangeAt(int row, int col) {
+        if (gameManager == null) {
+            return false;
+        }
+        Tower clickedTower = findTowerAtTile(row, col);
+        if (clickedTower == null) {
+            return false;
+        }
+        if (clickedTower == selectedPlacedTower) {
+            selectedPlacedTower = null;
+        } else {
+            selectedPlacedTower = clickedTower;
+        }
+        drawMap();
+        notifyPlacedTowerSelectionChanged();
+        return true;
+    }
+
+    public void setPlacedTowerSelectionListener(Consumer<Tower> listener) {
+        this.placedTowerSelectionListener = listener;
+    }
+
+    public Tower getSelectedPlacedTower() {
+        return selectedPlacedTower;
+    }
+
+    public void clearPlacedTowerSelection() {
+        selectedPlacedTower = null;
+        drawMap();
+        notifyPlacedTowerSelectionChanged();
+    }
+
+    private void notifyPlacedTowerSelectionChanged() {
+        if (placedTowerSelectionListener != null) {
+            placedTowerSelectionListener.accept(selectedPlacedTower);
+        }
+    }
+
+    private Tower findTowerAtTile(int row, int col) {
+        if (gameManager == null) {
+            return null;
+        }
+        for (Tower tower : gameManager.getActiveTowers()) {
+            if (tower.getGridRow() == row && tower.getGridCol() == col) {
+                return tower;
+            }
+        }
+        return null;
     }
 
     public void drawMap() {
@@ -194,17 +257,23 @@ public class GameView extends StackPane {
             gc.fillRect(hoverCol * TILE_SIZE, hoverRow * TILE_SIZE, TILE_SIZE, TILE_SIZE);
             
             // Draw range indicator (only when valid)
-            if (hoverValid) {
+            if (hoverValid && selectedPlacedTower == null) {
                 double range = gameManager.getTowerRange(gameManager.getSelectedTowerType());
                 double centerX = hoverCol * TILE_SIZE + TILE_SIZE / 2.0;
                 double centerY = hoverRow * TILE_SIZE + TILE_SIZE / 2.0;
-                
-                gc.setFill(Color.rgb(255, 255, 255, 0.15));
-                gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
+                drawRangeIndicator(centerX, centerY, range);
             }
             
             // Draw ghost tower preview (always show when hovering)
             drawGhostTower(gc, hoverCol * TILE_SIZE, hoverRow * TILE_SIZE);
+        }
+
+        if (selectedPlacedTower != null) {
+            if (gameManager.getActiveTowers().contains(selectedPlacedTower)) {
+                drawRangeIndicator(selectedPlacedTower.getX(), selectedPlacedTower.getY(), selectedPlacedTower.getRange());
+            } else {
+                selectedPlacedTower = null;
+            }
         }
 
         double castleDrawWidth = TILE_SIZE * 3.0;
@@ -278,6 +347,11 @@ public class GameView extends StackPane {
     }
 
     private static final double PROJECTILE_DRAW_SIZE = 16.0;
+
+    private void drawRangeIndicator(double centerX, double centerY, double range) {
+        gc.setFill(Color.rgb(255, 255, 255, 0.15));
+        gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
+    }
 
     private void drawProjectiles(GraphicsContext gc, AssetManager assets) {
         for (Projectile p : gameManager.getActiveProjectiles()) {

@@ -55,6 +55,10 @@ public class Main extends Application {
     private static AnimationTimer gameLoop;
     private static MainMenu mainMenu;
     private static GameMap gameMap;
+    private static StackPane sidePanelContainer;
+    private static VBox towerShopPanel;
+    private static VBox towerStatusPanel;
+    private static Font gameUiFont;
     private static boolean gameRunning = false;
     private static final String MENU_CLICK_SFX_PATH = "/Audio/click.mp3";
     private static final double MENU_CLICK_SFX_VOLUME = 0.5;
@@ -293,9 +297,17 @@ public class Main extends Application {
         Main.gameView = new GameView(null);
         Main.gameManager = new GameManager(gameMap, gameView);
         gameView.setGameManager(gameManager);
+        gameView.setPlacedTowerSelectionListener(tower -> {
+            if (tower != null) {
+                showTowerStatusPanel(tower);
+            } else {
+                showTowerShopPanel();
+            }
+        });
 
         // Load custom font with larger size
         Font customFont = Font.loadFont(Main.class.getResourceAsStream("/Fonts/CWEBS.TTF"), 36); // Massive font size
+        Main.gameUiFont = customFont;
 
         // Create Top-Left HUD
         HBox topLeftHUD = createTopLeftHUD(gameManager, customFont);
@@ -306,13 +318,22 @@ public class Main extends Application {
         extractHUDTexts(topLeftHUD, hudTexts);
 
         // Create Right-Side Tower Shop in separate container
-        VBox towerShop = createTowerShop(gameManager, customFont);
-        towerShop.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE); // Let it size naturally
-        towerShop.setMaxWidth(380); // Allow wider to prevent clipping
+        Main.towerShopPanel = createTowerShop(gameManager, customFont);
+        Main.towerShopPanel.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        Main.towerShopPanel.setMaxWidth(380);
+        Main.towerStatusPanel = createTowerStatusPanel(null, customFont, Main::exitTowerStatusMode);
+        Main.towerStatusPanel.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        Main.towerStatusPanel.setMaxWidth(380);
+        Main.towerStatusPanel.setVisible(false);
+        Main.towerStatusPanel.setManaged(false);
+        Main.sidePanelContainer = new StackPane();
+        Main.sidePanelContainer.setPrefWidth(380);
+        Main.sidePanelContainer.setMaxWidth(380);
+        Main.sidePanelContainer.getChildren().addAll(Main.towerShopPanel, Main.towerStatusPanel);
 
         // Store shop row references for selection updates
         HBox[] shopRows = new HBox[GameManager.TowerType.values().length];
-        extractShopRows(towerShop, shopRows);
+        extractShopRows(Main.towerShopPanel, shopRows);
         updateShopSelectionUI(gameManager, shopRows);
 
         // Add HUD as overlay on game canvas only
@@ -333,7 +354,7 @@ public class Main extends Application {
         // Create side-by-side HBox layout
         HBox rootPane = new HBox();
         rootPane.setStyle("-fx-background-color: #1a1a1a;"); // Dark background to eliminate white borders
-        rootPane.getChildren().addAll(gameWithHUD, towerShop); // Game left, Shop right
+        rootPane.getChildren().addAll(gameWithHUD, Main.sidePanelContainer); // Game left, side panel right
 
         // Scene dimensions to fit both canvas and shop perfectly
         Scene scene = new Scene(rootPane);
@@ -341,9 +362,13 @@ public class Main extends Application {
 
         // Ensure game view gets mouse events by setting scene event handlers
         scene.setOnMouseClicked(e -> {
+            if (e.isConsumed()) {
+                return;
+            }
             // Right-click cancels tower selection
             if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
                 gameManager.setSelectedTowerType(null);
+                Main.gameView.clearPlacedTowerSelection();
                 Main.gameView.updateHover(-1, -1);
                 e.consume();
                 return;
@@ -358,7 +383,12 @@ public class Main extends Application {
             if (e.getX() < 800) { // Game area width
                 int col = (int) (e.getX() / 50); // TILE_SIZE = 50
                 int row = (int) (e.getY() / 50);
-                gameManager.placeTower(row, col);
+                boolean towerClickHandled = Main.gameView.togglePlacedTowerRangeAt(row, col);
+                if (!towerClickHandled) {
+                    Main.gameView.clearPlacedTowerSelection();
+                    gameManager.placeTower(row, col);
+                }
+                e.consume();
             }
         });
 
@@ -620,6 +650,170 @@ public class Main extends Application {
         
         shop.getChildren().add(mainMenuButton);
         return shop;
+    }
+
+    private static VBox createTowerStatusPanel(Tower tower, Font customFont, Runnable onBack) {
+        VBox panel = new VBox(10);
+        panel.setPadding(new Insets(20));
+        panel.setStyle("-fx-background-color: rgba(40, 40, 40, 0.9);");
+
+        // Title
+        Text title = new Text("TOWER STATUS");
+        title.setFont(Font.font(customFont.getFamily(), 55));
+        title.setFill(Color.GOLD);
+
+        // Pixel-art preview card
+        ImageView towerSprite = createCrispStatusTowerSprite(tower);
+        StackPane previewCard = new StackPane(towerSprite);
+        previewCard.setPadding(new Insets(12));
+        previewCard.setMinHeight(180);
+        previewCard.setPrefHeight(180);
+        previewCard.setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-border-color: rgba(255,215,0,0.45); -fx-border-width: 2px;");
+
+        // Stats card
+        VBox statsCard = new VBox(8);
+        statsCard.setPadding(new Insets(10));
+        statsCard.setStyle("-fx-background-color: rgba(255,255,255,0.1);");
+
+        String towerName = (tower != null) ? tower.getClass().getSimpleName() : "-";
+        int level = getTowerLevel(tower);
+        int damage = (tower != null) ? tower.getDamage() : 0;
+        double range = (tower != null) ? tower.getRange() : 0.0;
+        int cooldown = (tower != null) ? tower.getFireCooldown() : 0;
+
+        Text nameText = new Text("Name: " + towerName);
+        nameText.setFont(Font.font(customFont.getFamily(), 30));
+        nameText.setFill(Color.WHITE);
+
+        Text levelText = new Text("Level: " + level);
+        levelText.setFont(Font.font(customFont.getFamily(), 26));
+        levelText.setFill(Color.WHITE);
+
+        Text damageText = new Text("Damage: " + damage);
+        damageText.setFont(Font.font(customFont.getFamily(), 26));
+        damageText.setFill(Color.WHITE);
+
+        Text rangeText = new Text("Range: " + String.format("%.1f", range));
+        rangeText.setFont(Font.font(customFont.getFamily(), 26));
+        rangeText.setFill(Color.WHITE);
+
+        Text cooldownText = new Text("Fire Cooldown: " + cooldown);
+        cooldownText.setFont(Font.font(customFont.getFamily(), 26));
+        cooldownText.setFill(Color.WHITE);
+
+        statsCard.getChildren().addAll(nameText, levelText, damageText, rangeText, cooldownText);
+
+        // Push button down
+        Region spacer = new Region();
+        VBox.setVgrow(spacer, Priority.ALWAYS);
+
+        // Close button
+        Button closeButton = new Button("BACK");
+        closeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+        closeButton.setMaxWidth(Double.MAX_VALUE);
+        closeButton.setOnMouseEntered(e -> closeButton.setStyle("-fx-background-color: rgba(50, 50, 50, 0.9); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;"));
+        closeButton.setOnMouseExited(e -> closeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;"));
+        closeButton.setOnAction(e -> {
+            if (onBack != null) {
+                onBack.run();
+            } else {
+                panel.setVisible(false);
+            }
+        });
+
+        panel.getChildren().addAll(title, previewCard, statsCard, spacer, closeButton);
+        return panel;
+    }
+
+    private static int getTowerLevel(Tower tower) {
+        if (tower instanceof ArcherTower) return ((ArcherTower) tower).getLevel();
+        if (tower instanceof CannonTower) return ((CannonTower) tower).getLevel();
+        if (tower instanceof CrossbowTower) return ((CrossbowTower) tower).getLevel();
+        if (tower instanceof IceWizardTower) return ((IceWizardTower) tower).getLevel();
+        if (tower instanceof LightningWizardTower) return ((LightningWizardTower) tower).getLevel();
+        if (tower instanceof PoisonWizardTower) return ((PoisonWizardTower) tower).getLevel();
+        return 1;
+    }
+
+    private static ImageView createCrispStatusTowerSprite(Tower tower) {
+        ImageView spriteView = new ImageView();
+        spriteView.setPreserveRatio(true);
+        spriteView.setSmooth(false); // Keep pixel edges sharp
+
+        String spritePath = (tower != null && tower.getSpriteName() != null) ? tower.getSpriteName() : "";
+        if (spritePath.isBlank()) {
+            return spriteView;
+        }
+        if (!spritePath.startsWith("/")) {
+            spritePath = "/" + spritePath;
+        }
+
+        Image sprite = new Image(spritePath, false);
+        spriteView.setImage(sprite);
+
+        double iw = sprite.getWidth();
+        double ih = sprite.getHeight();
+        if (iw <= 0 || ih <= 0) {
+            return spriteView;
+        }
+
+        double maxW = 140.0;
+        double maxH = 150.0;
+        double fitScale = Math.min(maxW / iw, maxH / ih);
+
+        double drawW;
+        double drawH;
+        if (fitScale >= 1.0) {
+            int integerScale = Math.max(1, (int) Math.floor(fitScale));
+            drawW = iw * integerScale;
+            drawH = ih * integerScale;
+        } else {
+            drawW = Math.max(1.0, Math.floor(iw * fitScale));
+            drawH = Math.max(1.0, Math.floor(ih * fitScale));
+        }
+
+        spriteView.setFitWidth(drawW);
+        spriteView.setFitHeight(drawH);
+        return spriteView;
+    }
+
+    private static void showTowerStatusPanel(Tower tower) {
+        if (tower == null || sidePanelContainer == null || towerShopPanel == null) {
+            return;
+        }
+        Font panelFont = gameUiFont != null ? gameUiFont : Font.font("Verdana", 24);
+        VBox newStatusPanel = createTowerStatusPanel(tower, panelFont, Main::exitTowerStatusMode);
+        newStatusPanel.setPrefWidth(javafx.scene.layout.Region.USE_COMPUTED_SIZE);
+        newStatusPanel.setMaxWidth(380);
+        if (towerStatusPanel != null) {
+            sidePanelContainer.getChildren().remove(towerStatusPanel);
+        }
+        towerStatusPanel = newStatusPanel;
+        sidePanelContainer.getChildren().add(towerStatusPanel);
+        towerShopPanel.setVisible(false);
+        towerShopPanel.setManaged(false);
+        towerStatusPanel.setVisible(true);
+        towerStatusPanel.setManaged(true);
+        towerStatusPanel.toFront();
+    }
+
+    private static void showTowerShopPanel() {
+        if (towerShopPanel == null) {
+            return;
+        }
+        towerShopPanel.setVisible(true);
+        towerShopPanel.setManaged(true);
+        if (towerStatusPanel != null) {
+            towerStatusPanel.setVisible(false);
+            towerStatusPanel.setManaged(false);
+        }
+    }
+
+    private static void exitTowerStatusMode() {
+        if (Main.gameView != null) {
+            Main.gameView.clearPlacedTowerSelection();
+        }
+        showTowerShopPanel();
     }
     
     private static HBox createTowerShopRow(GameManager gameManager, GameManager.TowerType towerType, Font customFont) {
