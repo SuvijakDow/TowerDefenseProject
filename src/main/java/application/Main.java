@@ -3,6 +3,7 @@ package application;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.HBox;
@@ -365,6 +366,9 @@ public class Main extends Application {
             if (e.isConsumed()) {
                 return;
             }
+            if (isEventInsideSidePanel(e.getTarget())) {
+                return;
+            }
             // Right-click cancels tower selection
             if (e.getButton() == javafx.scene.input.MouseButton.SECONDARY) {
                 gameManager.setSelectedTowerType(null);
@@ -380,9 +384,9 @@ public class Main extends Application {
             }
             
             // Check if click is on game area (left side)
-            if (e.getX() < 800) { // Game area width
-                int col = (int) (e.getX() / 50); // TILE_SIZE = 50
-                int row = (int) (e.getY() / 50);
+            if (e.getSceneX() < 800) { // Game area width
+                int col = (int) (e.getSceneX() / 50); // TILE_SIZE = 50
+                int row = (int) (e.getSceneY() / 50);
                 boolean towerClickHandled = Main.gameView.togglePlacedTowerRangeAt(row, col);
                 if (!towerClickHandled) {
                     Main.gameView.clearPlacedTowerSelection();
@@ -394,9 +398,9 @@ public class Main extends Application {
 
         scene.setOnMouseMoved(e -> {
             // Update hover only for game area
-            if (e.getX() < 800) {
-                int col = (int) (e.getX() / 50);
-                int row = (int) (e.getY() / 50);
+            if (e.getSceneX() < 800) {
+                int col = (int) (e.getSceneX() / 50);
+                int row = (int) (e.getSceneY() / 50);
                 // Update hover by calling public method
                 Main.gameView.updateHover(row, col);
             } else {
@@ -676,7 +680,7 @@ public class Main extends Application {
         statsCard.setStyle("-fx-background-color: rgba(255,255,255,0.1);");
 
         String towerName = (tower != null) ? tower.getClass().getSimpleName() : "-";
-        int level = getTowerLevel(tower);
+        int level = (tower != null) ? tower.getLevel() : 0;
         int damage = (tower != null) ? tower.getDamage() : 0;
         double range = (tower != null) ? tower.getRange() : 0.0;
         int cooldown = (tower != null) ? tower.getFireCooldown() : 0;
@@ -707,6 +711,40 @@ public class Main extends Application {
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
+        // Upgrade button
+        Button upgradeButton = new Button();
+        boolean canUpgrade = tower != null && tower.canUpgrade();
+        if (canUpgrade) {
+            upgradeButton.setText("UPGRADE ($" + tower.getUpgradeCost() + ")");
+        } else {
+            upgradeButton.setText("MAX LEVEL");
+        }
+        upgradeButton.setDisable(!canUpgrade);
+        upgradeButton.setMaxWidth(Double.MAX_VALUE);
+        upgradeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+        upgradeButton.setOnMouseEntered(e -> {
+            if (!upgradeButton.isDisable()) {
+                upgradeButton.setStyle("-fx-background-color: rgba(50, 50, 50, 0.9); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+            }
+        });
+        upgradeButton.setOnMouseExited(e -> {
+            if (!upgradeButton.isDisable()) {
+                upgradeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
+            }
+        });
+        upgradeButton.setOnAction(e -> {
+            if (tower == null || Main.gameManager == null) {
+                return;
+            }
+            boolean upgraded = Main.gameManager.tryUpgradeTower(tower);
+            if (upgraded) {
+                showTowerStatusPanel(tower);
+                if (Main.gameView != null) {
+                    Main.gameView.drawMap();
+                }
+            }
+        });
+
         // Close button
         Button closeButton = new Button("BACK");
         closeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
@@ -721,18 +759,14 @@ public class Main extends Application {
             }
         });
 
-        panel.getChildren().addAll(title, previewCard, statsCard, spacer, closeButton);
-        return panel;
-    }
+        HBox actionRow = new HBox(10, upgradeButton, closeButton);
+        actionRow.setAlignment(Pos.CENTER);
+        actionRow.setFillHeight(true);
+        HBox.setHgrow(upgradeButton, Priority.ALWAYS);
+        HBox.setHgrow(closeButton, Priority.ALWAYS);
 
-    private static int getTowerLevel(Tower tower) {
-        if (tower instanceof ArcherTower) return ((ArcherTower) tower).getLevel();
-        if (tower instanceof CannonTower) return ((CannonTower) tower).getLevel();
-        if (tower instanceof CrossbowTower) return ((CrossbowTower) tower).getLevel();
-        if (tower instanceof IceWizardTower) return ((IceWizardTower) tower).getLevel();
-        if (tower instanceof LightningWizardTower) return ((LightningWizardTower) tower).getLevel();
-        if (tower instanceof PoisonWizardTower) return ((PoisonWizardTower) tower).getLevel();
-        return 1;
+        panel.getChildren().addAll(title, previewCard, statsCard, spacer, actionRow);
+        return panel;
     }
 
     private static ImageView createCrispStatusTowerSprite(Tower tower) {
@@ -931,5 +965,19 @@ public class Main extends Application {
             primaryStage.setScene(mainMenu.getScene());
             mainMenu.playMenuBgm();
         }
+    }
+
+    private static boolean isEventInsideSidePanel(Object target) {
+        if (sidePanelContainer == null || !(target instanceof Node)) {
+            return false;
+        }
+        Node node = (Node) target;
+        while (node != null) {
+            if (node == sidePanelContainer) {
+                return true;
+            }
+            node = node.getParent();
+        }
+        return false;
     }
 }

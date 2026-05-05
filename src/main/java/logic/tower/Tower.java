@@ -7,6 +7,10 @@ import logic.interfaces.Upgradable;
 import logic.map.GameMap;
 
 public abstract class Tower implements Upgradable {
+    protected static final int DEFAULT_UPGRADE_COST = 100;
+    protected static final int DEFAULT_MAX_LEVEL = 3;
+    protected static final int MIN_FIRE_COOLDOWN = 10;
+
     protected int damage;
     protected double range;
     /** Fire interval in game ticks. */
@@ -21,6 +25,9 @@ public abstract class Tower implements Upgradable {
     protected int gridRow = -1;
     /** Tile column where placed; {@code -1} if not grid-placed. */
     protected int gridCol = -1;
+    protected int level = 1;
+    protected int upgradeCost = DEFAULT_UPGRADE_COST;
+    protected int maxLevel = DEFAULT_MAX_LEVEL;
 
     public Tower(int damage, double range, int fireCooldown, int cost, String spriteName) {
         this.damage = damage;
@@ -173,5 +180,33 @@ public abstract class Tower implements Upgradable {
     public void setPlacementTile(int row, int col) {
         this.gridRow = row;
         this.gridCol = col;
+    }
+
+    @Override
+    public void upgrade() {
+        if (!canUpgrade()) {
+            return;
+        }
+        level++;
+        damage = Math.max(damage + 1, (int) Math.ceil(damage * 1.2));
+        range += 10.0;
+        fireCooldown = Math.max(MIN_FIRE_COOLDOWN, fireCooldown - 2);
+        upgradeCost = Math.max(upgradeCost + 1, (int) Math.ceil(upgradeCost * 1.5));
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public int getUpgradeCost() {
+        return upgradeCost;
+    }
+
+    public int getMaxLevel() {
+        return maxLevel;
+    }
+
+    public boolean canUpgrade() {
+        return level < maxLevel;
     }
 }

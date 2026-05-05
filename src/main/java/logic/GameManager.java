@@ -389,6 +389,26 @@ public class GameManager {
         // Check if player has enough money
         return playerMoney >= tower.getCost();
     }
+
+    public boolean tryUpgradeTower(Tower tower) {
+        if (tower == null || isGameOver) {
+            return false;
+        }
+        if (!activeTowers.contains(tower)) {
+            return false;
+        }
+        if (!tower.canUpgrade()) {
+            return false;
+        }
+        int cost = tower.getUpgradeCost();
+        if (playerMoney < cost) {
+            return false;
+        }
+        playerMoney -= cost;
+        playerMoney = Math.max(0, playerMoney);
+        tower.upgrade();
+        return true;
+    }
     
     public void resetGameState() {
         // Clear all game entities
