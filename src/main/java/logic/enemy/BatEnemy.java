@@ -1,14 +1,14 @@
 package logic.enemy;
 
-import logic.map.Waypoint;
+public final class BatEnemy extends Enemy {
+    private static final int MAX_HEALTH = 50;
+    private static final double SPEED = 2.5;
+    private static final int REWARD_MONEY = 15;
+    private static final boolean IS_FLYING = true;
+    private static final String SPRITE = "Enemies/spr_bat.png";
+    private static final int BASE_DAMAGE = 1;
 
-public class BatEnemy extends Enemy {
     public BatEnemy() {
-        super(50, 2.5, 15, true, "Enemies/spr_bat.png", 1); // Fast but weak - low damage
-    }
-
-    @Override
-    public void move(Waypoint target) {
-        moveTowards(target);
+        super(MAX_HEALTH, SPEED, REWARD_MONEY, IS_FLYING, SPRITE, BASE_DAMAGE);
     }
 }

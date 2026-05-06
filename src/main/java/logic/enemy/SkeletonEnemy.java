@@ -1,14 +1,14 @@
 package logic.enemy;
 
-import logic.map.Waypoint;
+public final class SkeletonEnemy extends Enemy {
+    private static final int MAX_HEALTH = 130;
+    private static final double SPEED = 1.2;
+    private static final int REWARD_MONEY = 16;
+    private static final boolean IS_FLYING = false;
+    private static final String SPRITE = "Enemies/spr_skeleton.png";
+    private static final int BASE_DAMAGE = 3;
 
-public class SkeletonEnemy extends Enemy {
     public SkeletonEnemy() {
-        super(130, 1.2, 16, false, "Enemies/spr_skeleton.png", 3); // Balanced enemy - moderate damage
-    }
-
-    @Override
-    public void move(Waypoint target) {
-        moveTowards(target);
+        super(MAX_HEALTH, SPEED, REWARD_MONEY, IS_FLYING, SPRITE, BASE_DAMAGE);
     }
 }

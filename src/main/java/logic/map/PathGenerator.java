@@ -5,93 +5,139 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
-public class PathGenerator {
+public final class PathGenerator {
     private static final int ROWS = 12;
     private static final int COLS = 16;
-    private static int[][] grid;
-    
+
+    private static final int START_EDGE_LEFT = 0;
+    private static final int START_EDGE_TOP = 1;
+    private static final int START_EDGE_BOTTOM = 2;
+
+    private static final int MIN_PATH_LENGTH_BEFORE_CASTLE = 40;
+    private static final int MIN_CASTLE_DISTANCE_FROM_START = 8;
+    private static final double CASTLE_PLACEMENT_CHANCE = 0.2;
+
     // Up, Down, Left, Right
-    private static final int[] dRow = {-1, 1, 0, 0};
-    private static final int[] dCol = {0, 0, -1, 1};
-    private static final Random rand = new Random();
+    private static final int[] DELTA_ROW = {-1, 1, 0, 0};
+    private static final int[] DELTA_COL = {0, 0, -1, 1};
+    private static final Random RANDOM = new Random();
+
+    private PathGenerator() {
+    }
 
     public static int[][] generateRandomPath() {
         while (true) {
-            grid = new int[ROWS][COLS];
-            int startR = 0, startC = 0, nextR = 0, nextC = 0;
+            int[][] grid = new int[ROWS][COLS];
+            StartState start = createStartState(RANDOM);
+            grid[start.startRow()][start.startCol()] = 1;
+            grid[start.nextRow()][start.nextCol()] = 1;
 
-            // Pick start edge: 0=Left, 1=Top, 2=Bottom
-            int edge = rand.nextInt(3);
-            if (edge == 0) { 
-                startR = 1 + rand.nextInt(ROWS - 2);
-                startC = 0;
-                nextR = startR; nextC = 1; // Force Right
-            } else if (edge == 1) { 
-                startR = 0;
-                startC = 1 + rand.nextInt(COLS - 2);
-                nextR = 1; nextC = startC; // Force Down
-            } else { 
-                startR = ROWS - 1;
-                startC = 1 + rand.nextInt(COLS - 2);
-                nextR = ROWS - 2; nextC = startC; // Force Up
-            }
-
-            // Set start and first step
-            grid[startR][startC] = 1;
-            grid[nextR][nextC] = 1;
-
-            // Start DFS. If success, return map. Else, retry.
-            if (generatePath(nextR, nextC, 2, startR, startC)) {
+            if (generatePath(grid, start.nextRow(), start.nextCol(), 2, start.startRow(), start.startCol(), RANDOM)) {
                 return grid;
             }
         }
     }
 
-    private static boolean generatePath(int r, int c, int length, int startR, int startC) {
-        // Check win conditions: Length > 40, not on edges, far from start
-        if (length > 40 && r > 0 && r < ROWS - 1 && c > 0 && c < COLS - 1) {
-            int dist = Math.abs(r - startR) + Math.abs(c - startC);
-            if (dist > 8 && rand.nextDouble() < 0.2) {
-                grid[r][c] = 2; // Place castle
-                return true;
-            }
+    private static StartState createStartState(Random random) {
+        int edge = random.nextInt(3);
+
+        if (edge == START_EDGE_LEFT) {
+            int startRow = 1 + random.nextInt(ROWS - 2);
+            return new StartState(startRow, 0, startRow, 1);
+        }
+        if (edge == START_EDGE_TOP) {
+            int startCol = 1 + random.nextInt(COLS - 2);
+            return new StartState(0, startCol, 1, startCol);
         }
 
-        // Shuffle directions
-        List<Integer> dirs = Arrays.asList(0, 1, 2, 3);
-        Collections.shuffle(dirs);
+        int startCol = 1 + random.nextInt(COLS - 2);
+        return new StartState(ROWS - 1, startCol, ROWS - 2, startCol);
+    }
 
-        for (int i : dirs) {
-            int nr = r + dRow[i];
-            int nc = c + dCol[i];
+    private static boolean generatePath(
+            int[][] grid,
+            int row,
+            int col,
+            int length,
+            int startRow,
+            int startCol,
+            Random random
+    ) {
+        if (canPlaceCastle(grid, row, col, length, startRow, startCol, random)) {
+            grid[row][col] = 2;
+            return true;
+        }
 
-            if (isValid(nr, nc)) {
-                grid[nr][nc] = 1; // Move forward
-                if (generatePath(nr, nc, length + 1, startR, startC)) {
-                    return true;
-                }
-                grid[nr][nc] = 0; // Backtrack
+        List<Integer> directions = Arrays.asList(0, 1, 2, 3);
+        Collections.shuffle(directions, random);
+
+        for (int direction : directions) {
+            int nextRow = row + DELTA_ROW[direction];
+            int nextCol = col + DELTA_COL[direction];
+            if (!isValidNextStep(grid, nextRow, nextCol)) {
+                continue;
             }
+
+            grid[nextRow][nextCol] = 1;
+            if (generatePath(grid, nextRow, nextCol, length + 1, startRow, startCol, random)) {
+                return true;
+            }
+            grid[nextRow][nextCol] = 0;
         }
         return false;
     }
 
-    private static boolean isValid(int r, int c) {
-        // PREVENT EDGE TOUCHING: Restrict path to strictly inside a 1-block padding
-        if (r <= 0 || r >= ROWS - 1 || c <= 0 || c >= COLS - 1) return false;
-        
-        // Check visited
-        if (grid[r][c] != 0) return false;
+    private static boolean canPlaceCastle(
+            int[][] grid,
+            int row,
+            int col,
+            int length,
+            int startRow,
+            int startCol,
+            Random random
+    ) {
+        if (length <= MIN_PATH_LENGTH_BEFORE_CASTLE) {
+            return false;
+        }
+        if (isOnOuterBorder(row, col, grid.length, grid[0].length)) {
+            return false;
+        }
+        int manhattanDistance = Math.abs(row - startRow) + Math.abs(col - startCol);
+        if (manhattanDistance <= MIN_CASTLE_DISTANCE_FROM_START) {
+            return false;
+        }
+        return random.nextDouble() < CASTLE_PLACEMENT_CHANCE;
+    }
 
-        // Check neighbors (must be exactly 1 to avoid touching)
+    private static boolean isValidNextStep(int[][] grid, int row, int col) {
+        if (isOnOuterBorder(row, col, grid.length, grid[0].length)) {
+            return false;
+        }
+        if (grid[row][col] != 0) {
+            return false;
+        }
+        return countPathNeighbors(grid, row, col) == 1;
+    }
+
+    private static boolean isOnOuterBorder(int row, int col, int rows, int cols) {
+        return row <= 0 || row >= rows - 1 || col <= 0 || col >= cols - 1;
+    }
+
+    private static int countPathNeighbors(int[][] grid, int row, int col) {
         int neighbors = 0;
-        for (int i = 0; i < 4; i++) {
-            int nr = r + dRow[i];
-            int nc = c + dCol[i];
-            if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS) {
-                if (grid[nr][nc] == 1) neighbors++;
+        for (int i = 0; i < DELTA_ROW.length; i++) {
+            int neighborRow = row + DELTA_ROW[i];
+            int neighborCol = col + DELTA_COL[i];
+            if (neighborRow < 0 || neighborRow >= grid.length || neighborCol < 0 || neighborCol >= grid[0].length) {
+                continue;
+            }
+            if (grid[neighborRow][neighborCol] == 1) {
+                neighbors++;
             }
         }
-        return neighbors == 1; 
+        return neighbors;
+    }
+
+    private record StartState(int startRow, int startCol, int nextRow, int nextCol) {
     }
 }

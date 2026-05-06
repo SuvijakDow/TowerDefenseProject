@@ -4,13 +4,17 @@ import logic.enemy.Enemy;
 
 import java.util.List;
 
-public class LightningWizardTower extends Tower {
-    private int lightningDamage;
+public final class LightningWizardTower extends Tower {
+    private static final int DAMAGE = 60;
+    private static final double RANGE = 300.0;
+    private static final int FIRE_COOLDOWN = 60;
+    private static final int COST = 300;
+    private static final String SPRITE = "Towers/Combat Towers/spr_tower_lightning_tower.png";
+    private static final int LIGHTNING_DAMAGE = 5;
     private static final String LIGHTNING_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_lightning_tower_projectile.png";
 
     public LightningWizardTower() {
-        super(60, 300.0, 60, 300, "Towers/Combat Towers/spr_tower_lightning_tower.png");
-        this.lightningDamage = 5;
+        super(DAMAGE, RANGE, FIRE_COOLDOWN, COST, SPRITE);
     }
 
     @Override
@@ -19,6 +23,6 @@ public class LightningWizardTower extends Tower {
     }
 
     public int getLightningDamage() {
-        return lightningDamage;
+        return LIGHTNING_DAMAGE;
     }
 }

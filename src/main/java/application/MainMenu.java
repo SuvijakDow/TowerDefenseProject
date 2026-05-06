@@ -19,76 +19,82 @@ import javafx.scene.layout.Background;
 import javafx.stage.Stage;
 
 public class MainMenu {
+    private static final String BACKGROUND_IMAGE_RESOURCE = "/Backgrounds/main_menu_bg.png";
+    private static final String TITLE_FONT_RESOURCE = "/Fonts/CWEBS.TTF";
+    private static final int SCENE_WIDTH = 1180;
+    private static final int SCENE_HEIGHT = 600;
+    private static final double TITLE_FONT_SIZE = 120;
+    private static final double BUTTON_FONT_SIZE = 30;
+    private static final double SOUND_BUTTON_FONT_SIZE = 12;
+
     private Scene mainMenuScene;
-    public Stage primaryStage;
+    private final Stage primaryStage;
     private Button soundToggleButton;
-    
+
     public MainMenu(Stage primaryStage) {
         this.primaryStage = primaryStage;
         createMainMenuScene();
     }
-    
+
     private void createMainMenuScene() {
-        // 1. Root Node: StackPane
-        StackPane root = new StackPane();
-        
-        // 2. Background Image (Bottom Layer)
-        Image backgroundImage = new Image(getClass().getResourceAsStream("/Backgrounds/main_menu_bg.png"));
-        BackgroundImage backgroundImg = new BackgroundImage(
-            backgroundImage,
-            BackgroundRepeat.NO_REPEAT,
-            BackgroundRepeat.NO_REPEAT,
-            BackgroundPosition.CENTER,
-            new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, true)
-        );
-        root.setBackground(new Background(backgroundImg));
-        
-        // 3. UI Container (Top Layer)
-        VBox uiContainer = new VBox(30);
-        uiContainer.setAlignment(Pos.CENTER);
-        uiContainer.setStyle("-fx-background-color: transparent;");
-        uiContainer.setStyle("-fx-translate-y: -50px;");
-        
-        // 4. Title Node
-        Font titleFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 120);
+        StackPane root = createRootWithBackground();
+        VBox uiContainer = createUiContainer();
+
+        Font titleFont = Font.loadFont(getClass().getResourceAsStream(TITLE_FONT_RESOURCE), TITLE_FONT_SIZE);
         Text titleText = new Text("TOWER DEFENSE");
         titleText.setFont(titleFont);
         titleText.setFill(Color.WHITE);
         titleText.setEffect(new DropShadow(10, 3, 3, Color.BLACK));
-        
-        // 5. Button Nodes
-        Font buttonFont = Font.font("Verdana", 30); 
+
+        Font buttonFont = Font.font("Verdana", BUTTON_FONT_SIZE);
         Button startButton = UIUtils.createStyledButton("START GAME", buttonFont);
         Button exitButton = UIUtils.createStyledButton("EXIT", buttonFont);
-        Font soundButtonFont = soundButtonFont = Font.font("Verdana", 12);
+        Font soundButtonFont = Font.font("Verdana", SOUND_BUTTON_FONT_SIZE);
         soundToggleButton = UIUtils.createSoundToggleButton(soundButtonFont, 120, 30);
-        
-        // Set button actions
+
         startButton.setOnAction(e -> startGame());
         exitButton.setOnAction(e -> exitGame());
-        
-        // Add nodes to VBox
         uiContainer.getChildren().addAll(titleText, startButton, exitButton);
-        
-        // Add UI + top-right sound toggle.
+
         root.getChildren().addAll(uiContainer, soundToggleButton);
         StackPane.setAlignment(soundToggleButton, Pos.TOP_RIGHT);
         StackPane.setMargin(soundToggleButton, new Insets(16, 16, 0, 0));
-        
-        // Create scene
-        mainMenuScene = new Scene(root, 1180, 600);
+
+        mainMenuScene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
     }
-    
+
+    private StackPane createRootWithBackground() {
+        StackPane root = new StackPane();
+        Image backgroundImage = new Image(getClass().getResourceAsStream(BACKGROUND_IMAGE_RESOURCE));
+        BackgroundImage background = new BackgroundImage(
+                backgroundImage,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundRepeat.NO_REPEAT,
+                BackgroundPosition.CENTER,
+                new BackgroundSize(BackgroundSize.AUTO, BackgroundSize.AUTO, false, false, true, true)
+        );
+        root.setBackground(new Background(background));
+        return root;
+    }
+
+    private VBox createUiContainer() {
+        VBox uiContainer = new VBox(30);
+        uiContainer.setAlignment(Pos.CENTER);
+        uiContainer.setStyle("-fx-background-color: transparent;");
+        uiContainer.setTranslateY(-50);
+        return uiContainer;
+    }
+
     private void startGame() {
         stopMenuBgm();
         Main.startGameFromMenu();
     }
-    
+
     private void exitGame() {
         stopMenuBgm();
         System.exit(0);
     }
-    
+
     public Scene getScene() {
         return mainMenuScene;
     }

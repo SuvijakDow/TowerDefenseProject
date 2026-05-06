@@ -31,7 +31,9 @@ import logic.map.Theme;
 import logic.tower.Tower;
 
 import java.net.URL;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 
@@ -121,6 +123,11 @@ public class Main extends Application {
             MUSHROOM_1,
             MUSHROOM_2
     };
+
+    private record TowerInfo(String spritePath, String displayName, int fallbackCost) {
+    }
+
+    private static final Map<GameManager.TowerType, TowerInfo> TOWER_INFO = createTowerInfo();
 
     public static Stage primaryStage;
     private static GameView gameView;
@@ -822,27 +829,11 @@ public class Main extends Application {
     }
 
     static String getString(GameManager.TowerType towerType) {
-        return switch (towerType) {
-            case ARCHER -> "/Towers/Combat Towers/spr_tower_archer.png";
-            case CANNON -> "/Towers/Combat Towers/spr_tower_cannon.png";
-            case CROSSBOW -> "/Towers/Combat Towers/spr_tower_crossbow.png";
-            case ICE_WIZARD -> "/Towers/Combat Towers/spr_tower_ice_wizard.png";
-            case LIGHTNING_WIZARD -> "/Towers/Combat Towers/spr_tower_lightning_tower.png";
-            case POISON_WIZARD -> "/Towers/Combat Towers/spr_tower_poison_wizard.png";
-            default -> "/Towers/Combat Towers/spr_tower_archer.png";
-        };
+        return getTowerInfo(towerType).spritePath();
     }
 
     private static String getTowerDisplayName(GameManager.TowerType towerType) {
-        return switch (towerType) {
-            case ARCHER -> "Archer";
-            case CANNON -> "Cannon";
-            case CROSSBOW -> "Crossbow";
-            case ICE_WIZARD -> "Ice Wizard";
-            case LIGHTNING_WIZARD -> "Lightning Wizard";
-            case POISON_WIZARD -> "Poison Wizard";
-            default -> "Tower";
-        };
+        return getTowerInfo(towerType).displayName();
     }
 
     private static int getTowerCost(GameManager manager, GameManager.TowerType towerType) {
@@ -850,14 +841,44 @@ public class Main extends Application {
         if (tempTower != null) {
             return tempTower.getCost();
         }
+        return getTowerInfo(towerType).fallbackCost();
+    }
 
-        return switch (towerType) {
-            case ARCHER -> 100;
-            case CANNON -> 120;
-            case CROSSBOW -> 130;
-            case ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD -> 150;
-            default -> 100;
-        };
+    private static TowerInfo getTowerInfo(GameManager.TowerType towerType) {
+        TowerInfo fallback = TOWER_INFO.get(GameManager.TowerType.ARCHER);
+        if (towerType == null) {
+            return fallback;
+        }
+        return TOWER_INFO.getOrDefault(towerType, fallback);
+    }
+
+    private static Map<GameManager.TowerType, TowerInfo> createTowerInfo() {
+        EnumMap<GameManager.TowerType, TowerInfo> metadata = new EnumMap<>(GameManager.TowerType.class);
+        metadata.put(
+                GameManager.TowerType.ARCHER,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_archer.png", "Archer", 100)
+        );
+        metadata.put(
+                GameManager.TowerType.CANNON,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_cannon.png", "Cannon", 120)
+        );
+        metadata.put(
+                GameManager.TowerType.CROSSBOW,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_crossbow.png", "Crossbow", 130)
+        );
+        metadata.put(
+                GameManager.TowerType.ICE_WIZARD,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_ice_wizard.png", "Ice Wizard", 150)
+        );
+        metadata.put(
+                GameManager.TowerType.LIGHTNING_WIZARD,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_lightning_tower.png", "Lightning Wizard", 150)
+        );
+        metadata.put(
+                GameManager.TowerType.POISON_WIZARD,
+                new TowerInfo("/Towers/Combat Towers/spr_tower_poison_wizard.png", "Poison Wizard", 150)
+        );
+        return Map.copyOf(metadata);
     }
 
     private static Font loadGameFont(double size) {
@@ -901,10 +922,9 @@ public class Main extends Application {
     }
 
     private static boolean isEventInsideSidePanel(Object target) {
-        if (sidePanelContainer == null || !(target instanceof Node)) {
+        if (sidePanelContainer == null || !(target instanceof Node node)) {
             return false;
         }
-        Node node = (Node) target;
         while (node != null) {
             if (node == sidePanelContainer) {
                 return true;

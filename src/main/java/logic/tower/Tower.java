@@ -1,15 +1,16 @@
 package logic.tower;
 
-import java.util.List;
-
 import logic.enemy.Enemy;
 import logic.interfaces.Upgradable;
 import logic.map.GameMap;
+
+import java.util.List;
 
 public abstract class Tower implements Upgradable {
     protected static final int DEFAULT_UPGRADE_COST = 100;
     protected static final int DEFAULT_MAX_LEVEL = 3;
     protected static final int MIN_FIRE_COOLDOWN = 10;
+    private static final double UPGRADE_RANGE_BONUS = 10.0;
 
     protected int damage;
     protected double range;
@@ -39,30 +40,38 @@ public abstract class Tower implements Upgradable {
     }
 
     /**
-     * Tick-based combat: when ready, fires a {@link Projectile} at the closest in-range enemy.
-     * Projectile towers use this implementation; override for other behaviour (e.g. wizard).
+     * Tick-based combat: when ready, fires a projectile at the closest in-range enemy.
      */
     public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
         updateProjectileAttack(enemies, activeProjectiles, Projectile.DEFAULT_SPRITE);
     }
 
-    protected void updateProjectileAttack(List<Enemy> enemies, List<Projectile> activeProjectiles,
-            String projectileSprite) {
-        if (currentCooldown > 0) {
-            currentCooldown--;
-        }
-        if (currentCooldown > 0) {
+    protected void updateProjectileAttack(
+            List<Enemy> enemies,
+            List<Projectile> activeProjectiles,
+            String projectileSprite
+    ) {
+        tickCooldown();
+        if (currentCooldown > 0 || activeProjectiles == null) {
             return;
         }
+
         Enemy target = findClosestEnemyInRange(enemies);
         if (target == null) {
             return;
         }
-        int T = GameMap.PATH_TILE_PIXEL_SIZE;
-        double sx = x + (T * 0.5);
-        double sy = y + (T * 0.2);
-        activeProjectiles.add(new Projectile(sx, sy, Projectile.DEFAULT_SPEED, damage, target,
-                projectileSprite));
+
+        double[] spawnPosition = getProjectileSpawnPosition();
+        activeProjectiles.add(
+                new Projectile(
+                        spawnPosition[0],
+                        spawnPosition[1],
+                        Projectile.DEFAULT_SPEED,
+                        damage,
+                        target,
+                        projectileSprite
+                )
+        );
         currentCooldown = fireCooldown;
     }
 
@@ -70,33 +79,61 @@ public abstract class Tower implements Upgradable {
         if (enemies == null || enemies.isEmpty()) {
             return null;
         }
-        Enemy best = null;
-        double bestDist = Double.MAX_VALUE;
-        for (Enemy e : enemies) {
-            if (e.isDead()) {
+
+        Enemy closestEnemy = null;
+        double closestDistance = Double.MAX_VALUE;
+        for (Enemy enemy : enemies) {
+            if (enemy.isDead()) {
                 continue;
             }
-            double dx = e.getX() - x;
-            double dy = e.getY() - y;
-            double d = Math.sqrt(dx * dx + dy * dy);
-            if (d <= range && d < bestDist) {
-                bestDist = d;
-                best = e;
+
+            double distance = Math.hypot(enemy.getX() - x, enemy.getY() - y);
+            if (distance <= range && distance < closestDistance) {
+                closestDistance = distance;
+                closestEnemy = enemy;
             }
         }
-        return best;
+        return closestEnemy;
+    }
+
+    @Override
+    public void upgrade() {
+        if (!canUpgrade()) {
+            return;
+        }
+
+        level++;
+        damage = Math.max(damage + 1, (int) Math.ceil(damage * 1.2));
+        range += UPGRADE_RANGE_BONUS;
+        fireCooldown = Math.max(MIN_FIRE_COOLDOWN, fireCooldown - 2);
+        upgradeCost = Math.max(upgradeCost + 1, (int) Math.ceil(upgradeCost * 1.5));
+    }
+
+    private void tickCooldown() {
+        if (currentCooldown > 0) {
+            currentCooldown--;
+        }
+    }
+
+    private double[] getProjectileSpawnPosition() {
+        int tileSize = GameMap.PATH_TILE_PIXEL_SIZE;
+        return new double[]{
+                x + (tileSize * 0.5),
+                y + (tileSize * 0.2)
+        };
+    }
+
+    public boolean canUpgrade() {
+        return level < maxLevel;
     }
 
     protected boolean isEnemyInRange(Enemy enemy) {
-        double dx = enemy.getX() - this.x;
-        double dy = enemy.getY() - this.y;
-        return Math.sqrt(dx * dx + dy * dy) <= this.range;
+        return enemy != null && Math.hypot(enemy.getX() - x, enemy.getY() - y) <= range;
     }
 
     public int getDamage() {
         return damage;
     }
-
     public void setDamage(int damage) {
         this.damage = damage;
     }
@@ -104,7 +141,6 @@ public abstract class Tower implements Upgradable {
     public double getRange() {
         return range;
     }
-
     public void setRange(double range) {
         this.range = range;
     }
@@ -112,7 +148,6 @@ public abstract class Tower implements Upgradable {
     public int getFireCooldown() {
         return fireCooldown;
     }
-
     public void setFireCooldown(int fireCooldown) {
         this.fireCooldown = fireCooldown;
     }
@@ -120,7 +155,6 @@ public abstract class Tower implements Upgradable {
     public int getCurrentCooldown() {
         return currentCooldown;
     }
-
     public void setCurrentCooldown(int currentCooldown) {
         this.currentCooldown = currentCooldown;
     }
@@ -130,7 +164,6 @@ public abstract class Tower implements Upgradable {
     public double getAttackCooldown() {
         return fireCooldown;
     }
-
     /** @deprecated Use {@link #setFireCooldown(int)}. */
     @Deprecated
     public void setAttackCooldown(double attackCooldown) {
@@ -140,7 +173,6 @@ public abstract class Tower implements Upgradable {
     public double getX() {
         return x;
     }
-
     public void setX(double x) {
         this.x = x;
     }
@@ -148,7 +180,6 @@ public abstract class Tower implements Upgradable {
     public double getY() {
         return y;
     }
-
     public void setY(double y) {
         this.y = y;
     }
@@ -156,7 +187,6 @@ public abstract class Tower implements Upgradable {
     public int getCost() {
         return cost;
     }
-
     public void setCost(int cost) {
         this.cost = cost;
     }
@@ -164,7 +194,6 @@ public abstract class Tower implements Upgradable {
     public String getSpriteName() {
         return spriteName;
     }
-
     public void setSpriteName(String spriteName) {
         this.spriteName = spriteName != null ? spriteName : "";
     }
@@ -182,18 +211,6 @@ public abstract class Tower implements Upgradable {
         this.gridCol = col;
     }
 
-    @Override
-    public void upgrade() {
-        if (!canUpgrade()) {
-            return;
-        }
-        level++;
-        damage = Math.max(damage + 1, (int) Math.ceil(damage * 1.2));
-        range += 10.0;
-        fireCooldown = Math.max(MIN_FIRE_COOLDOWN, fireCooldown - 2);
-        upgradeCost = Math.max(upgradeCost + 1, (int) Math.ceil(upgradeCost * 1.5));
-    }
-
     public int getLevel() {
         return level;
     }
@@ -204,9 +221,5 @@ public abstract class Tower implements Upgradable {
 
     public int getMaxLevel() {
         return maxLevel;
-    }
-
-    public boolean canUpgrade() {
-        return level < maxLevel;
     }
 }

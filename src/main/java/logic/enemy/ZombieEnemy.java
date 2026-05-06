@@ -1,14 +1,14 @@
 package logic.enemy;
 
-import logic.map.Waypoint;
+public final class ZombieEnemy extends Enemy {
+    private static final int MAX_HEALTH = 170;
+    private static final double SPEED = 0.9;
+    private static final int REWARD_MONEY = 22;
+    private static final boolean IS_FLYING = false;
+    private static final String SPRITE = "Enemies/spr_zombie.png";
+    private static final int BASE_DAMAGE = 4;
 
-public class ZombieEnemy extends Enemy {
     public ZombieEnemy() {
-        super(170, 0.9, 22, false, "Enemies/spr_zombie.png", 4); // Tanky slow enemy - high damage
-    }
-
-    @Override
-    public void move(Waypoint target) {
-        moveTowards(target);
+        super(MAX_HEALTH, SPEED, REWARD_MONEY, IS_FLYING, SPRITE, BASE_DAMAGE);
     }
 }

@@ -1,6 +1,11 @@
 package logic.map;
 
-public class Decoration {
+import java.util.concurrent.ThreadLocalRandom;
+
+public final class Decoration {
+    private static final double OFFSET_RANGE = 16.0;
+    private static final double HALF_OFFSET_RANGE = OFFSET_RANGE / 2.0;
+
     private final String spriteName;
     private final int row;
     private final int col;
@@ -13,14 +18,12 @@ public class Decoration {
         this.row = row;
         this.col = col;
         this.scale = scale;
-        int ts = logic.map.GameMap.PATH_TILE_PIXEL_SIZE;
-        
-        // Small random offset between -8.0 and 8.0 to keep it strictly within its block
-        double offsetX = (Math.random() * 16.0) - 8.0;
-        double offsetY = (Math.random() * 16.0) - 8.0;
-        
-        this.x = col * ts + ts / 2.0 + offsetX;
-        this.y = row * ts + ts / 2.0 + offsetY;
+
+        int tileSize = GameMap.PATH_TILE_PIXEL_SIZE;
+        double offsetX = randomTileOffset();
+        double offsetY = randomTileOffset();
+        this.x = col * tileSize + tileSize / 2.0 + offsetX;
+        this.y = row * tileSize + tileSize / 2.0 + offsetY;
     }
 
     public String getSpriteName() { return spriteName; }
@@ -29,4 +32,8 @@ public class Decoration {
     public double getX() { return x; }
     public double getY() { return y; }
     public double getScale() { return scale; }
+
+    private static double randomTileOffset() {
+        return ThreadLocalRandom.current().nextDouble(-HALF_OFFSET_RANGE, HALF_OFFSET_RANGE);
+    }
 }

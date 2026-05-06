@@ -17,7 +17,6 @@ import logic.map.Theme;
 import logic.tower.Projectile;
 import logic.tower.Tower;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -26,11 +25,15 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.text.Font;
 import logic.DamageText;
 
+import static application.Main.getString;
+
 public class GameView extends StackPane {
     private Canvas canvas;
     private GraphicsContext gc;
     private GameManager gameManager;
     private static final int TILE_SIZE = 50;
+    private static final int PATH_SOURCE_TILE_SIZE = 16;
+    private static final int PATH_SOURCE_DEFAULT_COORD = 16;
     private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
     
     // Castle hit effect fields
@@ -63,8 +66,8 @@ public class GameView extends StackPane {
             if (gameManager == null) {
                 return;
             }
-            int col = (int) (e.getX() / TILE_SIZE);
-            int row = (int) (e.getY() / TILE_SIZE);
+            int col = toTileIndex(e.getX());
+            int row = toTileIndex(e.getY());
             if (e.getButton() == MouseButton.SECONDARY) {
                 gameManager.setSelectedTowerType(null);
                 clearPlacedTowerSelection();
@@ -83,8 +86,8 @@ public class GameView extends StackPane {
         });
 
         canvas.setOnMouseMoved(e -> {
-            int col = (int) (e.getX() / TILE_SIZE);
-            int row = (int) (e.getY() / TILE_SIZE);
+            int col = toTileIndex(e.getX());
+            int row = toTileIndex(e.getY());
             updateHover(row, col);
         });
 
@@ -94,32 +97,29 @@ public class GameView extends StackPane {
         
         // Add keyboard shortcuts for tower selection
         canvas.setFocusTraversable(true);
-        canvas.setOnKeyPressed(e -> handleKeyPress(e));
+        canvas.setOnKeyPressed(this::handleKeyPress);
     }
 
     public void updateHover(int row, int col) {
         this.hoverRow = row;
         this.hoverCol = col;
-        if (row < 0 || col < 0) {
+        if (gameManager == null || row < 0 || col < 0) {
             hoverValid = false;
             return;
         }
+
         GameMap map = gameManager.getCurrentMap();
         if (map == null) {
             hoverValid = false;
             return;
         }
-        
-        boolean valid = map.isBuildable(row, col, map.getDecorations());
-        if (valid) {
-            for (Tower t : gameManager.getActiveTowers()) {
-                if (t.getGridRow() == row && t.getGridCol() == col) {
-                    valid = false;
-                    break;
-                }
-            }
+
+        int[][] grid = map.getGridLayout();
+        if (grid == null || !isInsideGrid(row, col, grid)) {
+            hoverValid = false;
+            return;
         }
-        
+
         GameManager.TowerType selectedType = gameManager.getSelectedTowerType();
         if (selectedType == null) {
             hoverValid = false;
@@ -186,9 +186,19 @@ public class GameView extends StackPane {
     public void drawMap() {
         gc.setImageSmoothing(false); // Fix blurry pixel art
 
+        if (gameManager == null) {
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            return;
+        }
+
         AssetManager assets = AssetManager.getInstance();
 
         GameMap map = gameManager.getCurrentMap();
+        if (map == null) {
+            gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+            return;
+        }
+
         String grassPath;
         String pathPath;
         String castlePath;
@@ -240,7 +250,17 @@ public class GameView extends StackPane {
                         int[] srcCoords = getPathTileSourceCoords(r, c, grid);
                         int sx = srcCoords[0];
                         int sy = srcCoords[1];
-                        gc.drawImage(groundSet, sx, sy, 16, 16, dx, dy, TILE_SIZE, TILE_SIZE);
+                        gc.drawImage(
+                                groundSet,
+                                sx,
+                                sy,
+                                PATH_SOURCE_TILE_SIZE,
+                                PATH_SOURCE_TILE_SIZE,
+                                dx,
+                                dy,
+                                TILE_SIZE,
+                                TILE_SIZE
+                        );
                     }
                 }
 
@@ -565,9 +585,8 @@ public class GameView extends StackPane {
         boolean left = (c > 0) && ((grid[r][c - 1] == 1) || (grid[r][c - 1] == 2));
         boolean right = (c < cols - 1) && ((grid[r][c + 1] == 1) || (grid[r][c + 1] == 2));
 
-        int SRC_TILE_SIZE = 16;
-        int sx = 16; // Default X (center of the sprite sheet)
-        int sy = 16; // Default Y
+        int sx = PATH_SOURCE_DEFAULT_COORD; // Default X (center of the sprite sheet)
+        int sy = PATH_SOURCE_DEFAULT_COORD; // Default Y
 
         // Path adjacency rules (based on a standard 3x3 sprite sheet).
         if (left && right && !up && !down) {
@@ -604,59 +623,61 @@ public class GameView extends StackPane {
 
         return new int[]{sx, sy};
     }
-    
+
     private void drawGhostTower(GraphicsContext gc, int tileX, int tileY) {
-        // Get tower sprite path based on selected tower type
         String spritePath = getTowerSpritePath(gameManager.getSelectedTowerType());
         if (spritePath == null) {
             return;
         }
-        
-        // Try to load image directly instead of through AssetManager
-        try {
-            InputStream imageStream = getClass().getResourceAsStream(spritePath);
-            if (imageStream == null) {
-                return;
-            }
-            Image towerSprite = new Image(imageStream);
-            if (towerSprite.isError()) {
-                return;
-            }
-            
-            // Use same drawing logic as drawTower method
-            double iw = towerSprite.getWidth();
-            double ih = towerSprite.getHeight();
-            if (iw <= 0 || ih <= 0) {
-                return;
-            }
-            
-            // Calculate position and size like actual tower
-            // Note: drawTower expects tower.getX() and tower.getY() as center positions
-            double towerCenterX = tileX + TILE_SIZE / 2.0; // Center of tile
-            double towerCenterY = tileY + TILE_SIZE / 2.0; // Center of tile
-            
-            double destW = TILE_SIZE;
-            double destH = (ih / iw) * destW; // Maintain aspect ratio
-            double footprintBottom = towerCenterY + TILE_SIZE / 2.0;
-            double drawX = towerCenterX - destW / 2.0;
-            double drawY = footprintBottom - destH;
-            
-            // Draw semi-transparent ghost tower
-            gc.setGlobalAlpha(0.5); // Semi-transparent
-            gc.drawImage(towerSprite, 0, 0, iw, ih, drawX, drawY, destW, destH);
-            gc.setGlobalAlpha(1.0); // Reset to normal
-        } catch (Exception e) {
-            // Silently handle exceptions
+
+        String assetKey = normalizeAssetKey(spritePath);
+        Image towerSprite = AssetManager.getInstance().getImage(assetKey);
+        if (towerSprite == null || towerSprite.isError()) {
+            return;
         }
+
+        double iw = towerSprite.getWidth();
+        double ih = towerSprite.getHeight();
+        if (iw <= 0 || ih <= 0) {
+            return;
+        }
+
+        double towerCenterX = tileX + TILE_SIZE / 2.0;
+        double towerCenterY = tileY + TILE_SIZE / 2.0;
+
+        double destW = TILE_SIZE;
+        double destH = (ih / iw) * destW;
+        double footprintBottom = towerCenterY + TILE_SIZE / 2.0;
+        double drawX = towerCenterX - destW / 2.0;
+        double drawY = footprintBottom - destH;
+
+        gc.setGlobalAlpha(0.5);
+        gc.drawImage(towerSprite, 0, 0, iw, ih, drawX, drawY, destW, destH);
+        gc.setGlobalAlpha(1.0);
     }
-    
+
     private String getTowerSpritePath(GameManager.TowerType towerType) {
         if (towerType == null) {
             return null;
         }
         return getString(towerType);
     }
-    
+
+    private static int toTileIndex(double coordinate) {
+        return (int) (coordinate / TILE_SIZE);
+    }
+
+    private static boolean isInsideGrid(int row, int col, int[][] grid) {
+        return row >= 0 && row < grid.length && col >= 0 && col < grid[0].length;
+    }
+
+    private static String normalizeAssetKey(String spritePath) {
+        if (spritePath.startsWith("/")) {
+            return spritePath.substring(1);
+        }
+        return spritePath;
+    }
+
     private void handleKeyPress(KeyEvent e) {
         switch (e.getCode()) {
             case DIGIT1:

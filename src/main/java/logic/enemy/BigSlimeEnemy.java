@@ -1,14 +1,14 @@
 package logic.enemy;
 
-import logic.map.Waypoint;
+public final class BigSlimeEnemy extends Enemy {
+    private static final int MAX_HEALTH = 180;
+    private static final double SPEED = 0.8;
+    private static final int REWARD_MONEY = 20;
+    private static final boolean IS_FLYING = false;
+    private static final String SPRITE = "Enemies/spr_big_slime.png";
+    private static final int BASE_DAMAGE = 2;
 
-public class BigSlimeEnemy extends Enemy {
     public BigSlimeEnemy() {
-        super(180, 0.8, 20, false, "Enemies/spr_big_slime.png", 2); // Tanky enemy - moderate damage
-    }
-
-    @Override
-    public void move(Waypoint target) {
-        moveTowards(target);
+        super(MAX_HEALTH, SPEED, REWARD_MONEY, IS_FLYING, SPRITE, BASE_DAMAGE);
     }
 }
