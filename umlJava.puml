@@ -1,0 +1,872 @@
+@startuml
+class application.GameView {
+- Canvas canvas
+- GraphicsContext gc
+- GameManager gameManager
+- {static} int TILE_SIZE
+- {static} int PATH_SOURCE_TILE_SIZE
+- {static} int PATH_SOURCE_DEFAULT_CORD
+- {static} double ENEMY_SPRITE_DRAW_SCALE
+- {static} double PROJECTILE_DRAW_SIZE
+- double castleHitShakeX
+- double castleHitShakeTimer
+- boolean castleIsHit
+- {static} double CASTLE_HIT_SHAKE_DURATION
+- {static} double CASTLE_HIT_SHAKE_INTENSITY
+- int hoverRow
+- int hoverCol
+- boolean hoverValid
+- Tower selectedPlacedTower
+- Consumer<Tower> placedTowerSelectionListener
+- Font damageFont
++ <<Create>> GameView(GameManager)
++ void updateHover(int,int)
++ void updateCastleHitEffect(double)
++ void playCastleHitEffect()
++ boolean togglePlacedTowerRangeAt(int,int)
++ void clearPlacedTowerSelection()
+- void notifyPlacedTowerSelectionChanged()
+- Tower findTowerAtTile(int,int)
++ void drawMap()
+- void drawRangeIndicator(double,double,double)
+- void drawProjectiles(GraphicsContext,AssetManager)
+- {static} void drawTower(GraphicsContext,AssetManager,Tower)
+- {static} void drawEnemy(GraphicsContext,AssetManager,Enemy)
+- void drawCastleSprite(GraphicsContext,Image,double,double)
+- void drawGhostTower(GraphicsContext,int,int)
+- void drawDamageTexts(GraphicsContext,AssetManager)
+- {static} double towerBottomY(Tower)
+- {static} double decorationBottomY(Decoration,AssetManager)
+- {static} int toTileIndex(double)
+- {static} boolean isInsideGrid(int,int,int[][])
+- {static} String normalizeAssetKey(String)
+- void handleKeyPress(KeyEvent)
++ void setPlacedTowerSelectionListener(Consumer<Tower>)
++ void setGameManager(GameManager)
+- String getTowerSpritePath(GameManager.TowerType)
+- int[] getPathTileSourceCoords(int,int,int[][])
+}
+
+
+class application.GameView$DepthSprite {
+- double bottomY
+- Decoration decoration
+- Enemy enemy
+- Tower tower
+- <<Create>> DepthSprite(double,Decoration,Enemy,Tower)
+~ {static} DepthSprite decoration(Decoration,double)
+~ {static} DepthSprite enemy(Enemy,double)
+~ {static} DepthSprite tower(Tower,double)
++ Tower tower()
++ double bottomY()
++ Decoration decoration()
++ Enemy enemy()
+}
+
+
+class logic.tower.ArcherTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String ARCHER_PROJECTILE_SPRITE
++ <<Create>> ArcherTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+class logic.enemy.Enemy {
+- {static} int FRAME_COUNT
+- {static} int ANIM_TICK_THRESHOLD
+- {static} double WAYPOINT_REACHED_DISTANCE
+- {static} double ASSUMED_FRAME_SECONDS
+- {static} double HIT_FLASH_DURATION
+# int maxHealth
+# int hp
+# double speed
+# int rewardMoney
+# int damage
+# double x
+# double y
+# int currentWaypointIndex
+# String spriteName
+# int currentFrame
+# int animTick
+# double hitTimer
+# boolean isHit
++ <<Create>> Enemy(int,double,int,String,int)
++ void update(List<Waypoint>)
++ void move(Waypoint)
+# void moveTowards(Waypoint)
++ void takeDamage(int)
+- void advanceAnimation()
+- void updateHitFlashTimer()
+- double distanceTo(double,double)
++ boolean isDead()
++ int getMaxHealth()
++ void setMaxHealth(int)
++ int getHp()
++ void setHp(int)
++ int getCurrentHealth()
++ void setCurrentHealth(int)
++ double getSpeed()
++ void setSpeed(double)
++ int getRewardMoney()
++ void setRewardMoney(int)
++ double getX()
++ void setX(double)
++ double getY()
++ void setY(double)
++ int getCurrentWaypointIndex()
++ void setCurrentWaypointIndex(int)
++ String getSpriteName()
++ void setSpriteName(String)
++ int getCurrentFrame()
++ void setCurrentFrame(int)
++ int getAnimTick()
++ void setAnimTick(int)
++ int getDamage()
++ void setDamage(int)
++ boolean isHit()
+}
+
+
+class application.MainMenu {
+- {static} String BACKGROUND_IMAGE_RESOURCE
+- {static} String TITLE_FONT_RESOURCE
+- {static} int SCENE_WIDTH
+- {static} int SCENE_HEIGHT
+- {static} double TITLE_FONT_SIZE
+- {static} double BUTTON_FONT_SIZE
+- {static} double SOUND_BUTTON_FONT_SIZE
+- Scene mainMenuScene
+- Button soundToggleButton
++ <<Create>> MainMenu()
+- StackPane createRootWithBackground()
+- VBox createUiContainer()
+- void startGame()
+- void exitGame()
++ void playMenuBgm()
++ void stopMenuBgm()
++ Scene getScene()
+}
+
+
+enum logic.map.Theme {
++  NORMAL
++  AUTUMN
++  SPRING
++ {static} Theme defaultIfNull(Theme)
+}
+
+
+class logic.map.PathGenerator {
+- {static} int ROWS
+- {static} int COLS
+- {static} int START_EDGE_LEFT
+- {static} int START_EDGE_TOP
+- {static} int START_EDGE_BOTTOM
+- {static} int MIN_PATH_LENGTH_BEFORE_CASTLE
+- {static} int MIN_CASTLE_DISTANCE_FROM_START
+- {static} double CASTLE_PLACEMENT_CHANCE
+- {static} int[] DELTA_ROW
+- {static} int[] DELTA_COL
+- {static} Random RANDOM
+- <<Create>> PathGenerator()
++ {static} int[][] generateRandomPath()
+- {static} StartState createStartState(Random)
+- {static} boolean generatePath(int[][],int,int,int,int,int,Random)
+- {static} boolean canPlaceCastle(int[][],int,int,int,int,int,Random)
+- {static} boolean isValidNextStep(int[][],int,int)
+- {static} boolean isOnOuterBorder(int,int,int,int)
+- {static} int countPathNeighbors(int[][],int,int)
+}
+
+
+class logic.map.PathGenerator$StartState {
+- int startRow
+- int startCol
+- int nextRow
+- int nextCol
+- <<Create>> StartState(int,int,int,int)
++ int startRow()
++ int startCol()
++ int nextRow()
++ int nextCol()
+}
+
+
+class application.Main {
+- {static} String GAME_TITLE
+- {static} String GAME_FONT_RESOURCE
+- {static} int GAME_CANVAS_WIDTH
+- {static} int GAME_CANVAS_HEIGHT
+- {static} int TILE_SIZE
+- {static} int SIDE_PANEL_WIDTH
+- {static} int SHOP_COLUMNS
+- {static} double LOGIC_TICKS_PER_SECOND
+- {static} double LOGIC_STEP_SECONDS
+- {static} double LOGIC_SPEED_MULTIPLIER
+- {static} int MAX_LOGIC_STEPS_PER_FRAME
+- {static} double MAX_DELTA_SECONDS
+- {static} double HUD_FONT_SIZE
+- {static} double OVERLAY_TITLE_FONT_SIZE
+- {static} double OVERLAY_SUBTITLE_FONT_SIZE
+- {static} double SHOP_TITLE_FONT_SIZE
+- {static} double SHOP_NAME_FONT_SIZE
+- {static} double SHOP_COST_FONT_SIZE
+- {static} double STATUS_TITLE_FONT_SIZE
+- {static} double STATUS_NAME_FONT_SIZE
+- {static} double STATUS_INFO_FONT_SIZE
+- {static} double BUTTON_FONT_SIZE
+- {static} String MAIN_MENU_BUTTON_TEXT
+- {static} String PANEL_STYLE
+- {static} String ROOT_STYLE
+- {static} String OVERLAY_STYLE
+- {static} String SHOP_ROW_DEFAULT_STYLE
+- {static} String SHOP_ROW_SELECTED_STYLE
+- {static} String PANEL_BUTTON_BASE_STYLE
+- {static} String PANEL_BUTTON_HOVER_STYLE
+- {static} String MUSHROOM_1
+- {static} String MUSHROOM_2
+- {static} double DECOR_SCALE
+- {static} int DECOR_ATTEMPTS_PER_TILE
+- {static} double DECOR_SPAWN_CHANCE
+- {static} double ROCK_MUSHROOM_CHANCE
+- {static} String[] AUTUMN_DECOR_POOL
+- {static} String[] SPRING_DECOR_POOL
+- {static} String[] NORMAL_DECOR_POOL
+- {static} Map<GameManager.TowerType,TowerInfo> TOWER_INFO
++ {static} Stage primaryStage
+- {static} GameView gameView
+- {static} GameManager gameManager
+- {static} AnimationTimer gameLoop
+- {static} MainMenu mainMenu
+- {static} GameMap gameMap
+- {static} StackPane sidePanelContainer
+- {static} VBox towerShopPanel
+- {static} VBox towerStatusPanel
+- {static} VBox gameOverOverlay
+- {static} VBox victoryOverlay
+- {static} Font gameUiFont
++ void start(Stage)
++ {static} void startGameFromMenu()
+- {static} void initializeGame()
+- {static} Theme pickRandomTheme(Random)
+- {static} String[] getDecorPoolForTheme(Theme)
+- {static} void populateDecorations(int[][],GameMap,String[],Random)
+- {static} boolean isDecoratableTile(int[][],GameMap,int,int)
+- {static} void tryPlaceDecoration(List<Decoration>,String[],Random,int,int)
+- {static} void maybeAddMushroomForRock(List<Decoration>,Random,int,int,String)
+- {static} void startGameLoop()
+- {static} StackPane createSidePanelContainer(VBox,VBox)
+- {static} void configureSidePanelWidth(VBox)
+- {static} void addSoundToggleButton(StackPane)
+- {static} StackPane createGameWithHud(HBox)
+- {static} Scene createGameScene(StackPane)
+- {static} void showGameScene(Scene)
+- {static} void configureSceneInputHandlers(Scene)
+- {static} void handleSceneMouseClicked(MouseEvent)
+- {static} void handleSceneMouseMoved(MouseEvent)
+- {static} int toGridIndex(double)
+- {static} void clearTowerSelection()
+- {static} AnimationTimer createGameLoop(HudTexts,HBox[])
+- {static} boolean handleTerminalState(AnimationTimer)
+- {static} VBox createGameOverOverlay()
+- {static} VBox createVictoryOverlay()
+- {static} VBox createEndStateOverlay(String,Color,String)
+- {static} void showGameOverOverlay()
+- {static} void showVictoryOverlay()
+- {static} void showOverlay(VBox)
+- {static} HBox createTopLeftHUD(GameManager,Font,HudTexts)
+- {static} ImageView createHudIcon(String)
+- {static} void updateHUDTexts(GameManager,HudTexts)
+- {static} VBox createTowerShop(GameManager,Font,HBox[])
+- {static} GridPane createTowerGrid(GameManager,Font,HBox[])
+- {static} void updateShopSelectionUI(GameManager,HBox[])
+- {static} VBox createTowerStatusPanel(Tower,Font,Runnable)
+- {static} VBox createTowerStatsCard(Tower,Font)
+- {static} Text createStatusText(String,Font,double)
+- {static} Button createPanelActionButton(String,boolean)
+- {static} void applyPanelButtonStyle(Button,boolean)
+- {static} void tryUpgradeTower(Tower)
+- {static} ImageView createCrispStatusTowerSprite(Tower)
+- {static} void showTowerStatusPanel(Tower)
+- {static} void showTowerShopPanel()
+- {static} void setPanelVisible(VBox,boolean)
+- {static} void exitTowerStatusMode()
+- {static} HBox createTowerShopRow(GameManager,GameManager.TowerType,Font)
+- {static} String getTowerSpritePath(GameManager.TowerType)
+~ {static} String getString(GameManager.TowerType)
+- {static} String getTowerDisplayName(GameManager.TowerType)
+- {static} int getTowerCost(GameManager,GameManager.TowerType)
+- {static} TowerInfo getTowerInfo(GameManager.TowerType)
+- {static} Map<GameManager.TowerType,TowerInfo> createTowerInfo()
+- {static} Font loadGameFont(double)
+- {static} Image loadImageResource(String)
+- {static} void returnToMenu()
+- {static} void stopGameLoop()
+- {static} void resetGameState()
+- {static} boolean isEventInsideSidePanel(Object)
++ {static} void main(String[])
+}
+
+
+class application.Main$TowerInfo {
+- String spritePath
+- String displayName
+- int fallbackCost
+- <<Create>> TowerInfo(String,String,int)
++ String spritePath()
++ String displayName()
++ int fallbackCost()
+}
+
+
+class application.Main$HudTexts {
+- Text hpText
+- Text moneyText
+- Text timerText
+}
+
+class application.AssetManager {
+- {static} String RESOURCE_PREFIX
+- {static} List<String> ENVIRONMENT_ASSETS
+- {static} List<String> TOWER_ASSETS
+- {static} List<String> PROJECTILE_ASSETS
+- {static} List<String> ENEMY_ASSETS
+- {static} List<String> ALL_ASSETS
+- Map<String,Image> images
+- <<Create>> AssetManager()
++ {static} AssetManager getInstance()
+- void loadAssets()
+- void loadAsset(String)
+- {static} List<String> buildAssetList()
++ Image getImage(String)
+}
+
+
+class application.AssetManager$Holder {
+- {static} AssetManager INSTANCE
+}
+
+class logic.tower.LightningWizardTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String LIGHTNING_PROJECTILE_SPRITE
++ <<Create>> LightningWizardTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+class logic.DamageText {
+- {static} double MIN_OPACITY
+- {static} double MAX_OPACITY
+- String text
+- double x
+- double y
+- double lifetime
+- double opacity
+- double velocityY
+- Color color
+- {static} double INITIAL_LIFETIME
+- {static} double FLOAT_SPEED
+- {static} double FADE_SPEED
++ <<Create>> DamageText(String,double,double,Color)
++ boolean update(double)
++ String getText()
++ double getX()
++ double getY()
++ double getOpacity()
++ Color getColor()
++ void setText(String)
++ void setX(double)
++ void setY(double)
++ void setOpacity(double)
++ void setColor(Color)
+- {static} double clampOpacity(double)
+}
+
+
+class logic.tower.PoisonWizardTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String POISON_PROJECTILE_SPRITE
++ <<Create>> PoisonWizardTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+class logic.map.GameMap {
++ {static} int PATH_TILE_PIXEL_SIZE
+- {static} int TILE_GRASS
+- {static} int TILE_PATH
+- {static} int TILE_CASTLE
+- {static} int[][] CARDINAL_OFFSETS
+- int[][] gridLayout
+- List<Decoration> decorations
+- List<Waypoint> pathWaypoints
+- Theme theme
++ <<Create>> GameMap(int[][])
++ List<Waypoint> generatePath()
++ int[] getCastleBaseCell()
++ {static} boolean isCastleClearanceTile(int,int,int,int)
++ boolean isInCastleClearanceZone(int,int)
++ boolean isBuildable(int,int,List<Decoration>)
++ void generateWaypointsFromGrid(int)
++ int[][] getGridLayout()
++ void setGridLayout(int[][])
++ List<Decoration> getDecorations()
++ List<Waypoint> getPathWaypoints()
++ Theme getTheme()
++ void setTheme(Theme)
+- boolean hasGrid()
+- boolean isInsideGrid(int,int)
+- {static} boolean hasDecorationAt(int,int,List<Decoration>)
+- {static} Waypoint toWaypoint(int,int,int)
+- List<int[]> findFirstBorderPathToCastle(int[])
+- {static} int[] findCastleCell(int[][])
+- {static} List<int[]> borderPathStarts(int[][])
+- {static} void tryAddBorderPathStart(int[][],Set<Integer>,List<int[]>,int,int)
+- {static} List<int[]> bfsPathToCastle(int[][],int,int,int,int)
+- {static} void fillParentArrays(int[][],int[][])
+- {static} List<int[]> reconstructPath(int[][],int[][],int,int,int,int)
+}
+
+
+class application.UIUtils {
+- {static} String BASE_BUTTON_BG
+- {static} String HOVER_BUTTON_BG
+- <<Create>> UIUtils()
++ {static} Button createStyledButton(String,Font)
++ {static} Button createStyledButton(String,Font,double,double)
++ {static} void attachClickSfx(Button)
++ {static} Button createSoundToggleButton(Font)
++ {static} Button createSoundToggleButton(Font,double,double)
++ {static} void refreshSoundToggleButtonText(Button)
+- {static} String getSoundToggleText()
+- {static} String buildButtonStyle(String,double,String)
+}
+
+
+abstract class logic.tower.Tower {
+# {static} int DEFAULT_UPGRADE_COST
+# {static} int DEFAULT_MAX_LEVEL
+# {static} int MIN_FIRE_COOLDOWN
+- {static} double UPGRADE_RANGE_BONUS
+# int damage
+# double range
+# int fireCooldown
+# int currentCooldown
+# double x
+# double y
+# int cost
+# String spriteName
+# int gridRow
+# int gridCol
+# int level
+# int upgradeCost
+# int maxLevel
++ <<Create>> Tower(int,double,int,int,String)
++ void update(List<Enemy>,List<Projectile>)
+# void updateProjectileAttack(List<Enemy>,List<Projectile>,String)
+# Enemy findClosestEnemyInRange(List<Enemy>)
++ void upgrade()
+- void tickCooldown()
+# boolean isEnemyInRange(Enemy)
+- double[] getProjectileSpawnPosition()
++ boolean canUpgrade()
++ int getDamage()
++ double getRange()
++ int getFireCooldown()
++ int getCurrentCooldown()
++ double getAttackCooldown()
++ double getX()
++ double getY()
++ int getCost()
++ String getSpriteName()
++ int getGridRow()
++ int getGridCol()
++ int getLevel()
++ int getUpgradeCost()
++ int getMaxLevel()
++ void setDamage(int)
++ void setRange(double)
++ void setFireCooldown(int)
++ void setCurrentCooldown(int)
++ void setAttackCooldown(double)
++ void setX(double)
++ void setY(double)
++ void setCost(int)
++ void setSpriteName(String)
++ void setPlacementTile(int,int)
+}
+
+
+class logic.enemy.ZombieEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> ZombieEnemy()
+}
+
+
+class logic.GameManager {
+- {static} int INITIAL_PLAYER_MONEY
+- {static} int INITIAL_BASE_HEALTH
+- {static} TowerType DEFAULT_SELECTED_TOWER
+- {static} double GAME_DURATION_SECONDS
+- {static} int MAX_DAMAGE_TEXTS
+- {static} double DEFAULT_TOWER_RANGE
+- {static} double PHASE_EARLY_MIN_TIME
+- {static} double PHASE_MID_MIN_TIME
+- {static} double PHASE_EARLY_INTERVAL
+- {static} double PHASE_MID_INTERVAL
+- {static} double PHASE_LATE_INTERVAL
+- {static} List<Supplier<Enemy>> EARLY_ENEMIES
+- {static} List<Supplier<Enemy>> MID_ENEMIES
+- {static} List<Supplier<Enemy>> LATE_ENEMIES
+- {static} Map<TowerType,Supplier<Tower>> TOWER_FACTORIES
+- Random random
+- GameMap currentMap
+- List<Enemy> activeEnemies
+- List<Tower> activeTowers
+- List<Projectile> activeProjectiles
+- List<DamageText> activeDamageTexts
+- int playerMoney
+- int baseHealth
+- boolean isGameOver
+- TowerType selectedTowerType
+- GameView gameView
+- double timeRemaining
+- boolean isVictory
+- double spawnCooldown
++ <<Create>> GameManager(GameMap,GameView)
++ boolean placeTower(Tower)
++ boolean placeTower(int,int)
++ void spawnEnemy(Enemy)
++ void update(double)
+- void updateTimer(double)
+- void updateEnemies(List<Waypoint>)
+- void updateTowers()
+- void updateProjectiles()
+- void updateDamageTexts(double)
+- void handleSpawning(double)
+- void handleEnemyReachedBase(Enemy,Iterator<Enemy>)
+- boolean checkAndHandleVictory()
+- void collectBountiesFromDeadEnemies()
++ Tower createTowerFromType(TowerType)
+- SpawnPlan selectSpawnPlan()
+- Enemy selectRandomEnemy(List<Supplier<Enemy>>)
++ boolean canPlaceTower(int,int)
++ boolean tryUpgradeTower(Tower)
++ void resetGameState()
++ void createDamageText(String,double,double,Color)
+- {static} Map<TowerType,Supplier<Tower>> createTowerFactories()
+- {static} void placeTowerAtTile(Tower,int,int)
++ GameMap getCurrentMap()
++ int getBaseHealth()
++ TowerType getSelectedTowerType()
++ double getTowerRange(TowerType)
++ List<Enemy> getActiveEnemies()
++ List<Tower> getActiveTowers()
++ List<Projectile> getActiveProjectiles()
++ int getPlayerMoney()
++ double getTimeRemaining()
++ String getFormattedTime()
++ List<DamageText> getActiveDamageTexts()
++ boolean isGameOver()
++ boolean isVictory()
+- boolean isPlacementRequestValid(int,int)
+- boolean isTileOccupiedByTower(int,int)
++ void setCurrentMap(GameMap)
++ void setPlayerMoney(int)
++ void setBaseHealth(int)
++ void setGameOver(boolean)
++ void setSelectedTowerType(TowerType)
+}
+
+
+enum logic.TowerType {
++  ARCHER
++  CANNON
++  CROSSBOW
++  ICE_WIZARD
++  LIGHTNING_WIZARD
++  POISON_WIZARD
+}
+
+class logic.GameManager$SpawnPlan {
+- double spawnInterval
+- List<Supplier<Enemy>> enemyPool
+- <<Create>> SpawnPlan(double,List<Supplier<Enemy>>)
++ List<Supplier<Enemy>> enemyPool()
++ double spawnInterval()
+}
+
+
+class logic.map.Decoration {
+- {static} double OFFSET_RANGE
+- {static} double HALF_OFFSET_RANGE
+- String spriteName
+- int row
+- int col
+- double x
+- double y
+- double scale
++ <<Create>> Decoration(String,int,int,double)
++ String getSpriteName()
++ int getRow()
++ int getCol()
++ double getX()
++ double getY()
++ double getScale()
+- {static} double randomTileOffset()
+}
+
+
+class logic.tower.CannonTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String CANNON_PROJECTILE_SPRITE
++ <<Create>> CannonTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+class logic.enemy.GoblinEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> GoblinEnemy()
+}
+
+
+class application.Launcher {
++ {static} void main(String[])
+}
+
+class logic.enemy.SkeletonEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> SkeletonEnemy()
+}
+
+
+class logic.enemy.KingSlimeEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> KingSlimeEnemy()
+}
+
+
+class logic.enemy.BigSlimeEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> BigSlimeEnemy()
+}
+
+
+class logic.map.LevelLoader {
+- {static} int[][] FALLBACK_GRID
+- <<Create>> LevelLoader()
++ {static} int[][] loadMapGrid(String)
+- {static} int[][] parseGrid(String,BufferedReader)
+- {static} int[] parseRow(String[],String)
+- {static} int[][] fallbackGrid()
+}
+
+
+class logic.enemy.SlimeEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> SlimeEnemy()
+}
+
+
+class logic.map.Waypoint {
+- double x
+- double y
++ <<Create>> Waypoint(double,double)
++ double getX()
++ void setX(double)
++ double getY()
++ void setY(double)
+}
+
+
+class application.SoundManager {
+- {static} String CLICK_SFX_PATH
+- {static} String CASTLE_ATTACKED_SFX_PATH
+- {static} String ENEMY_ATTACKED_SFX_PATH
+- {static} String DEFEAT_SFX_PATH
+- {static} String VICTORY_SFX_PATH
+- {static} String MENU_BGM_PATH
+- {static} String IN_GAME_BGM_PATH
+- {static} AudioClip clickSfx
+- {static} AudioClip castleAttackedSfx
+- {static} AudioClip enemyAttackedSfx
+- {static} AudioClip defeatSfx
+- {static} AudioClip victorySfx
+- {static} MediaPlayer menuBgmPlayer
+- {static} MediaPlayer inGameBgmPlayer
+- {static} boolean isMuted
+- {static} boolean initialized
+- {static} BgmScene activeBgmScene
+- <<Create>> SoundManager()
++ {static} void initialize()
+- {static} void playSfx(AudioClip)
++ {static} void playClickSfx()
++ {static} void playCastleIsAttackedSfx()
++ {static} void playEnemyIsAttackedSfx()
++ {static} void playDefeatSfx()
++ {static} void playVictorySfx()
+- {static} void activateBgm(BgmScene,MediaPlayer,MediaPlayer)
++ {static} void playMenuBgm()
++ {static} void playInGameBgm()
++ {static} void stopMenuBgm()
++ {static} void stopInGameBgm()
+- {static} void stopPlayer(MediaPlayer)
+- {static} void restartPlayer(MediaPlayer)
++ {static} void toggleMute()
+- {static} void resumeActiveBgm()
+- {static} AudioClip loadAudioClip(String,String)
+- {static} MediaPlayer loadLoopingBgmPlayer(String,String,double)
+- {static} void configureAudioClip(AudioClip,double,Double)
++ {static} boolean isMuted()
+}
+
+
+enum application.BgmScene {
++  NONE
++  MENU
++  IN_GAME
+}
+
+interface logic.interfaces.Damageable {
+~ void takeDamage(int)
+}
+
+class logic.enemy.DemonEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> DemonEnemy()
+}
+
+
+class logic.tower.Projectile {
++ {static} String DEFAULT_SPRITE
++ {static} double DEFAULT_SPEED
+- {static} double HIT_RADIUS
+- double x
+- double y
+- double speed
+- int damage
+- Enemy target
+- String spriteName
++ <<Create>> Projectile(double,double,double,int,Enemy,String)
++ boolean update()
+- void moveTowardTarget()
+- boolean isWithinHitRadius()
++ double getX()
++ double getY()
++ int getDamage()
++ Enemy getTarget()
++ String getSpriteName()
+}
+
+
+interface logic.interfaces.Upgradable {
+~ void upgrade()
+}
+
+class logic.enemy.BatEnemy {
+- {static} int MAX_HEALTH
+- {static} double SPEED
+- {static} int REWARD_MONEY
+- {static} String SPRITE
+- {static} int BASE_DAMAGE
++ <<Create>> BatEnemy()
+}
+
+
+class logic.tower.CrossbowTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String CROSSBOW_PROJECTILE_SPRITE
++ <<Create>> CrossbowTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+class logic.tower.IceWizardTower {
+- {static} int DAMAGE
+- {static} double RANGE
+- {static} int FIRE_COOLDOWN
+- {static} int COST
+- {static} String SPRITE
+- {static} String ICE_PROJECTILE_SPRITE
++ <<Create>> IceWizardTower()
++ void update(List<Enemy>,List<Projectile>)
+}
+
+
+
+
+javafx.scene.layout.StackPane <|-- application.GameView
+application.GameView +.. application.GameView$DepthSprite
+logic.tower.Tower <|-- logic.tower.ArcherTower
+logic.interfaces.Damageable <|.. logic.enemy.Enemy
+logic.map.PathGenerator +.. logic.map.PathGenerator$StartState
+javafx.application.Application <|-- application.Main
+application.Main +.. application.Main$TowerInfo
+application.Main +.. application.Main$HudTexts
+application.AssetManager +.. application.AssetManager$Holder
+logic.tower.Tower <|-- logic.tower.LightningWizardTower
+logic.tower.Tower <|-- logic.tower.PoisonWizardTower
+logic.interfaces.Upgradable <|.. logic.tower.Tower
+logic.enemy.Enemy <|-- logic.enemy.ZombieEnemy
+logic.GameManager +.. logic.GameManager$SpawnPlan
+logic.tower.Tower <|-- logic.tower.CannonTower
+logic.enemy.Enemy <|-- logic.enemy.GoblinEnemy
+logic.enemy.Enemy <|-- logic.enemy.SkeletonEnemy
+logic.enemy.Enemy <|-- logic.enemy.KingSlimeEnemy
+logic.enemy.Enemy <|-- logic.enemy.BigSlimeEnemy
+logic.enemy.Enemy <|-- logic.enemy.SlimeEnemy
+logic.enemy.Enemy <|-- logic.enemy.DemonEnemy
+logic.enemy.Enemy <|-- logic.enemy.BatEnemy
+logic.tower.Tower <|-- logic.tower.CrossbowTower
+logic.tower.Tower <|-- logic.tower.IceWizardTower
+@enduml

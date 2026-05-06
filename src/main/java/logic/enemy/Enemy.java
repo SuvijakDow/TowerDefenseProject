@@ -21,20 +21,18 @@ public class Enemy implements Damageable {
     protected double x;
     protected double y;
     protected int currentWaypointIndex;
-    protected boolean isFlying;
     protected String spriteName;
     protected int currentFrame;
     protected int animTick;
     protected double hitTimer;
     protected boolean isHit;
 
-    public Enemy(int maxHealth, double speed, int rewardMoney, boolean isFlying, String spriteName, int damage) {
+    public Enemy(int maxHealth, double speed, int rewardMoney, String spriteName, int damage) {
         this.maxHealth = maxHealth;
         this.hp = maxHealth;
         this.speed = speed;
         this.rewardMoney = rewardMoney;
         this.damage = damage;
-        this.isFlying = isFlying;
         this.spriteName = spriteName != null ? spriteName : "";
         this.currentWaypointIndex = 0;
         this.currentFrame = 0;
@@ -133,8 +131,6 @@ public class Enemy implements Damageable {
     public void setY(double y) { this.y = y; }
     public int getCurrentWaypointIndex() { return currentWaypointIndex; }
     public void setCurrentWaypointIndex(int currentWaypointIndex) { this.currentWaypointIndex = currentWaypointIndex; }
-    public boolean isFlying() { return isFlying; }
-    public void setFlying(boolean flying) { this.isFlying = flying; }
     public String getSpriteName() { return spriteName; }
     public void setSpriteName(String spriteName) { this.spriteName = spriteName != null ? spriteName : ""; }
     public int getCurrentFrame() { return currentFrame; }
