@@ -191,8 +191,8 @@ class logic.map.PathGenerator$StartState {
 - int nextCol
 - <<Create>> StartState(int,int,int,int)
 + int startRow()
-+ int startCol()
 + int nextRow()
++ int startCol()
 + int nextCol()
 }
 
@@ -483,6 +483,7 @@ abstract class logic.tower.Tower {
 # boolean isEnemyInRange(Enemy)
 - double[] getProjectileSpawnPosition()
 + boolean canUpgrade()
++ void setPlacementTile(int,int)
 + int getDamage()
 + double getRange()
 + int getFireCooldown()
@@ -506,7 +507,6 @@ abstract class logic.tower.Tower {
 + void setY(double)
 + void setCost(int)
 + void setSpriteName(String)
-+ void setPlacementTile(int,int)
 }
 
 
