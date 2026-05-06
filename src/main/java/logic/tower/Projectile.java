@@ -37,10 +37,6 @@ public class Projectile {
         double dy = ty - y;
         double dist = Math.sqrt(dx * dx + dy * dy);
         if (dist < HIT_RADIUS) {
-            // Apply damage BEFORE checking if dead
-            if (!target.isDead()) {
-                target.takeDamage(damage);
-            }
             return true;
         }
         if (dist > 0) {

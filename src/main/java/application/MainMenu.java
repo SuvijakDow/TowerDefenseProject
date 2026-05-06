@@ -8,7 +8,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.geometry.Pos;
-import javafx.geometry.Insets;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BackgroundImage;
@@ -16,16 +15,11 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Background;
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
 import javafx.stage.Stage;
-import java.net.URL;
 
 public class MainMenu {
-    private static final String MENU_BGM_PATH = "/Audio/startupMenu.mp3";
     private Scene mainMenuScene;
     public Stage primaryStage;
-    private MediaPlayer menuBgmPlayer;
     
     public MainMenu(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -80,14 +74,12 @@ public class MainMenu {
     }
     
     private void startGame() {
-        Main.playMenuClickSfx();
         stopMenuBgm();
         Main.startGameFromMenu();
     }
     
     private void exitGame() {
-        Main.playMenuClickSfx();
-        disposeMenuBgm();
+        stopMenuBgm();
         System.exit(0);
     }
     
@@ -96,38 +88,10 @@ public class MainMenu {
     }
 
     public void playMenuBgm() {
-        ensureMenuBgmPlayer();
-        if (menuBgmPlayer != null) {
-            menuBgmPlayer.play();
-        }
+        SoundManager.playMenuBgm();
     }
 
     public void stopMenuBgm() {
-        if (menuBgmPlayer != null) {
-            menuBgmPlayer.stop();
-        }
-    }
-
-    private void disposeMenuBgm() {
-        if (menuBgmPlayer != null) {
-            menuBgmPlayer.stop();
-            menuBgmPlayer.dispose();
-            menuBgmPlayer = null;
-        }
-    }
-
-    private void ensureMenuBgmPlayer() {
-        if (menuBgmPlayer != null) {
-            return;
-        }
-        URL bgmUrl = getClass().getResource(MENU_BGM_PATH);
-        if (bgmUrl == null) {
-            System.err.println("Failed to load menu BGM: " + MENU_BGM_PATH);
-            return;
-        }
-        Media media = new Media(bgmUrl.toExternalForm());
-        menuBgmPlayer = new MediaPlayer(media);
-        menuBgmPlayer.setCycleCount(MediaPlayer.INDEFINITE);
-        menuBgmPlayer.setVolume(0.8);
+        SoundManager.stopMenuBgm();
     }
 }

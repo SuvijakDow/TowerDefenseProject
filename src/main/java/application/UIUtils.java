@@ -1,8 +1,8 @@
 package application;
 
+import javafx.event.ActionEvent;
 import javafx.scene.control.Button;
 import javafx.scene.text.Font;
-import javafx.scene.input.MouseButton;
 
 public class UIUtils {
     
@@ -15,6 +15,7 @@ public class UIUtils {
         button.setFont(font);
         button.setMaxWidth(maxWidth);
         button.setPrefHeight(prefHeight);
+        attachClickSfx(button);
         
         String fontFamily = font.getFamily();
         double fontSize = font.getSize();
@@ -44,5 +45,12 @@ public class UIUtils {
         button.setOnMouseExited(e -> button.setStyle(baseStyle));
         
         return button;
+    }
+
+    public static void attachClickSfx(Button button) {
+        if (button == null) {
+            return;
+        }
+        button.addEventHandler(ActionEvent.ACTION, e -> SoundManager.playClickSfx());
     }
 }

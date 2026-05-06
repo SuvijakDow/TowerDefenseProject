@@ -26,6 +26,7 @@ import logic.enemy.GoblinEnemy;
 import logic.enemy.DemonEnemy;
 import logic.enemy.KingSlimeEnemy;
 import application.GameView;
+import application.SoundManager;
 
 public class GameManager {
     public enum TowerType { ARCHER, CANNON, CROSSBOW, ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD }
@@ -158,6 +159,8 @@ public class GameManager {
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
                 baseHealth -= enemy.getDamage();
                 baseHealth = Math.max(0, baseHealth);
+                // Castle hit SFX whenever base takes damage.
+                SoundManager.playCastleIsAttackedSfx();
                 System.out.println("Enemy reached base! Base health: " + baseHealth);
                 
                 // Trigger castle hit effect

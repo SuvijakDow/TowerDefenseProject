@@ -18,7 +18,6 @@ import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
-import javafx.scene.media.AudioClip;
 import javafx.stage.Stage;
 import java.util.List;
 import java.net.URL;
@@ -46,14 +45,12 @@ public class Main extends Application {
     private static VBox towerShopPanel;
     private static VBox towerStatusPanel;
     private static Font gameUiFont;
-    private static final String MENU_CLICK_SFX_PATH = "/Audio/click.mp3";
-    private static final double MENU_CLICK_SFX_VOLUME = 0.5;
-    private static final double MENU_CLICK_SFX_RATE = 0.85;
-    private static AudioClip menuClickSfx;
 
     @Override
     public void start(Stage primaryStage) {
         Main.primaryStage = primaryStage;
+        // Preload all game audio once.
+        SoundManager.initialize();
         
         // Create main menu first
         Main.mainMenu = new MainMenu(primaryStage);
@@ -71,6 +68,7 @@ public class Main extends Application {
             }
             initializeGame();
             startGameLoop();
+            SoundManager.playInGameBgm();
         }
     }
     
@@ -201,29 +199,12 @@ public class Main extends Application {
         // RETURN TO MENU button
         Font buttonFont = Font.font("Verdana", 30); 
         Button returnButton = UIUtils.createStyledButton("RETURN TO MAIN MENU", buttonFont, 500, 60);
-        returnButton.setOnAction(e -> {
-            playMenuClickSfx();
-            returnToMenu();
-        });
+        returnButton.setOnAction(e -> returnToMenu());
         
         gameOverOverlay.getChildren().addAll(gameOverText, destroyedText, returnButton);
         return gameOverOverlay;
     }
 
-    public static void playMenuClickSfx() {
-        if (menuClickSfx == null) {
-            URL clickUrl = Main.class.getResource(MENU_CLICK_SFX_PATH);
-            if (clickUrl == null) {
-                System.err.println("Failed to load menu click SFX: " + MENU_CLICK_SFX_PATH);
-                return;
-            }
-            menuClickSfx = new AudioClip(clickUrl.toExternalForm());
-            menuClickSfx.setVolume(MENU_CLICK_SFX_VOLUME);
-            menuClickSfx.setRate(MENU_CLICK_SFX_RATE);
-        }
-        menuClickSfx.play();
-    }
-    
     private static VBox createVictoryOverlay() {
         VBox victoryOverlay = new VBox(10);
         victoryOverlay.setAlignment(Pos.CENTER);
@@ -422,6 +403,9 @@ public class Main extends Application {
                 // Check victory state
                 if (Main.gameManager != null && Main.gameManager.isVictory()) {
                     this.stop();
+                    // End gameplay audio and play victory SFX once.
+                    SoundManager.stopInGameBgm();
+                    SoundManager.playVictorySfx();
                     showVictoryOverlay();
                     return;
                 }
@@ -429,6 +413,9 @@ public class Main extends Application {
                 // Check game over state and stop if needed
                 if (Main.gameManager != null && Main.gameManager.isGameOver()) {
                     this.stop();
+                    // End gameplay audio and play defeat SFX once.
+                    SoundManager.stopInGameBgm();
+                    SoundManager.playDefeatSfx();
                     // Show game over overlay instead of drawing on canvas
                     showGameOverOverlay();
                     return;
@@ -464,6 +451,7 @@ public class Main extends Application {
         if (Main.gameLoop != null) {
             Main.gameLoop.stop();
         }
+        SoundManager.stopInGameBgm();
 
         // Reset game state
         if (Main.gameManager != null) {
@@ -625,6 +613,7 @@ public class Main extends Application {
         
         // Create MAIN MENU button
         Button mainMenuButton = new Button("RETURN TO MAIN MENU");
+        UIUtils.attachClickSfx(mainMenuButton);
         mainMenuButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
         mainMenuButton.setMaxWidth(Double.MAX_VALUE);
         
@@ -639,7 +628,6 @@ public class Main extends Application {
         
         // Set button action to return to main menu
         mainMenuButton.setOnAction(e -> {
-            playMenuClickSfx();
             stopGameLoop();
             resetGameState();
             returnToMainMenu();
@@ -706,6 +694,7 @@ public class Main extends Application {
 
         // Upgrade button
         Button upgradeButton = new Button();
+        UIUtils.attachClickSfx(upgradeButton);
         boolean canUpgrade = tower != null && tower.canUpgrade();
         if (canUpgrade) {
             upgradeButton.setText("UPGRADE ($" + tower.getUpgradeCost() + ")");
@@ -740,6 +729,7 @@ public class Main extends Application {
 
         // Close button
         Button closeButton = new Button("BACK");
+        UIUtils.attachClickSfx(closeButton);
         closeButton.setStyle("-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;");
         closeButton.setMaxWidth(Double.MAX_VALUE);
         closeButton.setOnMouseEntered(e -> closeButton.setStyle("-fx-background-color: rgba(50, 50, 50, 0.9); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;"));
@@ -961,6 +951,7 @@ public class Main extends Application {
     private static void returnToMainMenu() {
         if (primaryStage != null && mainMenu != null) {
             stopGameLoop();
+            SoundManager.stopInGameBgm();
             resetGameState();
             primaryStage.setScene(mainMenu.getScene());
             mainMenu.playMenuBgm();

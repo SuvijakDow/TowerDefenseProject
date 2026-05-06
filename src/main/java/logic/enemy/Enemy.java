@@ -2,6 +2,7 @@ package logic.enemy;
 
 import java.util.List;
 
+import application.SoundManager;
 import logic.interfaces.Damageable;
 import logic.map.Waypoint;
 
@@ -105,10 +106,15 @@ public abstract class Enemy implements Damageable {
 
     @Override
     public void takeDamage(int amount) {
+        if (amount <= 0) {
+            return;
+        }
         this.hp -= amount;
         if (this.hp < 0) {
             this.hp = 0;
         }
+        // Enemy hit SFX for projectile and skill damage paths.
+        SoundManager.playEnemyIsAttackedSfx();
         // Trigger hit flash effect
         isHit = true;
         hitTimer = HIT_FLASH_DURATION;
