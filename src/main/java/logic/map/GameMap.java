@@ -198,9 +198,6 @@ public class GameMap {
         return null;
     }
 
-    /**
-     * Border tiles ({@code 1}) valid as path entrances, distinct cells, deterministic order.
-     */
     private static List<int[]> borderPathStarts(int[][] grid) {
         int rows = grid.length;
         int cols = grid[0].length;
@@ -234,9 +231,6 @@ public class GameMap {
         }
     }
 
-    /**
-     * BFS on cells {@code 1} (path) and {@code 2} (castle goal).
-     */
     private static List<int[]> bfsPathToCastle(int[][] grid, int sr, int sc, int er, int ec) {
         int rows = grid.length;
         int cols = grid[0].length;

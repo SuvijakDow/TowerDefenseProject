@@ -1,1 +1,1 @@
-packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"application"},{"l":"logic"},{"l":"logic.enemy"},{"l":"logic.interfaces"},{"l":"logic.map"},{"l":"logic.tower"}];updateSearchResults();
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"application"}];updateSearchResults();

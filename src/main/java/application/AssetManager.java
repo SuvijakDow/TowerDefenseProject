@@ -69,9 +69,6 @@ public final class AssetManager {
 
     private final Map<String, Image> images = new HashMap<>();
 
-    /**
-     * Lazy-loaded holder for the singleton {@link AssetManager} instance.
-     */
     private static final class Holder {
         private static final AssetManager INSTANCE = new AssetManager();
     }

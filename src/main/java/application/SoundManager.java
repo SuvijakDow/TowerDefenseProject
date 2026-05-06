@@ -10,9 +10,6 @@ import javafx.scene.media.MediaPlayer;
  * Centralized audio controller for sound effects, background music, and mute state.
  */
 public final class SoundManager {
-    /**
-     * Identifies which background-music context is currently active.
-     */
     private enum BgmScene {
         NONE, MENU, IN_GAME
     }
