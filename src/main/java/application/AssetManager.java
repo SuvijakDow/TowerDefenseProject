@@ -67,7 +67,6 @@ public class AssetManager {
                 "Enemies/spr_goblin.png",
                 "Enemies/spr_skeleton.png",
                 "Enemies/spr_zombie.png",
-                "Enemies/spr_ghost.png",
                 "Enemies/spr_demon.png",
                 "Enemies/spr_bat.png"
         };

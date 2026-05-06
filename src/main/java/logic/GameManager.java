@@ -9,7 +9,6 @@ import logic.enemy.Enemy;
 import logic.enemy.SlimeEnemy;
 import logic.enemy.BatEnemy;
 import logic.enemy.SkeletonEnemy;
-import logic.enemy.GhostEnemy;
 import logic.enemy.ZombieEnemy;
 import logic.map.GameMap;
 import logic.map.Waypoint;
@@ -302,62 +301,45 @@ public class GameManager {
         Tower tempTower = createTowerFromType(type);
         return tempTower != null ? tempTower.getRange() : 100.0;
     }
-    
-    // Wave spawning logic with difficulty progression
+
     private void handleSpawning(double deltaTime) {
         if (timeRemaining <= 0) {
-            return; // Stop spawning when time is up
+            return;
         }
         
         spawnCooldown -= deltaTime;
-        
-        // Determine spawn rate based on time remaining
+
         double spawnInterval;
         if (timeRemaining > 120) {
-            // Minute 1: Weak to medium enemies (faster spawning)
-            spawnInterval = 1.2; // Every 1.2 seconds (was 2.0)
+            spawnInterval = 1.2;
             if (spawnCooldown <= 0) {
-                int enemyType = (int)(Math.random() * 5); // First 5 enemy types
+                int enemyType = (int)(Math.random() * 3);
                 switch (enemyType) {
                     case 0: spawnEnemy(new SlimeEnemy()); break;
-                    case 1: spawnEnemy(new BatEnemy()); break;
-                    case 2: spawnEnemy(new GoblinEnemy()); break;
-                    case 3: spawnEnemy(new BigSlimeEnemy()); break;
-                    case 4: spawnEnemy(new SkeletonEnemy()); break;
+                    case 1: spawnEnemy(new GoblinEnemy()); break;
+                    case 2: spawnEnemy(new SkeletonEnemy()); break;
                 }
                 spawnCooldown = spawnInterval;
             }
         } else if (timeRemaining > 60) {
-            // Minute 2: Medium to hard enemies (faster spawning)
-            spawnInterval = 0.8; // Every 0.8 seconds (was 1.5)
+            spawnInterval = 0.8;
             if (spawnCooldown <= 0) {
-                int enemyType = (int)(Math.random() * 7); // First 7 enemy types
+                int enemyType = (int)(Math.random() * 3);
                 switch (enemyType) {
-                    case 0: spawnEnemy(new GoblinEnemy()); break;
-                    case 1: spawnEnemy(new BigSlimeEnemy()); break;
-                    case 2: spawnEnemy(new SkeletonEnemy()); break;
-                    case 3: spawnEnemy(new GhostEnemy()); break;
-                    case 4: spawnEnemy(new DemonEnemy()); break;
-                    case 5: spawnEnemy(new ZombieEnemy()); break;
-                    case 6: spawnEnemy(new SlimeEnemy()); break; // Mix in some easy ones
+                    case 0: spawnEnemy(new BigSlimeEnemy()); break;
+                    case 1: spawnEnemy(new DemonEnemy()); break;
+                    case 2: spawnEnemy(new ZombieEnemy()); break;
                 }
                 spawnCooldown = spawnInterval;
             }
         } else {
-            // Minute 3: All enemies including bosses (fastest spawning)
-            spawnInterval = 0.5; // Every 0.5 seconds (was 1.0)
+            spawnInterval = 0.5;
             if (spawnCooldown <= 0) {
-                int enemyType = (int)(Math.random() * 9); // All 9 enemy types
+                int enemyType = (int)(Math.random() * 3);
                 switch (enemyType) {
                     case 0: spawnEnemy(new DemonEnemy()); break;
                     case 1: spawnEnemy(new KingSlimeEnemy()); break;
-                    case 2: spawnEnemy(new ZombieEnemy()); break;
-                    case 3: spawnEnemy(new GhostEnemy()); break;
-                    case 4: spawnEnemy(new SkeletonEnemy()); break;
-                    case 5: spawnEnemy(new GoblinEnemy()); break;
-                    case 6: spawnEnemy(new BigSlimeEnemy()); break;
-                    case 7: spawnEnemy(new BatEnemy()); break;
-                    case 8: spawnEnemy(new SlimeEnemy()); break;
+                    case 2: spawnEnemy(new BatEnemy()); break;
                 }
                 spawnCooldown = spawnInterval;
             }
