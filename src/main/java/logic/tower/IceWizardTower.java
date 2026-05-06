@@ -1,11 +1,10 @@
 package logic.tower;
 
 import logic.enemy.Enemy;
-import logic.interfaces.Skillable;
 
 import java.util.List;
 
-public class IceWizardTower extends Tower implements Skillable {
+public class IceWizardTower extends Tower {
     private int iceDamage;
     private static final String ICE_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_ice_wizard_projectile.png";
 
@@ -17,15 +16,6 @@ public class IceWizardTower extends Tower implements Skillable {
     @Override
     public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
         updateProjectileAttack(enemies, activeProjectiles, ICE_PROJECTILE_SPRITE);
-    }
-
-    @Override
-    public void useActiveSkill(List<Enemy> targets) {
-        for (Enemy target : targets) {
-            if (isEnemyInRange(target)) {
-                target.takeDamage(iceDamage * 3);
-            }
-        }
     }
 
     public int getIceDamage() {
