@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Singleton image repository that preloads and serves game asset textures.
+ */
 public final class AssetManager {
     private static final String RESOURCE_PREFIX = "/";
 
@@ -66,6 +69,9 @@ public final class AssetManager {
 
     private final Map<String, Image> images = new HashMap<>();
 
+    /**
+     * Lazy-loaded holder for the singleton {@link AssetManager} instance.
+     */
     private static final class Holder {
         private static final AssetManager INSTANCE = new AssetManager();
     }
@@ -74,6 +80,11 @@ public final class AssetManager {
         loadAssets();
     }
 
+    /**
+     * Returns the singleton asset manager instance.
+     *
+     * @return global asset manager
+     */
     public static AssetManager getInstance() {
         return Holder.INSTANCE;
     }
@@ -108,6 +119,15 @@ public final class AssetManager {
         return List.copyOf(allAssets);
     }
 
+    /**
+     * Looks up a preloaded image by asset key.
+     *
+     * <p>Expected key format matches project-relative resource paths such as
+     * {@code Environment/Grass/spr_grass_01.png}.</p>
+     *
+     * @param name asset key used during preload
+     * @return image for the key, or {@code null} when no image is available
+     */
     public Image getImage(String name) {
         return images.get(name);
     }

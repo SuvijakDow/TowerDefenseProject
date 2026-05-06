@@ -26,6 +26,9 @@ import logic.DamageText;
 
 import static application.Main.getString;
 
+/**
+ * JavaFX gameplay canvas that renders map entities and handles in-game pointer input.
+ */
 public class GameView extends StackPane {
     private Canvas canvas;
     private GraphicsContext gc;
@@ -50,6 +53,11 @@ public class GameView extends StackPane {
     private Consumer<Tower> placedTowerSelectionListener;
     private Font damageFont = null;
 
+    /**
+     * Creates the gameplay canvas view and wires mouse/keyboard input handlers.
+     *
+     * @param gameManager gameplay state owner used for interaction and rendering
+     */
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
         canvas = new Canvas(800, 600);
@@ -94,6 +102,12 @@ public class GameView extends StackPane {
         canvas.setOnKeyPressed(this::handleKeyPress);
     }
 
+    /**
+     * Updates hover tile state used for placement preview and redraws the map.
+     *
+     * @param row hovered row index, or negative to clear hover
+     * @param col hovered column index, or negative to clear hover
+     */
     public void updateHover(int row, int col) {
         this.hoverRow = row;
         this.hoverCol = col;
@@ -127,6 +141,11 @@ public class GameView extends StackPane {
         drawMap();
     }
 
+    /**
+     * Advances the castle-hit shake animation timer.
+     *
+     * @param deltaTime elapsed frame time in seconds
+     */
     public void updateCastleHitEffect(double deltaTime) {
         if (castleIsHit && castleHitShakeTimer > 0) {
             castleHitShakeTimer -= deltaTime;
@@ -140,11 +159,21 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Triggers the castle-hit shake animation from the start.
+     */
     public void playCastleHitEffect() {
         castleIsHit = true;
         castleHitShakeTimer = CASTLE_HIT_SHAKE_DURATION;
     }
 
+    /**
+     * Toggles range selection for a placed tower at the given tile.
+     *
+     * @param row target tile row
+     * @param col target tile column
+     * @return {@code true} if a placed tower was clicked and selection was handled
+     */
     public boolean togglePlacedTowerRangeAt(int row, int col) {
         if (gameManager == null) {
             return false;
@@ -163,6 +192,9 @@ public class GameView extends StackPane {
         return true;
     }
 
+    /**
+     * Clears currently selected placed tower and notifies listeners.
+     */
     public void clearPlacedTowerSelection() {
         selectedPlacedTower = null;
         drawMap();
@@ -187,6 +219,11 @@ public class GameView extends StackPane {
         return null;
     }
 
+    /**
+     * Renders the current gameplay frame to the canvas.
+     *
+     * <p>When no map is available, the canvas is cleared instead of rendering entities.</p>
+     */
     public void drawMap() {
         gc.setImageSmoothing(false); // Fix blurry pixel art
 
@@ -603,10 +640,20 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Sets a listener invoked whenever placed-tower selection changes.
+     *
+     * @param listener callback receiving selected tower or {@code null}
+     */
     public void setPlacedTowerSelectionListener(Consumer<Tower> listener) {
         this.placedTowerSelectionListener = listener;
     }
 
+    /**
+     * Replaces the gameplay state source used by this view.
+     *
+     * @param gameManager new game manager instance
+     */
     public void setGameManager(GameManager gameManager) {
         this.gameManager = gameManager;
     }

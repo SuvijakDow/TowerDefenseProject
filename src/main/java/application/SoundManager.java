@@ -6,7 +6,13 @@ import javafx.scene.media.AudioClip;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
+/**
+ * Centralized audio controller for sound effects, background music, and mute state.
+ */
 public final class SoundManager {
+    /**
+     * Identifies which background-music context is currently active.
+     */
     private enum BgmScene {
         NONE, MENU, IN_GAME
     }
@@ -35,6 +41,11 @@ public final class SoundManager {
     private SoundManager() {
     }
 
+    /**
+     * Loads all audio assets and prepares BGM players.
+     *
+     * <p>This method is idempotent and only performs work on first call.</p>
+     */
     public static synchronized void initialize() {
         if (initialized) {
             return;
@@ -68,22 +79,47 @@ public final class SoundManager {
         clip.play();
     }
 
+    /**
+     * Plays the button click sound effect.
+     *
+     * <p>No-op when audio is not initialized or currently muted.</p>
+     */
     public static void playClickSfx() {
         playSfx(clickSfx);
     }
 
+    /**
+     * Plays the castle-damaged sound effect.
+     *
+     * <p>No-op when audio is not initialized or currently muted.</p>
+     */
     public static void playCastleIsAttackedSfx() {
         playSfx(castleAttackedSfx);
     }
 
+    /**
+     * Plays the enemy-damaged sound effect.
+     *
+     * <p>No-op when audio is not initialized or currently muted.</p>
+     */
     public static void playEnemyIsAttackedSfx() {
         playSfx(enemyAttackedSfx);
     }
 
+    /**
+     * Plays the defeat sound effect.
+     *
+     * <p>No-op when audio is not initialized or currently muted.</p>
+     */
     public static void playDefeatSfx() {
         playSfx(defeatSfx);
     }
 
+    /**
+     * Plays the victory sound effect.
+     *
+     * <p>No-op when audio is not initialized or currently muted.</p>
+     */
     public static void playVictorySfx() {
         playSfx(victorySfx);
     }
@@ -100,14 +136,27 @@ public final class SoundManager {
         restartPlayer(targetPlayer);
     }
 
+    /**
+     * Activates looping menu background music and stops in-game BGM.
+     *
+     * <p>When muted, only active scene state is updated.</p>
+     */
     public static void playMenuBgm() {
         activateBgm(BgmScene.MENU, menuBgmPlayer, inGameBgmPlayer);
     }
 
+    /**
+     * Activates looping in-game background music and stops menu BGM.
+     *
+     * <p>When muted, only active scene state is updated.</p>
+     */
     public static void playInGameBgm() {
         activateBgm(BgmScene.IN_GAME, inGameBgmPlayer, menuBgmPlayer);
     }
 
+    /**
+     * Stops menu background music and clears active scene when it was selected.
+     */
     public static void stopMenuBgm() {
         if (!initialized) {
             return;
@@ -118,6 +167,9 @@ public final class SoundManager {
         stopPlayer(menuBgmPlayer);
     }
 
+    /**
+     * Stops in-game background music and clears active scene when it was selected.
+     */
     public static void stopInGameBgm() {
         if (!initialized) {
             return;
@@ -139,6 +191,11 @@ public final class SoundManager {
         player.play();
     }
 
+    /**
+     * Toggles global mute state.
+     *
+     * <p>Muting stops both BGM players; unmuting resumes the currently active scene BGM.</p>
+     */
     public static void toggleMute() {
         if (!initialized) {
             return;
@@ -196,6 +253,11 @@ public final class SoundManager {
         }
     }
 
+    /**
+     * Indicates whether audio output is currently muted.
+     *
+     * @return {@code true} when muted; otherwise {@code false}
+     */
     public static boolean isMuted() {
         return isMuted;
     }

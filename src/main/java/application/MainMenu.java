@@ -19,6 +19,9 @@ import javafx.scene.layout.Background;
 
 import java.util.Objects;
 
+/**
+ * Builds and controls the main menu scene shown before gameplay starts.
+ */
 public class MainMenu {
     private static final String BACKGROUND_IMAGE_RESOURCE = "/Backgrounds/main_menu_bg.png";
     private static final String TITLE_FONT_RESOURCE = "/Fonts/CWEBS.TTF";
@@ -31,6 +34,9 @@ public class MainMenu {
     private Scene mainMenuScene;
     private Button soundToggleButton;
 
+    /**
+     * Builds the main menu scene with title, start/exit actions, and sound toggle.
+     */
     public MainMenu() {
         StackPane root = createRootWithBackground();
         VBox uiContainer = createUiContainer();
@@ -90,15 +96,26 @@ public class MainMenu {
         System.exit(0);
     }
 
+    /**
+     * Refreshes the sound button label and starts menu background music.
+     */
     public void playMenuBgm() {
         UIUtils.refreshSoundToggleButtonText(soundToggleButton);
         SoundManager.playMenuBgm();
     }
 
+    /**
+     * Stops menu background music if it is currently active.
+     */
     public void stopMenuBgm() {
         SoundManager.stopMenuBgm();
     }
 
+    /**
+     * Returns the scene rendered by this menu instance.
+     *
+     * @return main menu scene
+     */
     public Scene getScene() {
         return mainMenuScene;
     }
