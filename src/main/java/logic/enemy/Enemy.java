@@ -14,11 +14,9 @@ public class Enemy implements Damageable {
     private static final double HIT_FLASH_DURATION = 0.08;
 
     protected int maxHealth;
-    /** Current hit points ({@link #takeDamage(int)} reduces this). */
     protected int hp;
     protected double speed;
     protected int rewardMoney;
-    protected int bounty;
     protected int damage;
     protected double x;
     protected double y;
@@ -35,7 +33,6 @@ public class Enemy implements Damageable {
         this.hp = maxHealth;
         this.speed = speed;
         this.rewardMoney = rewardMoney;
-        this.bounty = rewardMoney;
         this.damage = damage;
         this.isFlying = isFlying;
         this.spriteName = spriteName != null ? spriteName : "";
@@ -46,9 +43,6 @@ public class Enemy implements Damageable {
         this.isHit = false;
     }
 
-    /**
-     * Advances walk animation and movement along current path waypoint.
-     */
     public void update(List<Waypoint> waypoints) {
         advanceAnimation();
         updateHitFlashTimer();
@@ -64,9 +58,6 @@ public class Enemy implements Damageable {
         }
     }
 
-    /**
-     * Default movement implementation for all standard enemy types.
-     */
     public void move(Waypoint target) {
         moveTowards(target);
     }
@@ -98,6 +89,30 @@ public class Enemy implements Damageable {
         hitTimer = HIT_FLASH_DURATION;
     }
 
+    private void advanceAnimation() {
+        animTick++;
+        if (animTick <= ANIM_TICK_THRESHOLD) {
+            return;
+        }
+        animTick = 0;
+        currentFrame = (currentFrame + 1) % FRAME_COUNT;
+    }
+
+    private void updateHitFlashTimer() {
+        if (!isHit) {
+            return;
+        }
+        hitTimer -= ASSUMED_FRAME_SECONDS;
+        if (hitTimer <= 0) {
+            isHit = false;
+            hitTimer = 0.0;
+        }
+    }
+
+    private double distanceTo(double targetX, double targetY) {
+        return Math.hypot(targetX - x, targetY - y);
+    }
+
     public boolean isDead() {
         return hp <= 0;
     }
@@ -123,43 +138,12 @@ public class Enemy implements Damageable {
     public String getSpriteName() { return spriteName; }
     public void setSpriteName(String spriteName) { this.spriteName = spriteName != null ? spriteName : ""; }
     public int getCurrentFrame() { return currentFrame; }
-
     public void setCurrentFrame(int currentFrame) {
         this.currentFrame = Math.floorMod(currentFrame, FRAME_COUNT);
     }
-
     public int getAnimTick() { return animTick; }
     public void setAnimTick(int animTick) { this.animTick = animTick; }
-    public int getBounty() { return bounty; }
-    public void setBounty(int bounty) { this.bounty = bounty; }
     public int getDamage() { return damage; }
     public void setDamage(int damage) { this.damage = damage; }
     public boolean isHit() { return isHit; }
-    public void setHit(boolean hit) { this.isHit = hit; }
-    public double getHitTimer() { return hitTimer; }
-    public void setHitTimer(double hitTimer) { this.hitTimer = hitTimer; }
-
-    private void advanceAnimation() {
-        animTick++;
-        if (animTick <= ANIM_TICK_THRESHOLD) {
-            return;
-        }
-        animTick = 0;
-        currentFrame = (currentFrame + 1) % FRAME_COUNT;
-    }
-
-    private void updateHitFlashTimer() {
-        if (!isHit) {
-            return;
-        }
-        hitTimer -= ASSUMED_FRAME_SECONDS;
-        if (hitTimer <= 0) {
-            isHit = false;
-            hitTimer = 0.0;
-        }
-    }
-
-    private double distanceTo(double targetX, double targetY) {
-        return Math.hypot(targetX - x, targetY - y);
-    }
 }

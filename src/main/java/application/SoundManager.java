@@ -61,6 +61,13 @@ public final class SoundManager {
         initialized = true;
     }
 
+    private static void playSfx(AudioClip clip) {
+        if (!initialized || isMuted || clip == null) {
+            return;
+        }
+        clip.play();
+    }
+
     public static void playClickSfx() {
         playSfx(clickSfx);
     }
@@ -81,8 +88,24 @@ public final class SoundManager {
         playSfx(victorySfx);
     }
 
+    private static void activateBgm(BgmScene scene, MediaPlayer targetPlayer, MediaPlayer playerToStop) {
+        if (!initialized) {
+            return;
+        }
+        activeBgmScene = scene;
+        stopPlayer(playerToStop);
+        if (isMuted || targetPlayer == null) {
+            return;
+        }
+        restartPlayer(targetPlayer);
+    }
+
     public static void playMenuBgm() {
         activateBgm(BgmScene.MENU, menuBgmPlayer, inGameBgmPlayer);
+    }
+
+    public static void playInGameBgm() {
+        activateBgm(BgmScene.IN_GAME, inGameBgmPlayer, menuBgmPlayer);
     }
 
     public static void stopMenuBgm() {
@@ -95,10 +118,6 @@ public final class SoundManager {
         stopPlayer(menuBgmPlayer);
     }
 
-    public static void playInGameBgm() {
-        activateBgm(BgmScene.IN_GAME, inGameBgmPlayer, menuBgmPlayer);
-    }
-
     public static void stopInGameBgm() {
         if (!initialized) {
             return;
@@ -107,6 +126,17 @@ public final class SoundManager {
             activeBgmScene = BgmScene.NONE;
         }
         stopPlayer(inGameBgmPlayer);
+    }
+
+    private static void stopPlayer(MediaPlayer player) {
+        if (player != null) {
+            player.stop();
+        }
+    }
+
+    private static void restartPlayer(MediaPlayer player) {
+        player.stop();
+        player.play();
     }
 
     public static void toggleMute() {
@@ -122,10 +152,6 @@ public final class SoundManager {
         resumeActiveBgm();
     }
 
-    public static boolean isMuted() {
-        return isMuted;
-    }
-
     private static void resumeActiveBgm() {
         if (isMuted) {
             return;
@@ -137,25 +163,6 @@ public final class SoundManager {
         if (activeBgmScene == BgmScene.IN_GAME && inGameBgmPlayer != null) {
             restartPlayer(inGameBgmPlayer);
         }
-    }
-
-    private static void playSfx(AudioClip clip) {
-        if (!initialized || isMuted || clip == null) {
-            return;
-        }
-        clip.play();
-    }
-
-    private static void activateBgm(BgmScene scene, MediaPlayer targetPlayer, MediaPlayer playerToStop) {
-        if (!initialized) {
-            return;
-        }
-        activeBgmScene = scene;
-        stopPlayer(playerToStop);
-        if (isMuted || targetPlayer == null) {
-            return;
-        }
-        restartPlayer(targetPlayer);
     }
 
     private static AudioClip loadAudioClip(String resourcePath, String label) {
@@ -189,14 +196,7 @@ public final class SoundManager {
         }
     }
 
-    private static void restartPlayer(MediaPlayer player) {
-        player.stop();
-        player.play();
-    }
-
-    private static void stopPlayer(MediaPlayer player) {
-        if (player != null) {
-            player.stop();
-        }
+    public static boolean isMuted() {
+        return isMuted;
     }
 }

@@ -175,15 +175,6 @@ public class GameManager {
         timeRemaining = Math.max(0.0, timeRemaining - deltaTime);
     }
 
-    private boolean checkAndHandleVictory() {
-        if (timeRemaining > 0 || !activeEnemies.isEmpty() || baseHealth <= 0) {
-            return false;
-        }
-        isVictory = true;
-        System.out.println("Victory! You survived the siege!");
-        return true;
-    }
-
     private void updateEnemies(List<Waypoint> waypoints) {
         Iterator<Enemy> enemyIterator = activeEnemies.iterator();
         while (enemyIterator.hasNext()) {
@@ -193,22 +184,6 @@ public class GameManager {
             if (enemy.getCurrentWaypointIndex() >= waypoints.size()) {
                 handleEnemyReachedBase(enemy, enemyIterator);
             }
-        }
-    }
-
-    private void handleEnemyReachedBase(Enemy enemy, Iterator<Enemy> enemyIterator) {
-        baseHealth = Math.max(0, baseHealth - enemy.getDamage());
-        SoundManager.playCastleIsAttackedSfx();
-        System.out.println("Enemy reached base! Base health: " + baseHealth);
-
-        if (gameView != null) {
-            gameView.playCastleHitEffect();
-        }
-
-        enemyIterator.remove();
-        if (baseHealth <= 0) {
-            isGameOver = true;
-            System.out.println("Game Over! Base destroyed.");
         }
     }
 
@@ -244,88 +219,6 @@ public class GameManager {
         activeDamageTexts.removeIf(damageText -> damageText.update(deltaTime));
     }
 
-    private void collectBountiesFromDeadEnemies() {
-        Iterator<Enemy> enemyIterator = activeEnemies.iterator();
-        while (enemyIterator.hasNext()) {
-            Enemy enemy = enemyIterator.next();
-            if (!enemy.isDead()) {
-                continue;
-            }
-            playerMoney += enemy.getBounty();
-            System.out.println("Enemy defeated! Earned: " + enemy.getBounty() + ", Total money: " + playerMoney);
-            enemyIterator.remove();
-        }
-    }
-
-    public GameMap getCurrentMap() {
-        return currentMap;
-    }
-
-    public void setCurrentMap(GameMap currentMap) {
-        this.currentMap = currentMap;
-    }
-
-    public List<Enemy> getActiveEnemies() {
-        return activeEnemies;
-    }
-
-    public List<Tower> getActiveTowers() {
-        return activeTowers;
-    }
-
-    public List<Projectile> getActiveProjectiles() {
-        return activeProjectiles;
-    }
-
-    public int getPlayerMoney() {
-        return playerMoney;
-    }
-
-    public void setPlayerMoney(int playerMoney) {
-        this.playerMoney = playerMoney;
-    }
-
-    public int getBaseHealth() {
-        return baseHealth;
-    }
-
-    public void setBaseHealth(int baseHealth) {
-        this.baseHealth = baseHealth;
-    }
-
-    public boolean isGameOver() {
-        return isGameOver;
-    }
-
-    public void setGameOver(boolean isGameOver) {
-        this.isGameOver = isGameOver;
-    }
-
-    public TowerType getSelectedTowerType() {
-        return selectedTowerType;
-    }
-
-    public void setSelectedTowerType(TowerType selectedTowerType) {
-        this.selectedTowerType = selectedTowerType;
-        System.out.println("Selected tower type: " + selectedTowerType);
-    }
-
-    public Tower createTowerFromType(TowerType type) {
-        if (type == null) {
-            return null;
-        }
-        Supplier<Tower> towerFactory = TOWER_FACTORIES.get(type);
-        return towerFactory != null ? towerFactory.get() : null;
-    }
-
-    public double getTowerRange(TowerType type) {
-        if (type == null) {
-            return 0.0;
-        }
-        Tower tower = createTowerFromType(type);
-        return tower != null ? tower.getRange() : DEFAULT_TOWER_RANGE;
-    }
-
     private void handleSpawning(double deltaTime) {
         if (timeRemaining <= 0) {
             return;
@@ -339,6 +232,52 @@ public class GameManager {
         SpawnPlan spawnPlan = selectSpawnPlan();
         spawnEnemy(selectRandomEnemy(spawnPlan.enemyPool()));
         spawnCooldown = spawnPlan.spawnInterval();
+    }
+
+    private void handleEnemyReachedBase(Enemy enemy, Iterator<Enemy> enemyIterator) {
+        baseHealth = Math.max(0, baseHealth - enemy.getDamage());
+        SoundManager.playCastleIsAttackedSfx();
+        System.out.println("Enemy reached base! Base health: " + baseHealth);
+
+        if (gameView != null) {
+            gameView.playCastleHitEffect();
+        }
+
+        enemyIterator.remove();
+        if (baseHealth <= 0) {
+            isGameOver = true;
+            System.out.println("Game Over! Base destroyed.");
+        }
+    }
+
+    private boolean checkAndHandleVictory() {
+        if (timeRemaining > 0 || !activeEnemies.isEmpty() || baseHealth <= 0) {
+            return false;
+        }
+        isVictory = true;
+        System.out.println("Victory! You survived the siege!");
+        return true;
+    }
+
+    private void collectBountiesFromDeadEnemies() {
+        Iterator<Enemy> enemyIterator = activeEnemies.iterator();
+        while (enemyIterator.hasNext()) {
+            Enemy enemy = enemyIterator.next();
+            if (!enemy.isDead()) {
+                continue;
+            }
+            playerMoney += enemy.getRewardMoney();
+            System.out.println("Enemy defeated! Earned: " + enemy.getRewardMoney() + ", Total money: " + playerMoney);
+            enemyIterator.remove();
+        }
+    }
+
+    public Tower createTowerFromType(TowerType type) {
+        if (type == null) {
+            return null;
+        }
+        Supplier<Tower> towerFactory = TOWER_FACTORIES.get(type);
+        return towerFactory != null ? towerFactory.get() : null;
     }
 
     private SpawnPlan selectSpawnPlan() {
@@ -359,10 +298,6 @@ public class GameManager {
         return enemyFactory.get();
     }
 
-    /**
-     * Check if a tower can be placed at the given position without actually placing it.
-     * This is used for hover highlighting (white = can place, red = cannot place).
-     */
     public boolean canPlaceTower(int row, int col) {
         if (!isPlacementRequestValid(row, col)) {
             return false;
@@ -408,52 +343,11 @@ public class GameManager {
         }
     }
 
-    public double getTimeRemaining() {
-        return timeRemaining;
-    }
-
-    public boolean isVictory() {
-        return isVictory;
-    }
-
-    public String getFormattedTime() {
-        int minutes = (int) (timeRemaining / 60);
-        int seconds = (int) (timeRemaining % 60);
-        return String.format("%02d:%02d", minutes, seconds);
-    }
-
-    /**
-     * Creates a floating damage text at the specified position.
-     * Limits damage texts to prevent performance issues.
-     */
     public void createDamageText(String text, double x, double y, Color color) {
         if (activeDamageTexts.size() >= MAX_DAMAGE_TEXTS) {
             return;
         }
         activeDamageTexts.add(new DamageText(text, x, y, color));
-    }
-
-    public List<DamageText> getActiveDamageTexts() {
-        return activeDamageTexts;
-    }
-
-    private boolean isPlacementRequestValid(int row, int col) {
-        if (currentMap == null || isGameOver || selectedTowerType == null) {
-            return false;
-        }
-        if (!currentMap.isBuildable(row, col, currentMap.getDecorations())) {
-            return false;
-        }
-        return !isTileOccupiedByTower(row, col);
-    }
-
-    private boolean isTileOccupiedByTower(int row, int col) {
-        for (Tower tower : activeTowers) {
-            if (tower.getGridRow() == row && tower.getGridCol() == col) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static Map<TowerType, Supplier<Tower>> createTowerFactories() {
@@ -475,5 +369,103 @@ public class GameManager {
     }
 
     private record SpawnPlan(double spawnInterval, List<Supplier<Enemy>> enemyPool) {
+    }
+
+    public GameMap getCurrentMap() {
+        return currentMap;
+    }
+
+    public int getBaseHealth() {
+        return baseHealth;
+    }
+
+    public TowerType getSelectedTowerType() {
+        return selectedTowerType;
+    }
+
+    public double getTowerRange(TowerType type) {
+        if (type == null) {
+            return 0.0;
+        }
+        Tower tower = createTowerFromType(type);
+        return tower != null ? tower.getRange() : DEFAULT_TOWER_RANGE;
+    }
+
+    public List<Enemy> getActiveEnemies() {
+        return activeEnemies;
+    }
+
+    public List<Tower> getActiveTowers() {
+        return activeTowers;
+    }
+
+    public List<Projectile> getActiveProjectiles() {
+        return activeProjectiles;
+    }
+
+    public int getPlayerMoney() {
+        return playerMoney;
+    }
+
+    public double getTimeRemaining() {
+        return timeRemaining;
+    }
+
+    public String getFormattedTime() {
+        int minutes = (int) (timeRemaining / 60);
+        int seconds = (int) (timeRemaining % 60);
+        return String.format("%02d:%02d", minutes, seconds);
+    }
+
+    public List<DamageText> getActiveDamageTexts() {
+        return activeDamageTexts;
+    }
+
+    public boolean isGameOver() {
+        return isGameOver;
+    }
+
+    public boolean isVictory() {
+        return isVictory;
+    }
+
+    private boolean isPlacementRequestValid(int row, int col) {
+        if (currentMap == null || isGameOver || selectedTowerType == null) {
+            return false;
+        }
+        if (!currentMap.isBuildable(row, col, currentMap.getDecorations())) {
+            return false;
+        }
+        return !isTileOccupiedByTower(row, col);
+    }
+
+    private boolean isTileOccupiedByTower(int row, int col) {
+        for (Tower tower : activeTowers) {
+            if (tower.getGridRow() == row && tower.getGridCol() == col) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setCurrentMap(GameMap currentMap) {
+        this.currentMap = currentMap;
+    }
+
+    public void setPlayerMoney(int playerMoney) {
+        this.playerMoney = playerMoney;
+    }
+
+    public void setBaseHealth(int baseHealth) {
+        this.baseHealth = baseHealth;
+    }
+
+    public void setGameOver(boolean isGameOver) {
+        this.isGameOver = isGameOver;
+    }
+
+    public void setSelectedTowerType(TowerType selectedTowerType) {
+        this.selectedTowerType = selectedTowerType;
+        System.out.println("Selected tower type: " + selectedTowerType);
     }
 }

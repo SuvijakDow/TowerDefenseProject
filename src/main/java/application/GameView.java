@@ -6,7 +6,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.input.MouseButton;
 import javafx.scene.paint.Color;
-import javafx.scene.effect.ColorAdjust;
 import javafx.scene.effect.Lighting;
 import javafx.scene.effect.Light;
 import logic.GameManager;
@@ -33,8 +32,9 @@ public class GameView extends StackPane {
     private GameManager gameManager;
     private static final int TILE_SIZE = 50;
     private static final int PATH_SOURCE_TILE_SIZE = 16;
-    private static final int PATH_SOURCE_DEFAULT_COORD = 16;
+    private static final int PATH_SOURCE_DEFAULT_CORD = 16;
     private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
+    private static final double PROJECTILE_DRAW_SIZE = 16.0;
     
     // Castle hit effect fields
     private double castleHitShakeX = 0;
@@ -48,14 +48,8 @@ public class GameView extends StackPane {
     private boolean hoverValid = false;
     private Tower selectedPlacedTower = null;
     private Consumer<Tower> placedTowerSelectionListener;
+    private Font damageFont = null;
 
-    public GraphicsContext getGraphicsContext2D() {
-        return gc;
-    }
-    
-    public void setGameManager(GameManager gameManager) {
-        this.gameManager = gameManager;
-    }
     public GameView(GameManager gameManager) {
         this.gameManager = gameManager;
         canvas = new Canvas(800, 600);
@@ -133,6 +127,24 @@ public class GameView extends StackPane {
         drawMap();
     }
 
+    public void updateCastleHitEffect(double deltaTime) {
+        if (castleIsHit && castleHitShakeTimer > 0) {
+            castleHitShakeTimer -= deltaTime;
+
+            if (castleHitShakeTimer > 0) {
+                castleHitShakeX = Math.sin(castleHitShakeTimer * 50) * CASTLE_HIT_SHAKE_INTENSITY * (castleHitShakeTimer / CASTLE_HIT_SHAKE_DURATION);
+            } else {
+                castleHitShakeX = 0;
+                castleIsHit = false;
+            }
+        }
+    }
+
+    public void playCastleHitEffect() {
+        castleIsHit = true;
+        castleHitShakeTimer = CASTLE_HIT_SHAKE_DURATION;
+    }
+
     public boolean togglePlacedTowerRangeAt(int row, int col) {
         if (gameManager == null) {
             return false;
@@ -149,14 +161,6 @@ public class GameView extends StackPane {
         drawMap();
         notifyPlacedTowerSelectionChanged();
         return true;
-    }
-
-    public void setPlacedTowerSelectionListener(Consumer<Tower> listener) {
-        this.placedTowerSelectionListener = listener;
-    }
-
-    public Tower getSelectedPlacedTower() {
-        return selectedPlacedTower;
     }
 
     public void clearPlacedTowerSelection() {
@@ -366,8 +370,6 @@ public class GameView extends StackPane {
         drawDamageTexts(gc, assets);
     }
 
-    private static final double PROJECTILE_DRAW_SIZE = 16.0;
-
     private void drawRangeIndicator(double centerX, double centerY, double range) {
         gc.setFill(Color.rgb(255, 255, 255, 0.15));
         gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
@@ -396,19 +398,6 @@ public class GameView extends StackPane {
         }
     }
 
-    /**
-     * Depth sort key = bottom of tower's 1×1 logical footprint. Placement stores tile center
-     * {@code (x,y)}, so footprint bottom is {@code y + TILE_SIZE/2}. (If {@code y} were base
-     * top-left, use {@code y + TILE_SIZE} instead.)
-     */
-    private static double towerBottomY(Tower tower) {
-        return tower.getY() + TILE_SIZE / 2.0;
-    }
-
-    /**
-     * Tower: fixed width 1 tile, height from sprite aspect ratio (avoids stretching when art is
-     * not exactly 2 tiles tall). Feet align with bottom of logical 1×1 footprint.
-     */
     private static void drawTower(GraphicsContext gc, AssetManager assets, Tower tower) {
         Image img = assets.getImage(tower.getSpriteName());
         if (img == null) {
@@ -440,7 +429,7 @@ public class GameView extends StackPane {
         double drawX = enemy.getX() - destW / 2.0;
         double drawY = enemy.getY() - destH;
         gc.drawImage(img, sx, 0, frameW, frameH, drawX, drawY, destW, destH);
-        
+
         // Draw red flash effect if enemy is hit
         if (enemy.isHit()) {
             gc.save();
@@ -451,120 +440,21 @@ public class GameView extends StackPane {
         }
     }
 
-    // Cache font to avoid repeated loading
-    private Font damageFont = null;
-    
-    /**
-     * Draws floating damage texts with drop shadow for readability.
-     * Optimized to reduce font loading and improve performance.
-     */
-    private void drawDamageTexts(GraphicsContext gc, AssetManager assets) {
-        // Load font once and cache it
-        if (damageFont == null) {
-            try {
-                damageFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 28);
-                if (damageFont == null) {
-                    damageFont = new Font("Arial", 28);
-                }
-            } catch (Exception e) {
-                damageFont = new Font("Arial", 28);
-            }
-        }
-        
-        gc.setFont(damageFont);
-        
-        for (DamageText damageText : gameManager.getActiveDamageTexts()) {
-            if (damageText.getOpacity() <= 0) {
-                continue;
-            }
-            
-            gc.save();
-            
-            // Apply opacity
-            gc.setGlobalAlpha(damageText.getOpacity());
-            
-            // Draw drop shadow (black outline) - optimized to fewer calls
-            gc.setFill(javafx.scene.paint.Color.BLACK);
-            String text = damageText.getText();
-            double x = damageText.getX();
-            double y = damageText.getY();
-            
-            gc.fillText(text, x + 1, y + 1);
-            gc.fillText(text, x - 1, y + 1);
-            gc.fillText(text, x + 1, y - 1);
-            gc.fillText(text, x - 1, y - 1);
-            
-            // Draw main text
-            gc.setFill(damageText.getColor());
-            gc.fillText(text, x, y);
-            
-            gc.restore();
-        }
-    }
-
-    private static final class DepthSprite {
-        final double bottomY;
-        final Decoration decoration;
-        final Enemy enemy;
-        final Tower tower;
-
-        private DepthSprite(double bottomY, Decoration decoration, Enemy enemy, Tower tower) {
-            this.bottomY = bottomY;
-            this.decoration = decoration;
-            this.enemy = enemy;
-            this.tower = tower;
-        }
-
-        static DepthSprite decoration(Decoration d, double bottomY) {
-            return new DepthSprite(bottomY, d, null, null);
-        }
-
-        static DepthSprite enemy(Enemy e, double bottomY) {
-            return new DepthSprite(bottomY, null, e, null);
-        }
-
-        static DepthSprite tower(Tower t, double bottomY) {
-            return new DepthSprite(bottomY, null, null, t);
-        }
-    }
-
-    private static double decorationBottomY(Decoration dec, AssetManager assets) {
-        return dec.getY() + TILE_SIZE / 2.0;
-    }
-
-    public void playCastleHitEffect() {
-        castleIsHit = true;
-        castleHitShakeTimer = CASTLE_HIT_SHAKE_DURATION;
-    }
-    
-    public void updateCastleHitEffect(double deltaTime) {
-        if (castleIsHit && castleHitShakeTimer > 0) {
-            castleHitShakeTimer -= deltaTime;
-            
-            if (castleHitShakeTimer > 0) {
-                castleHitShakeX = Math.sin(castleHitShakeTimer * 50) * CASTLE_HIT_SHAKE_INTENSITY * (castleHitShakeTimer / CASTLE_HIT_SHAKE_DURATION);
-            } else {
-                castleHitShakeX = 0;
-                castleIsHit = false;
-            }
-        }
-    }
-    
     private void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
         double frameWidth = castle.getWidth() / 4.0;
         double frameHeight = castle.getHeight();
         double castleDrawWidth = TILE_SIZE * 3.0;
         double castleDrawHeight = TILE_SIZE * 2.0;
-        
+
         double actualX = dx + castleHitShakeX;
-        
+
         if (castleIsHit) {
             Lighting redTint = new Lighting();
             Light.Distant light = new Light.Distant();
-            
+
             light.setColor(Color.rgb(180, 0, 0));
             redTint.setLight(light);
-            redTint.setSurfaceScale(0.0); 
+            redTint.setSurfaceScale(0.0);
 
             gc.setEffect(redTint);
             gc.drawImage(castle, 0, 0, frameWidth, frameHeight, actualX, dy, castleDrawWidth, castleDrawHeight);
@@ -572,56 +462,6 @@ public class GameView extends StackPane {
         } else {
             gc.drawImage(castle, 0, 0, frameWidth, frameHeight, actualX, dy, castleDrawWidth, castleDrawHeight);
         }
-    }
-
-    // Neighbor-check autotiling to select the correct tile.
-    private int[] getPathTileSourceCoords(int r, int c, int[][] grid) {
-        int rows = grid.length;
-        int cols = grid[0].length;
-
-        // Check for path or castle (2) around the tile.
-        boolean up = (r > 0) && ((grid[r - 1][c] == 1) || (grid[r - 1][c] == 2));
-        boolean down = (r < rows - 1) && ((grid[r + 1][c] == 1) || (grid[r + 1][c] == 2));
-        boolean left = (c > 0) && ((grid[r][c - 1] == 1) || (grid[r][c - 1] == 2));
-        boolean right = (c < cols - 1) && ((grid[r][c + 1] == 1) || (grid[r][c + 1] == 2));
-
-        int sx = PATH_SOURCE_DEFAULT_COORD; // Default X (center of the sprite sheet)
-        int sy = PATH_SOURCE_DEFAULT_COORD; // Default Y
-
-        // Path adjacency rules (based on a standard 3x3 sprite sheet).
-        if (left && right && !up && !down) {
-            // Horizontal straight
-            sx = 16; sy = 0;
-        } else if (up && down && !left && !right) {
-            // Vertical straight
-            sx = 0; sy = 16;
-        } else if (right && down && !up && !left) {
-            // Top-left corner (turns down/right)
-            sx = 0; sy = 0;
-        } else if (left && down && !up && !right) {
-            // Top-right corner (turns down/left)
-            sx = 32; sy = 0;
-        } else if (right && up && !down && !left) {
-            // Bottom-left corner (turns up/right)
-            sx = 0; sy = 32;
-        } else if (left && up && !down && !right) {
-            // Bottom-right corner (turns up/left)
-            sx = 32; sy = 32;
-        } else if (right && !left && !up && !down) {
-            // Horizontal end (connects right)
-            sx = 16; sy = 0;
-        } else if (left && !right && !up && !down) {
-            // Horizontal end (connects left)
-            sx = 16; sy = 0;
-        } else if (up && !down && !left && !right) {
-            // Vertical end (connects up)
-            sx = 0; sy = 16;
-        } else if (down && !up && !left && !right) {
-            // Vertical end (connects down)
-            sx = 0; sy = 16;
-        }
-
-        return new int[]{sx, sy};
     }
 
     private void drawGhostTower(GraphicsContext gc, int tileX, int tileY) {
@@ -656,12 +496,72 @@ public class GameView extends StackPane {
         gc.setGlobalAlpha(1.0);
     }
 
-    private String getTowerSpritePath(GameManager.TowerType towerType) {
-        if (towerType == null) {
-            return null;
+    private void drawDamageTexts(GraphicsContext gc, AssetManager assets) {
+        // Load font once and cache it
+        if (damageFont == null) {
+            try {
+                damageFont = Font.loadFont(getClass().getResourceAsStream("/Fonts/CWEBS.TTF"), 28);
+                if (damageFont == null) {
+                    damageFont = new Font("Arial", 28);
+                }
+            } catch (Exception e) {
+                damageFont = new Font("Arial", 28);
+            }
         }
-        return getString(towerType);
+
+        gc.setFont(damageFont);
+
+        for (DamageText damageText : gameManager.getActiveDamageTexts()) {
+            if (damageText.getOpacity() <= 0) {
+                continue;
+            }
+
+            gc.save();
+
+            // Apply opacity
+            gc.setGlobalAlpha(damageText.getOpacity());
+
+            // Draw drop shadow (black outline) - optimized to fewer calls
+            gc.setFill(javafx.scene.paint.Color.BLACK);
+            String text = damageText.getText();
+            double x = damageText.getX();
+            double y = damageText.getY();
+
+            gc.fillText(text, x + 1, y + 1);
+            gc.fillText(text, x - 1, y + 1);
+            gc.fillText(text, x + 1, y - 1);
+            gc.fillText(text, x - 1, y - 1);
+
+            // Draw main text
+            gc.setFill(damageText.getColor());
+            gc.fillText(text, x, y);
+
+            gc.restore();
+        }
     }
+
+    private static double towerBottomY(Tower tower) {
+        return tower.getY() + TILE_SIZE / 2.0;
+    }
+
+    private static double decorationBottomY(Decoration dec, AssetManager assets) {
+        return dec.getY() + TILE_SIZE / 2.0;
+    }
+
+    private record DepthSprite(double bottomY, Decoration decoration, Enemy enemy, Tower tower) {
+
+        static DepthSprite decoration(Decoration d, double bottomY) {
+                return new DepthSprite(bottomY, d, null, null);
+            }
+
+            static DepthSprite enemy(Enemy e, double bottomY) {
+                return new DepthSprite(bottomY, null, e, null);
+            }
+
+            static DepthSprite tower(Tower t, double bottomY) {
+                return new DepthSprite(bottomY, null, null, t);
+            }
+        }
 
     private static int toTileIndex(double coordinate) {
         return (int) (coordinate / TILE_SIZE);
@@ -701,5 +601,69 @@ public class GameView extends StackPane {
             default:
                 break;
         }
+    }
+
+    public void setPlacedTowerSelectionListener(Consumer<Tower> listener) {
+        this.placedTowerSelectionListener = listener;
+    }
+
+    public void setGameManager(GameManager gameManager) {
+        this.gameManager = gameManager;
+    }
+
+    private String getTowerSpritePath(GameManager.TowerType towerType) {
+        if (towerType == null) {
+            return null;
+        }
+        return getString(towerType);
+    }
+
+    private int[] getPathTileSourceCoords(int r, int c, int[][] grid) {
+        int rows = grid.length;
+        int cols = grid[0].length;
+
+        // Check for path or castle (2) around the tile.
+        boolean up = (r > 0) && ((grid[r - 1][c] == 1) || (grid[r - 1][c] == 2));
+        boolean down = (r < rows - 1) && ((grid[r + 1][c] == 1) || (grid[r + 1][c] == 2));
+        boolean left = (c > 0) && ((grid[r][c - 1] == 1) || (grid[r][c - 1] == 2));
+        boolean right = (c < cols - 1) && ((grid[r][c + 1] == 1) || (grid[r][c + 1] == 2));
+
+        int sx = PATH_SOURCE_DEFAULT_CORD; // Default X (center of the sprite sheet)
+        int sy = PATH_SOURCE_DEFAULT_CORD; // Default Y
+
+        // Path adjacency rules (based on a standard 3x3 sprite sheet).
+        if (left && right && !up && !down) {
+            // Horizontal straight
+            sx = 16; sy = 0;
+        } else if (up && down && !left && !right) {
+            // Vertical straight
+            sx = 0; sy = 16;
+        } else if (right && down && !up && !left) {
+            // Top-left corner (turns down/right)
+            sx = 0; sy = 0;
+        } else if (left && down && !up && !right) {
+            // Top-right corner (turns down/left)
+            sx = 32; sy = 0;
+        } else if (right && up && !down && !left) {
+            // Bottom-left corner (turns up/right)
+            sx = 0; sy = 32;
+        } else if (left && up && !down && !right) {
+            // Bottom-right corner (turns up/left)
+            sx = 32; sy = 32;
+        } else if (right && !left && !up && !down) {
+            // Horizontal end (connects right)
+            sx = 16; sy = 0;
+        } else if (left && !right && !up && !down) {
+            // Horizontal end (connects left)
+            sx = 16; sy = 0;
+        } else if (up && !down && !left && !right) {
+            // Vertical end (connects up)
+            sx = 0; sy = 16;
+        } else if (down && !up && !left && !right) {
+            // Vertical end (connects down)
+            sx = 0; sy = 16;
+        }
+
+        return new int[]{sx, sy};
     }
 }

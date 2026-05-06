@@ -16,7 +16,8 @@ import javafx.scene.layout.BackgroundPosition;
 import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.Background;
-import javafx.stage.Stage;
+
+import java.util.Objects;
 
 public class MainMenu {
     private static final String BACKGROUND_IMAGE_RESOURCE = "/Backgrounds/main_menu_bg.png";
@@ -28,15 +29,9 @@ public class MainMenu {
     private static final double SOUND_BUTTON_FONT_SIZE = 12;
 
     private Scene mainMenuScene;
-    private final Stage primaryStage;
     private Button soundToggleButton;
 
-    public MainMenu(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-        createMainMenuScene();
-    }
-
-    private void createMainMenuScene() {
+    public MainMenu() {
         StackPane root = createRootWithBackground();
         VBox uiContainer = createUiContainer();
 
@@ -65,7 +60,7 @@ public class MainMenu {
 
     private StackPane createRootWithBackground() {
         StackPane root = new StackPane();
-        Image backgroundImage = new Image(getClass().getResourceAsStream(BACKGROUND_IMAGE_RESOURCE));
+        Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream(BACKGROUND_IMAGE_RESOURCE)));
         BackgroundImage background = new BackgroundImage(
                 backgroundImage,
                 BackgroundRepeat.NO_REPEAT,
@@ -95,10 +90,6 @@ public class MainMenu {
         System.exit(0);
     }
 
-    public Scene getScene() {
-        return mainMenuScene;
-    }
-
     public void playMenuBgm() {
         UIUtils.refreshSoundToggleButtonText(soundToggleButton);
         SoundManager.playMenuBgm();
@@ -106,5 +97,9 @@ public class MainMenu {
 
     public void stopMenuBgm() {
         SoundManager.stopMenuBgm();
+    }
+
+    public Scene getScene() {
+        return mainMenuScene;
     }
 }

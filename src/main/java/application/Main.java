@@ -153,7 +153,7 @@ public class Main extends Application {
         Main.primaryStage = primaryStage;
         SoundManager.initialize();
 
-        Main.mainMenu = new MainMenu(primaryStage);
+        Main.mainMenu = new MainMenu();
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(Main.class.getResourceAsStream("/Icons/GameIcon.png"))));
         primaryStage.setTitle(GAME_TITLE);
         primaryStage.setScene(mainMenu.getScene());

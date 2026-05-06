@@ -64,6 +64,6 @@ public final class DamageText {
     public void setColor(Color color) { this.color = color; }
 
     private static double clampOpacity(double value) {
-        return Math.max(MIN_OPACITY, Math.min(MAX_OPACITY, value));
+        return Math.clamp(value, MIN_OPACITY, MAX_OPACITY);
     }
 }

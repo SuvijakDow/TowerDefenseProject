@@ -115,6 +115,10 @@ public abstract class Tower implements Upgradable {
         }
     }
 
+    protected boolean isEnemyInRange(Enemy enemy) {
+        return enemy != null && Math.hypot(enemy.getX() - x, enemy.getY() - y) <= range;
+    }
+
     private double[] getProjectileSpawnPosition() {
         int tileSize = GameMap.PATH_TILE_PIXEL_SIZE;
         return new double[]{
@@ -127,36 +131,20 @@ public abstract class Tower implements Upgradable {
         return level < maxLevel;
     }
 
-    protected boolean isEnemyInRange(Enemy enemy) {
-        return enemy != null && Math.hypot(enemy.getX() - x, enemy.getY() - y) <= range;
-    }
-
     public int getDamage() {
         return damage;
-    }
-    public void setDamage(int damage) {
-        this.damage = damage;
     }
 
     public double getRange() {
         return range;
     }
-    public void setRange(double range) {
-        this.range = range;
-    }
 
     public int getFireCooldown() {
         return fireCooldown;
     }
-    public void setFireCooldown(int fireCooldown) {
-        this.fireCooldown = fireCooldown;
-    }
 
     public int getCurrentCooldown() {
         return currentCooldown;
-    }
-    public void setCurrentCooldown(int currentCooldown) {
-        this.currentCooldown = currentCooldown;
     }
 
     /** @deprecated Use {@link #getFireCooldown()} (tick-based). */
@@ -164,38 +152,21 @@ public abstract class Tower implements Upgradable {
     public double getAttackCooldown() {
         return fireCooldown;
     }
-    /** @deprecated Use {@link #setFireCooldown(int)}. */
-    @Deprecated
-    public void setAttackCooldown(double attackCooldown) {
-        this.fireCooldown = (int) Math.round(attackCooldown);
-    }
 
     public double getX() {
         return x;
-    }
-    public void setX(double x) {
-        this.x = x;
     }
 
     public double getY() {
         return y;
     }
-    public void setY(double y) {
-        this.y = y;
-    }
 
     public int getCost() {
         return cost;
     }
-    public void setCost(int cost) {
-        this.cost = cost;
-    }
 
     public String getSpriteName() {
         return spriteName;
-    }
-    public void setSpriteName(String spriteName) {
-        this.spriteName = spriteName != null ? spriteName : "";
     }
 
     public int getGridRow() {
@@ -204,11 +175,6 @@ public abstract class Tower implements Upgradable {
 
     public int getGridCol() {
         return gridCol;
-    }
-
-    public void setPlacementTile(int row, int col) {
-        this.gridRow = row;
-        this.gridCol = col;
     }
 
     public int getLevel() {
@@ -221,5 +187,48 @@ public abstract class Tower implements Upgradable {
 
     public int getMaxLevel() {
         return maxLevel;
+    }
+
+    public void setDamage(int damage) {
+        this.damage = damage;
+    }
+
+    public void setRange(double range) {
+        this.range = range;
+    }
+
+    public void setFireCooldown(int fireCooldown) {
+        this.fireCooldown = fireCooldown;
+    }
+
+    public void setCurrentCooldown(int currentCooldown) {
+        this.currentCooldown = currentCooldown;
+    }
+
+    /** @deprecated Use {@link #setFireCooldown(int)}. */
+    @Deprecated
+    public void setAttackCooldown(double attackCooldown) {
+        this.fireCooldown = (int) Math.round(attackCooldown);
+    }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+
+    public void setCost(int cost) {
+        this.cost = cost;
+    }
+
+    public void setSpriteName(String spriteName) {
+        this.spriteName = spriteName != null ? spriteName : "";
+    }
+
+    public void setPlacementTile(int row, int col) {
+        this.gridRow = row;
+        this.gridCol = col;
     }
 }
