@@ -7,6 +7,10 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 
 public final class SoundManager {
+    private enum BgmScene {
+        NONE, MENU, IN_GAME
+    }
+
     private static final String CLICK_SFX_PATH = "/Audio/click.mp3";
     private static final String CASTLE_ATTACKED_SFX_PATH = "/Audio/castleIsAttacked.mp3";
     private static final String ENEMY_ATTACKED_SFX_PATH = "/Audio/enemyIsAttacked.mp3";
@@ -24,7 +28,9 @@ public final class SoundManager {
     private static MediaPlayer menuBgmPlayer;
     private static MediaPlayer inGameBgmPlayer;
 
+    public static boolean isMuted = false;
     private static boolean initialized = false;
+    private static BgmScene activeBgmScene = BgmScene.NONE;
 
     private SoundManager() {
     }
@@ -60,52 +66,56 @@ public final class SoundManager {
             victorySfx.setVolume(0.7);
         }
 
-        menuBgmPlayer = loadLoopingBgmPlayer(MENU_BGM_PATH, "startupMenu", 0.45);
+        menuBgmPlayer = loadLoopingBgmPlayer(MENU_BGM_PATH, "startupMenu", 0.7);
         inGameBgmPlayer = loadLoopingBgmPlayer(IN_GAME_BGM_PATH, "inGame", 0.5);
 
         initialized = true;
     }
 
     public static void playClickSfx() {
-        if (!initialized || clickSfx == null) {
+        if (isMuted || !initialized || clickSfx == null) {
             return;
         }
         clickSfx.play();
     }
 
     public static void playCastleIsAttackedSfx() {
-        if (!initialized || castleAttackedSfx == null) {
+        if (isMuted || !initialized || castleAttackedSfx == null) {
             return;
         }
         castleAttackedSfx.play();
     }
 
     public static void playEnemyIsAttackedSfx() {
-        if (!initialized || enemyAttackedSfx == null) {
+        if (isMuted || !initialized || enemyAttackedSfx == null) {
             return;
         }
         enemyAttackedSfx.play();
     }
 
     public static void playDefeatSfx() {
-        if (!initialized || defeatSfx == null) {
+        if (isMuted || !initialized || defeatSfx == null) {
             return;
         }
         defeatSfx.play();
     }
 
     public static void playVictorySfx() {
-        if (!initialized || victorySfx == null) {
+        if (isMuted || !initialized || victorySfx == null) {
             return;
         }
         victorySfx.play();
     }
 
     public static void playMenuBgm() {
-        if (!initialized || menuBgmPlayer == null) {
+        if (!initialized) {
             return;
         }
+        activeBgmScene = BgmScene.MENU;
         stopPlayer(inGameBgmPlayer);
+        if (isMuted || menuBgmPlayer == null) {
+            return;
+        }
         menuBgmPlayer.stop();
         menuBgmPlayer.play();
     }
@@ -114,14 +124,21 @@ public final class SoundManager {
         if (!initialized) {
             return;
         }
+        if (activeBgmScene == BgmScene.MENU) {
+            activeBgmScene = BgmScene.NONE;
+        }
         stopPlayer(menuBgmPlayer);
     }
 
     public static void playInGameBgm() {
-        if (!initialized || inGameBgmPlayer == null) {
+        if (!initialized) {
             return;
         }
+        activeBgmScene = BgmScene.IN_GAME;
         stopPlayer(menuBgmPlayer);
+        if (isMuted || inGameBgmPlayer == null) {
+            return;
+        }
         inGameBgmPlayer.stop();
         inGameBgmPlayer.play();
     }
@@ -130,7 +147,38 @@ public final class SoundManager {
         if (!initialized) {
             return;
         }
+        if (activeBgmScene == BgmScene.IN_GAME) {
+            activeBgmScene = BgmScene.NONE;
+        }
         stopPlayer(inGameBgmPlayer);
+    }
+
+    public static void toggleMute() {
+        if (!initialized) {
+            return;
+        }
+        isMuted = !isMuted;
+        if (isMuted) {
+            stopPlayer(menuBgmPlayer);
+            stopPlayer(inGameBgmPlayer);
+            return;
+        }
+        resumeActiveBgm();
+    }
+
+    private static void resumeActiveBgm() {
+        if (isMuted) {
+            return;
+        }
+        if (activeBgmScene == BgmScene.MENU && menuBgmPlayer != null) {
+            menuBgmPlayer.stop();
+            menuBgmPlayer.play();
+            return;
+        }
+        if (activeBgmScene == BgmScene.IN_GAME && inGameBgmPlayer != null) {
+            inGameBgmPlayer.stop();
+            inGameBgmPlayer.play();
+        }
     }
 
     private static AudioClip loadAudioClip(String resourcePath, String label) {

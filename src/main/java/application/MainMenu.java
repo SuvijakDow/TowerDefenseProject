@@ -7,6 +7,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.effect.DropShadow;
 import javafx.scene.image.Image;
@@ -20,6 +21,7 @@ import javafx.stage.Stage;
 public class MainMenu {
     private Scene mainMenuScene;
     public Stage primaryStage;
+    private Button soundToggleButton;
     
     public MainMenu(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -58,6 +60,8 @@ public class MainMenu {
         Font buttonFont = Font.font("Verdana", 30); 
         Button startButton = UIUtils.createStyledButton("START GAME", buttonFont);
         Button exitButton = UIUtils.createStyledButton("EXIT", buttonFont);
+        Font soundButtonFont = soundButtonFont = Font.font("Verdana", 12);
+        soundToggleButton = UIUtils.createSoundToggleButton(soundButtonFont, 120, 30);
         
         // Set button actions
         startButton.setOnAction(e -> startGame());
@@ -66,8 +70,10 @@ public class MainMenu {
         // Add nodes to VBox
         uiContainer.getChildren().addAll(titleText, startButton, exitButton);
         
-        // Add UI container to StackPane
-        root.getChildren().add(uiContainer);
+        // Add UI + top-right sound toggle.
+        root.getChildren().addAll(uiContainer, soundToggleButton);
+        StackPane.setAlignment(soundToggleButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(soundToggleButton, new Insets(16, 16, 0, 0));
         
         // Create scene
         mainMenuScene = new Scene(root, 1180, 600);
@@ -88,6 +94,7 @@ public class MainMenu {
     }
 
     public void playMenuBgm() {
+        UIUtils.refreshSoundToggleButtonText(soundToggleButton);
         SoundManager.playMenuBgm();
     }
 

@@ -53,4 +53,28 @@ public class UIUtils {
         }
         button.addEventHandler(ActionEvent.ACTION, e -> SoundManager.playClickSfx());
     }
+
+    public static Button createSoundToggleButton(Font font) {
+        return createSoundToggleButton(font, 220, 48);
+    }
+
+    public static Button createSoundToggleButton(Font font, double maxWidth, double prefHeight) {
+        Button button = createStyledButton(getSoundToggleText(), font, maxWidth, prefHeight);
+        button.setOnAction(e -> {
+            SoundManager.toggleMute();
+            refreshSoundToggleButtonText(button);
+        });
+        return button;
+    }
+
+    public static void refreshSoundToggleButtonText(Button button) {
+        if (button == null) {
+            return;
+        }
+        button.setText(getSoundToggleText());
+    }
+
+    private static String getSoundToggleText() {
+        return SoundManager.isMuted ? "🔇 SOUND: OFF" : "🔊 SOUND: ON";
+    }
 }

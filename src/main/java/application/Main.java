@@ -297,6 +297,11 @@ public class Main extends Application {
         Main.sidePanelContainer.setPrefWidth(380);
         Main.sidePanelContainer.setMaxWidth(380);
         Main.sidePanelContainer.getChildren().addAll(Main.towerShopPanel, Main.towerStatusPanel);
+        Font soundButtonFont = Font.font("Verdana", 12);
+        Button soundToggleButton = UIUtils.createSoundToggleButton(soundButtonFont, 120, 20);
+        Main.sidePanelContainer.getChildren().add(soundToggleButton);
+        StackPane.setAlignment(soundToggleButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(soundToggleButton, new Insets(10, 10, 0, 0));
 
         // Store shop row references for selection updates
         HBox[] shopRows = new HBox[GameManager.TowerType.values().length];
