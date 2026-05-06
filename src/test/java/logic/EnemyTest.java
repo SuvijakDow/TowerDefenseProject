@@ -4,7 +4,6 @@ import logic.enemy.BatEnemy;
 import logic.enemy.BigSlimeEnemy;
 import logic.enemy.DemonEnemy;
 import logic.enemy.Enemy;
-import logic.enemy.GhostEnemy;
 import logic.enemy.GoblinEnemy;
 import logic.enemy.KingSlimeEnemy;
 import logic.enemy.SkeletonEnemy;
@@ -73,7 +72,6 @@ public class EnemyTest {
             new GoblinEnemy(),
             new SkeletonEnemy(),
             new ZombieEnemy(),
-            new GhostEnemy(),
             new DemonEnemy()
         };
 
@@ -85,7 +83,6 @@ public class EnemyTest {
             "Enemies/spr_goblin.png",
             "Enemies/spr_skeleton.png",
             "Enemies/spr_zombie.png",
-            "Enemies/spr_ghost.png",
             "Enemies/spr_demon.png"
         };
 
