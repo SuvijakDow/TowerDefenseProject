@@ -137,7 +137,7 @@ public class GameManager {
             return;
         }
 
-        Waypoint start = currentMap.getPathWaypoints().get(0);
+        Waypoint start = currentMap.getPathWaypoints().getFirst();
         enemy.setX(start.getX());
         enemy.setY(start.getY());
         enemy.setCurrentWaypointIndex(0);
