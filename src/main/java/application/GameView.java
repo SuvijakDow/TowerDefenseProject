@@ -654,15 +654,7 @@ public class GameView extends StackPane {
         if (towerType == null) {
             return null;
         }
-        switch (towerType) {
-            case ARCHER: return "/Towers/Combat Towers/spr_tower_archer.png";
-            case CANNON: return "/Towers/Combat Towers/spr_tower_cannon.png";
-            case CROSSBOW: return "/Towers/Combat Towers/spr_tower_crossbow.png";
-            case ICE_WIZARD: return "/Towers/Combat Towers/spr_tower_ice_wizard.png";
-            case LIGHTNING_WIZARD: return "/Towers/Combat Towers/spr_tower_lightning_tower.png";
-            case POISON_WIZARD: return "/Towers/Combat Towers/spr_tower_poison_wizard.png";
-            default: return "/Towers/Combat Towers/spr_tower_archer.png";
-        }
+        return getString(towerType);
     }
     
     private void handleKeyPress(KeyEvent e) {
