@@ -5,6 +5,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * Generates randomized playable path layouts for tower-defense maps.
+ *
+ * <p>Generated grids use tile values: {@code 0}=grass, {@code 1}=path, {@code 2}=castle.</p>
+ */
 public final class PathGenerator {
     private static final int ROWS = 12;
     private static final int COLS = 16;
@@ -25,6 +30,11 @@ public final class PathGenerator {
     private PathGenerator() {
     }
 
+    /**
+     * Produces a random grid containing a valid path and one castle tile.
+     *
+     * @return generated map grid
+     */
     public static int[][] generateRandomPath() {
         while (true) {
             int[][] grid = new int[ROWS][COLS];

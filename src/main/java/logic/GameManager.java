@@ -31,7 +31,13 @@ import java.util.Map;
 import java.util.Random;
 import java.util.function.Supplier;
 
+/**
+ * Central gameplay coordinator for combat, economy, spawning, and win/lose state.
+ *
+ * <p>The manager owns active entities and advances the entire game loop in { #update(double)}.</p>
+ */
 public class GameManager {
+    /** Available tower types that can be selected for placement. */
     public enum TowerType { ARCHER, CANNON, CROSSBOW, ICE_WIZARD, LIGHTNING_WIZARD, POISON_WIZARD }
 
     private static final int INITIAL_PLAYER_MONEY = 500;
@@ -83,6 +89,12 @@ public class GameManager {
     private boolean isVictory = false;
     private double spawnCooldown = 0.0;
 
+    /**
+     * Creates a game manager for a map and optional view binding.
+     *
+     * @param map current game map
+     * @param gameView view callback target, may be null for tests
+     */
     public GameManager(GameMap map, GameView gameView) {
         this.currentMap = map;
         this.gameView = gameView;
@@ -96,7 +108,14 @@ public class GameManager {
         this.selectedTowerType = DEFAULT_SELECTED_TOWER;
     }
 
-    // Places a tower if the player has enough money (no grid validation; tests / legacy).
+    /**
+     * Places a pre-created tower when the player can afford it.
+     *
+     * <p>This is a legacy/test-oriented API and does not validate map tiles.</p>
+     *
+     *  tower tower instance to add
+     *  true when placement succeeds
+     */
     public boolean placeTower(Tower tower) {
         if (tower == null || playerMoney < tower.getCost()) {
             return false;
@@ -131,7 +150,11 @@ public class GameManager {
         return true;
     }
 
-    // Spawns an enemy at the first waypoint.
+    /**
+     * Spawns an enemy at the first path waypoint.
+     *
+     *  enemy enemy to spawn
+     */
     public void spawnEnemy(Enemy enemy) {
         if (enemy == null || currentMap == null || currentMap.getPathWaypoints().isEmpty()) {
             return;
@@ -144,7 +167,11 @@ public class GameManager {
         activeEnemies.add(enemy);
     }
 
-    // Core game tick logic.
+    /**
+     * Advances one game-loop tick.
+     *
+     *  deltaTime elapsed time in seconds
+     */
     public void update(double deltaTime) {
         if (isGameOver || isVictory) {
             return;
@@ -272,6 +299,12 @@ public class GameManager {
         }
     }
 
+    /**
+     * Creates a new tower instance from a selected type.
+     *
+     * @param type tower type
+     * @return new tower instance, or null when type is null/unsupported
+     */
     public Tower createTowerFromType(TowerType type) {
         if (type == null) {
             return null;
@@ -298,6 +331,13 @@ public class GameManager {
         return enemyFactory.get();
     }
 
+    /**
+     * Checks whether the currently selected tower can be placed at the tile.
+     *
+     * @param row tile row
+     * @param col tile column
+     * @return true when placement is valid and affordable
+     */
     public boolean canPlaceTower(int row, int col) {
         if (!isPlacementRequestValid(row, col)) {
             return false;
@@ -307,6 +347,12 @@ public class GameManager {
         return tower != null && playerMoney >= tower.getCost();
     }
 
+    /**
+     * Attempts to upgrade a tower owned by the player.
+     *
+     * @param tower tower to upgrade
+     * @return true when upgrade succeeds
+     */
     public boolean tryUpgradeTower(Tower tower) {
         if (tower == null || isGameOver) {
             return false;
@@ -324,6 +370,9 @@ public class GameManager {
         return true;
     }
 
+    /**
+     * Resets runtime state to initial defaults for a fresh run.
+     */
     public void resetGameState() {
         activeEnemies.clear();
         activeTowers.clear();
@@ -343,6 +392,14 @@ public class GameManager {
         }
     }
 
+    /**
+     * Adds floating combat text if the on-screen cap has not been reached.
+     *
+     * @param text displayed text
+     * @param x world x-coordinate
+     * @param y world y-coordinate
+     * @param color text color
+     */
     public void createDamageText(String text, double x, double y, Color color) {
         if (activeDamageTexts.size() >= MAX_DAMAGE_TEXTS) {
             return;

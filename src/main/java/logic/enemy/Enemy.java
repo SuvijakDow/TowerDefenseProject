@@ -6,6 +6,12 @@ import logic.map.Waypoint;
 
 import java.util.List;
 
+/**
+ * Base enemy model used by all enemy variants in the game.
+ *
+ * <p>An enemy tracks combat stats, world position, path-following state,
+ * sprite/animation state, and hit-flash state.</p>
+ */
 public class Enemy implements Damageable {
     private static final int FRAME_COUNT = 4;
     private static final int ANIM_TICK_THRESHOLD = 10;
@@ -27,6 +33,15 @@ public class Enemy implements Damageable {
     protected double hitTimer;
     protected boolean isHit;
 
+    /**
+     * Creates an enemy with the provided combat and rendering stats.
+     *
+     * @param maxHealth maximum and initial health
+     * @param speed movement speed per update tick
+     * @param rewardMoney money granted when the enemy dies
+     * @param spriteName resource path for the enemy sprite
+     * @param damage base damage dealt when reaching the base
+     */
     public Enemy(int maxHealth, double speed, int rewardMoney, String spriteName, int damage) {
         this.maxHealth = maxHealth;
         this.hp = maxHealth;
@@ -41,6 +56,11 @@ public class Enemy implements Damageable {
         this.isHit = false;
     }
 
+    /**
+     * Advances animation and hit-flash state, then moves toward the current waypoint.
+     *
+     * @param waypoints ordered route waypoints; ignored when null/empty
+     */
     public void update(List<Waypoint> waypoints) {
         advanceAnimation();
         updateHitFlashTimer();
@@ -56,10 +76,20 @@ public class Enemy implements Damageable {
         }
     }
 
+    /**
+     * Moves this enemy toward a target waypoint.
+     *
+     * @param target waypoint to move toward
+     */
     public void move(Waypoint target) {
         moveTowards(target);
     }
 
+    /**
+     * Internal movement helper that applies speed without overshooting.
+     *
+     * @param target waypoint to move toward
+     */
     protected void moveTowards(Waypoint target) {
         double dx = target.getX() - x;
         double dy = target.getY() - y;
@@ -75,6 +105,11 @@ public class Enemy implements Damageable {
         y = Math.abs(moveY) > Math.abs(dy) ? target.getY() : y + moveY;
     }
 
+    /**
+     * Applies incoming damage and starts a short hit-flash effect.
+     *
+     * @param amount damage amount; ignored when non-positive
+     */
     @Override
     public void takeDamage(int amount) {
         if (amount <= 0) {
@@ -111,6 +146,11 @@ public class Enemy implements Damageable {
         return Math.hypot(targetX - x, targetY - y);
     }
 
+    /**
+     * Indicates whether this enemy has no health remaining.
+     *
+     * @return true when health is zero or below
+     */
     public boolean isDead() {
         return hp <= 0;
     }

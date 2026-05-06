@@ -2,6 +2,11 @@ package logic.map;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * Decorative map object placed on a specific grid tile.
+ *
+ * <p>World coordinates include a small random offset to avoid uniform visuals.</p>
+ */
 public final class Decoration {
     private static final double OFFSET_RANGE = 16.0;
     private static final double HALF_OFFSET_RANGE = OFFSET_RANGE / 2.0;
@@ -13,6 +18,14 @@ public final class Decoration {
     private final double y;
     private final double scale;
 
+    /**
+     * Creates a decoration anchored to a grid tile.
+     *
+     * @param spriteName sprite resource path
+     * @param row tile row
+     * @param col tile column
+     * @param scale render scale multiplier
+     */
     public Decoration(String spriteName, int row, int col, double scale) {
         this.spriteName = spriteName;
         this.row = row;

@@ -6,6 +6,12 @@ import logic.map.GameMap;
 
 import java.util.List;
 
+/**
+ * Base tower type for all combat towers.
+ *
+ * <p>A tower tracks combat stats, placement state, upgrade state, and controls
+ * projectile spawning against in-range enemies.</p>
+ */
 public abstract class Tower implements Upgradable {
     protected static final int DEFAULT_UPGRADE_COST = 100;
     protected static final int DEFAULT_MAX_LEVEL = 3;
@@ -30,6 +36,15 @@ public abstract class Tower implements Upgradable {
     protected int upgradeCost = DEFAULT_UPGRADE_COST;
     protected int maxLevel = DEFAULT_MAX_LEVEL;
 
+    /**
+     * Constructs a tower with the given base stats and sprite.
+     *
+     * @param damage base projectile damage
+     * @param range attack range in world units
+     * @param fireCooldown cooldown between attacks in ticks
+     * @param cost placement cost
+     * @param spriteName sprite resource path
+     */
     public Tower(int damage, double range, int fireCooldown, int cost, String spriteName) {
         this.damage = damage;
         this.range = range;
@@ -40,12 +55,25 @@ public abstract class Tower implements Upgradable {
     }
 
     /**
-     * Tick-based combat: when ready, fires a projectile at the closest in-range enemy.
+     * Updates tower combat for one tick.
+     *
+     * <p>When ready, the tower fires one projectile at the closest living enemy
+     * inside range.</p>
+     *
+     * @param enemies currently active enemies
+     * @param activeProjectiles projectile output collection
      */
     public void update(List<Enemy> enemies, List<Projectile> activeProjectiles) {
         updateProjectileAttack(enemies, activeProjectiles, Projectile.DEFAULT_SPRITE);
     }
 
+    /**
+     * Shared projectile-attack implementation used by tower subclasses.
+     *
+     * @param enemies currently active enemies
+     * @param activeProjectiles projectile output collection
+     * @param projectileSprite sprite resource path for spawned projectiles
+     */
     protected void updateProjectileAttack(
             List<Enemy> enemies,
             List<Projectile> activeProjectiles,
@@ -75,6 +103,12 @@ public abstract class Tower implements Upgradable {
         currentCooldown = fireCooldown;
     }
 
+    /**
+     * Finds the closest living enemy inside this tower's range.
+     *
+     * @param enemies currently active enemies
+     * @return closest in-range living enemy, or {@code null} if none
+     */
     protected Enemy findClosestEnemyInRange(List<Enemy> enemies) {
         if (enemies == null || enemies.isEmpty()) {
             return null;
@@ -96,6 +130,9 @@ public abstract class Tower implements Upgradable {
         return closestEnemy;
     }
 
+    /**
+     * Upgrades tower stats if the tower has not reached its max level.
+     */
     @Override
     public void upgrade() {
         if (!canUpgrade()) {
@@ -115,6 +152,12 @@ public abstract class Tower implements Upgradable {
         }
     }
 
+    /**
+     * Checks whether a single enemy is currently in range.
+     *
+     * @param enemy enemy to evaluate
+     * @return true when enemy is non-null and within range
+     */
     protected boolean isEnemyInRange(Enemy enemy) {
         return enemy != null && Math.hypot(enemy.getX() - x, enemy.getY() - y) <= range;
     }
@@ -127,8 +170,24 @@ public abstract class Tower implements Upgradable {
         };
     }
 
+    /**
+     * Indicates whether this tower can still be upgraded.
+     *
+     * @return true when current level is below max level
+     */
     public boolean canUpgrade() {
         return level < maxLevel;
+    }
+
+    /**
+     * Stores the tile coordinates where this tower is placed.
+     *
+     * @param row grid row
+     * @param col grid column
+     */
+    public void setPlacementTile(int row, int col) {
+        this.gridRow = row;
+        this.gridCol = col;
     }
 
     public int getDamage() {
@@ -225,10 +284,5 @@ public abstract class Tower implements Upgradable {
 
     public void setSpriteName(String spriteName) {
         this.spriteName = spriteName != null ? spriteName : "";
-    }
-
-    public void setPlacementTile(int row, int col) {
-        this.gridRow = row;
-        this.gridCol = col;
     }
 }

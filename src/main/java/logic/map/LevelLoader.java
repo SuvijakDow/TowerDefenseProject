@@ -8,12 +8,24 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Loads map grids from classpath text resources.
+ *
+ * <p>Input format is whitespace-separated integers per row.
+ * Invalid files return a 1x1 fallback grid containing {@code 0}.</p>
+ */
 public final class LevelLoader {
     private static final int[][] FALLBACK_GRID = {{0}};
 
     private LevelLoader() {
     }
 
+    /**
+     * Loads a grid from a classpath resource path.
+     *
+     * @param filePath resource path (for example {@code /Paths/path1.txt})
+     * @return loaded grid, or fallback grid if loading/parsing fails
+     */
     public static int[][] loadMapGrid(String filePath) {
         if (filePath == null || filePath.isBlank()) {
             System.err.println("LevelLoader: filePath is null or blank.");

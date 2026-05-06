@@ -7,6 +7,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+/**
+ * Mutable map model containing grid tiles, build decorations, and computed path waypoints.
+ *
+ * <p>Tile encoding: { 0}=grass, { 1}=path, { 2}=castle.</p>
+ */
 public class GameMap {
     /** Must match {@code GameView.TILE_SIZE} for pixel alignment. */
     public static final int PATH_TILE_PIXEL_SIZE = 50;
@@ -25,6 +30,11 @@ public class GameMap {
     private final List<Waypoint> pathWaypoints = new ArrayList<>();
     private Theme theme = Theme.NORMAL;
 
+    /**
+     * Creates a map backed by the provided tile grid.
+     *
+     * @param gridLayout map grid data
+     */
     public GameMap(int[][] gridLayout) {
         this.gridLayout = gridLayout;
     }

@@ -2,6 +2,9 @@ package logic.tower;
 
 import logic.enemy.Enemy;
 
+/**
+ * Projectile fired by towers toward a specific enemy target.
+ */
 public final class Projectile {
     public static final String DEFAULT_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_archer_projectile.png";
     public static final double DEFAULT_SPEED = 12.0;
@@ -14,6 +17,16 @@ public final class Projectile {
     private final Enemy target;
     private final String spriteName;
 
+    /**
+     * Creates a projectile.
+     *
+     * @param x initial x position
+     * @param y initial y position
+     * @param speed movement speed per update
+     * @param damage damage applied on hit
+     * @param target target enemy
+     * @param spriteName projectile sprite resource path; defaults when blank/null
+     */
     public Projectile(double x, double y, double speed, int damage, Enemy target, String spriteName) {
         this.x = x;
         this.y = y;
@@ -24,8 +37,9 @@ public final class Projectile {
     }
 
     /**
-     * Moves toward {@link #target}. Returns {@code true} if this projectile should be removed
-     * (impact or invalid target).
+     * Moves toward {@link #target}.
+     *
+     * @return {@code true} if this projectile should be removed (hit or invalid target)
      */
     public boolean update() {
         if (target == null) {

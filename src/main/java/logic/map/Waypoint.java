@@ -1,9 +1,18 @@
 package logic.map;
 
+/**
+ * A path node in world coordinates that enemies move toward.
+ */
 public class Waypoint {
     private double x;
     private double y;
 
+    /**
+     * Creates a waypoint at the provided world position.
+     *
+     * @param x x-coordinate
+     * @param y y-coordinate
+     */
     public Waypoint(double x, double y) {
         this.x = x;
         this.y = y;
