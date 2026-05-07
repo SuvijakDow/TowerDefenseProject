@@ -177,7 +177,7 @@ The codebase is intentionally split into UI-facing and logic-facing packages:
 **Where used**
 - `Tower` is an abstract base class; concrete towers extend it:
   - `ArcherTower`, `CannonTower`, `CrossbowTower`, `IceWizardTower`, `LightningWizardTower`, `PoisonWizardTower`
-- `Enemy` is a shared base class; enemy variants extend it:
+- `Enemy` is an abstract base class; enemy variants extend it:
   - `SlimeEnemy`, `BatEnemy`, `DemonEnemy`, etc.
 
 **Code example**
@@ -185,7 +185,7 @@ The codebase is intentionally split into UI-facing and logic-facing packages:
 public abstract class Tower implements Upgradable { ... }
 public final class ArcherTower extends Tower { ... }
 
-public class Enemy implements Damageable { ... }
+public abstract class Enemy implements Damageable { ... }
 public final class DemonEnemy extends Enemy { ... }
 ```
 

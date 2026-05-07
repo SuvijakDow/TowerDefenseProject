@@ -12,7 +12,7 @@ import java.util.List;
  * <p>An enemy tracks combat stats, world position, path-following state,
  * sprite/animation state, and hit-flash state.</p>
  */
-public class Enemy implements Damageable {
+public abstract class Enemy implements Damageable {
     private static final int FRAME_COUNT = 4;
     private static final int ANIM_TICK_THRESHOLD = 10;
     private static final double WAYPOINT_REACHED_DISTANCE = 0.1;

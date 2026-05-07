@@ -58,8 +58,8 @@ class application.GameView$DepthSprite {
 ~ {static} DepthSprite enemy(Enemy,double)
 ~ {static} DepthSprite tower(Tower,double)
 + Tower tower()
-+ double bottomY()
 + Decoration decoration()
++ double bottomY()
 + Enemy enemy()
 }
 
@@ -76,7 +76,7 @@ class logic.tower.ArcherTower {
 }
 
 
-class logic.enemy.Enemy {
+abstract class logic.enemy.Enemy {
 - {static} int FRAME_COUNT
 - {static} int ANIM_TICK_THRESHOLD
 - {static} double WAYPOINT_REACHED_DISTANCE
