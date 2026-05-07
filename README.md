@@ -326,5 +326,5 @@ Generated artifact:
 
 ## 7. Project Links
 
-- **JavaDoc:** https://suvijakdow.github.io/TowerDefenseProject/javaDoc/index.html
-- **UML Diagram:** umlJava.svg
+- **JavaDoc:** [Click here to view JavaDoc](https://suvijakdow.github.io/TowerDefenseProject/javaDoc/index.html)
+- **UML Diagram:** [View UML Diagram](umlJava.svg)
