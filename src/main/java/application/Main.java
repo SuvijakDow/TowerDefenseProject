@@ -402,9 +402,6 @@ public class Main extends Application {
         return (int) (coordinate / TILE_SIZE);
     }
 
-    /**
-     * Clears both selected tower type and selected placed-tower focus.
-     */
     private static void clearTowerSelection() {
         Main.gameManager.setSelectedTowerType(null);
         Main.gameView.clearPlacedTowerSelection();
