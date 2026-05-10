@@ -10,31 +10,59 @@ import javafx.scene.media.MediaPlayer;
  * Centralized audio controller for sound effects, background music, and mute state.
  */
 public final class SoundManager {
+    /**
+     * Enum representing the different contexts for background music.
+     */
     private enum BgmScene {
-        NONE, MENU, IN_GAME
+        /** No background music. */
+        NONE, 
+        /** Main menu background music. */
+        MENU, 
+        /** In-game background music. */
+        IN_GAME
     }
 
+    /** Path to the generic click sound effect. */
     private static final String CLICK_SFX_PATH = "/Audio/click.mp3";
+    /** Path to the sound effect played when the castle is attacked. */
     private static final String CASTLE_ATTACKED_SFX_PATH = "/Audio/castleIsAttacked.mp3";
+    /** Path to the sound effect played when an enemy is attacked. */
     private static final String ENEMY_ATTACKED_SFX_PATH = "/Audio/enemyIsAttacked.mp3";
+    /** Path to the defeat sound effect. */
     private static final String DEFEAT_SFX_PATH = "/Audio/defeatSound.mp3";
+    /** Path to the victory sound effect. */
     private static final String VICTORY_SFX_PATH = "/Audio/victorySound.mp3";
+    /** Path to the main menu background music. */
     private static final String MENU_BGM_PATH = "/Audio/startupMenu.mp3";
+    /** Path to the in-game background music. */
     private static final String IN_GAME_BGM_PATH = "/Audio/inGame.mp3";
 
+    /** Audio clip for the click sound effect. */
     private static AudioClip clickSfx;
+    /** Audio clip for the castle attacked sound effect. */
     private static AudioClip castleAttackedSfx;
+    /** Audio clip for the enemy attacked sound effect. */
     private static AudioClip enemyAttackedSfx;
+    /** Audio clip for the defeat sound effect. */
     private static AudioClip defeatSfx;
+    /** Audio clip for the victory sound effect. */
     private static AudioClip victorySfx;
 
+    /** Media player for the main menu background music. */
     private static MediaPlayer menuBgmPlayer;
+    /** Media player for the in-game background music. */
     private static MediaPlayer inGameBgmPlayer;
 
+    /** Global flag indicating if all sound is muted. */
     private static boolean isMuted = false;
+    /** Flag indicating if the audio assets have been successfully initialized. */
     private static boolean initialized = false;
+    /** The currently active background music scene. */
     private static BgmScene activeBgmScene = BgmScene.NONE;
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private SoundManager() {
     }
 
@@ -69,6 +97,11 @@ public final class SoundManager {
         initialized = true;
     }
 
+    /**
+     * Internal helper to play an audio clip if initialized and not muted.
+     *
+     * @param clip the {@link AudioClip} to play
+     */
     private static void playSfx(AudioClip clip) {
         if (!initialized || isMuted || clip == null) {
             return;
@@ -121,6 +154,13 @@ public final class SoundManager {
         playSfx(victorySfx);
     }
 
+    /**
+     * Internal helper to activate a specific background music scene.
+     *
+     * @param scene the scene to activate
+     * @param targetPlayer the player associated with the new scene
+     * @param playerToStop the player associated with the old scene
+     */
     private static void activateBgm(BgmScene scene, MediaPlayer targetPlayer, MediaPlayer playerToStop) {
         if (!initialized) {
             return;
@@ -177,12 +217,22 @@ public final class SoundManager {
         stopPlayer(inGameBgmPlayer);
     }
 
+    /**
+     * Safely stops a media player if it is not null.
+     *
+     * @param player the {@link MediaPlayer} to stop
+     */
     private static void stopPlayer(MediaPlayer player) {
         if (player != null) {
             player.stop();
         }
     }
 
+    /**
+     * Restarts a media player from the beginning.
+     *
+     * @param player the {@link MediaPlayer} to restart
+     */
     private static void restartPlayer(MediaPlayer player) {
         player.stop();
         player.play();
@@ -206,6 +256,9 @@ public final class SoundManager {
         resumeActiveBgm();
     }
 
+    /**
+     * Resumes the background music of the currently active scene if not muted.
+     */
     private static void resumeActiveBgm() {
         if (isMuted) {
             return;
@@ -219,6 +272,13 @@ public final class SoundManager {
         }
     }
 
+    /**
+     * Loads an {@link AudioClip} from the given resource path.
+     *
+     * @param resourcePath the relative path to the audio file
+     * @param label a descriptive label for error logging
+     * @return the loaded {@link AudioClip}, or {@code null} if loading fails
+     */
     private static AudioClip loadAudioClip(String resourcePath, String label) {
         URL url = SoundManager.class.getResource(resourcePath);
         if (url == null) {
@@ -228,6 +288,14 @@ public final class SoundManager {
         return new AudioClip(url.toExternalForm());
     }
 
+    /**
+     * Loads a {@link MediaPlayer} for looping background music.
+     *
+     * @param resourcePath the relative path to the audio file
+     * @param label a descriptive label for error logging
+     * @param volume the volume level (0.0 to 1.0)
+     * @return the initialized {@link MediaPlayer}, or {@code null} if loading fails
+     */
     private static MediaPlayer loadLoopingBgmPlayer(String resourcePath, String label, double volume) {
         URL url = SoundManager.class.getResource(resourcePath);
         if (url == null) {
@@ -240,6 +308,13 @@ public final class SoundManager {
         return mediaPlayer;
     }
 
+    /**
+     * Configures volume and optional playback rate for an {@link AudioClip}.
+     *
+     * @param clip the clip to configure
+     * @param volume the volume level (0.0 to 1.0)
+     * @param rate the playback rate multiplier (optional)
+     */
     private static void configureAudioClip(AudioClip clip, double volume, Double rate) {
         if (clip == null) {
             return;

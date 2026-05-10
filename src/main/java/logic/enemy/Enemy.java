@@ -13,24 +13,42 @@ import java.util.List;
  * sprite/animation state, and hit-flash state.</p>
  */
 public abstract class Enemy implements Damageable {
+    /** Number of frames in the walking animation. */
     private static final int FRAME_COUNT = 4;
+    /** Number of ticks before advancing the animation frame. */
     private static final int ANIM_TICK_THRESHOLD = 10;
+    /** Distance threshold to consider a waypoint reached. */
     private static final double WAYPOINT_REACHED_DISTANCE = 0.1;
-    private static final double ASSUMED_FRAME_SECONDS = 0.016; // Keep legacy hit-flash timing.
+    /** Assumed delta time per frame for hit-flash logic. */
+    private static final double ASSUMED_FRAME_SECONDS = 0.016;
+    /** Duration of the hit-flash visual effect in seconds. */
     private static final double HIT_FLASH_DURATION = 0.08;
 
+    /** Maximum health points. */
     protected int maxHealth;
+    /** Current health points. */
     protected int hp;
+    /** Movement speed. */
     protected double speed;
+    /** Money rewarded upon death. */
     protected int rewardMoney;
+    /** Damage dealt to the base upon reaching the end. */
     protected int damage;
+    /** X-coordinate in the game world. */
     protected double x;
+    /** Y-coordinate in the game world. */
     protected double y;
+    /** Index of the current target waypoint. */
     protected int currentWaypointIndex;
+    /** Path to the sprite asset. */
     protected String spriteName;
+    /** Current frame index of the animation. */
     protected int currentFrame;
+    /** Tick counter for animation timing. */
     protected int animTick;
+    /** Remaining time for the hit-flash effect. */
     protected double hitTimer;
+    /** Flag indicating if the enemy was recently hit. */
     protected boolean isHit;
 
     /**
@@ -155,31 +173,180 @@ public abstract class Enemy implements Damageable {
         return hp <= 0;
     }
 
+    /**
+     * Gets the maximum health.
+     *
+     * @return the max health
+     */
     public int getMaxHealth() { return maxHealth; }
+
+    /**
+     * Sets the maximum health.
+     *
+     * @param maxHealth the new max health
+     */
     public void setMaxHealth(int maxHealth) { this.maxHealth = maxHealth; }
+
+    /**
+     * Gets the current health.
+     *
+     * @return the current health
+     */
     public int getHp() { return hp; }
+
+    /**
+     * Sets the current health.
+     *
+     * @param hp the new health
+     */
     public void setHp(int hp) { this.hp = hp; }
+
+    /**
+     * Gets the current health (alias for getHp).
+     *
+     * @return the current health
+     */
     public int getCurrentHealth() { return hp; }
+
+    /**
+     * Sets the current health (alias for setHp).
+     *
+     * @param currentHealth the new health
+     */
     public void setCurrentHealth(int currentHealth) { this.hp = currentHealth; }
+
+    /**
+     * Gets the movement speed.
+     *
+     * @return the movement speed
+     */
     public double getSpeed() { return speed; }
+
+    /**
+     * Sets the movement speed.
+     *
+     * @param speed the new speed
+     */
     public void setSpeed(double speed) { this.speed = speed; }
+
+    /**
+     * Gets the money rewarded upon death.
+     *
+     * @return the reward money
+     */
     public int getRewardMoney() { return rewardMoney; }
+
+    /**
+     * Sets the money rewarded upon death.
+     *
+     * @param rewardMoney the reward amount
+     */
     public void setRewardMoney(int rewardMoney) { this.rewardMoney = rewardMoney; }
+
+    /**
+     * Gets the X coordinate.
+     *
+     * @return the X coordinate
+     */
     public double getX() { return x; }
+
+    /**
+     * Sets the X coordinate.
+     *
+     * @param x the new X coordinate
+     */
     public void setX(double x) { this.x = x; }
+
+    /**
+     * Gets the Y coordinate.
+     *
+     * @return the Y coordinate
+     */
     public double getY() { return y; }
+
+    /**
+     * Sets the Y coordinate.
+     *
+     * @param y the new Y coordinate
+     */
     public void setY(double y) { this.y = y; }
+
+    /**
+     * Gets the current waypoint index.
+     *
+     * @return the current waypoint index
+     */
     public int getCurrentWaypointIndex() { return currentWaypointIndex; }
+
+    /**
+     * Sets the current waypoint index.
+     *
+     * @param currentWaypointIndex the new waypoint index
+     */
     public void setCurrentWaypointIndex(int currentWaypointIndex) { this.currentWaypointIndex = currentWaypointIndex; }
+
+    /**
+     * Gets the sprite asset path.
+     *
+     * @return the sprite name
+     */
     public String getSpriteName() { return spriteName; }
+
+    /**
+     * Sets the sprite asset path.
+     *
+     * @param spriteName the new sprite name
+     */
     public void setSpriteName(String spriteName) { this.spriteName = spriteName != null ? spriteName : ""; }
+
+    /**
+     * Gets the current animation frame index.
+     *
+     * @return the current frame index
+     */
     public int getCurrentFrame() { return currentFrame; }
+
+    /**
+     * Sets the current animation frame index, clamped to the total frame count.
+     *
+     * @param currentFrame the new frame index
+     */
     public void setCurrentFrame(int currentFrame) {
         this.currentFrame = Math.floorMod(currentFrame, FRAME_COUNT);
     }
+
+    /**
+     * Gets the animation tick counter.
+     *
+     * @return the animation tick
+     */
     public int getAnimTick() { return animTick; }
+
+    /**
+     * Sets the animation tick counter.
+     *
+     * @param animTick the new tick value
+     */
     public void setAnimTick(int animTick) { this.animTick = animTick; }
+
+    /**
+     * Gets the base damage dealt.
+     *
+     * @return the base damage
+     */
     public int getDamage() { return damage; }
+
+    /**
+     * Sets the base damage dealt.
+     *
+     * @param damage the new damage amount
+     */
     public void setDamage(int damage) { this.damage = damage; }
+
+    /**
+     * Checks if the enemy is currently in the hit-flash state.
+     *
+     * @return {@code true} if hit, {@code false} otherwise
+     */
     public boolean isHit() { return isHit; }
 }

@@ -47,48 +47,85 @@ import java.util.Random;
  * application-level scene changes such as returning to the main menu.</p>
  */
 public class Main extends Application {
+    /** The title of the game window. */
     private static final String GAME_TITLE = "Tower Defense";
+    /** Path to the custom font resource. */
     private static final String GAME_FONT_RESOURCE = "/Fonts/CWEBS.TTF";
 
+    /** Width of the gameplay canvas in pixels. */
     private static final int GAME_CANVAS_WIDTH = 800;
+    /** Height of the gameplay canvas in pixels. */
     private static final int GAME_CANVAS_HEIGHT = 600;
+    /** Size of a single map tile in pixels. */
     private static final int TILE_SIZE = GameMap.PATH_TILE_PIXEL_SIZE;
+    /** Width of the side panel in pixels. */
     private static final int SIDE_PANEL_WIDTH = 380;
+    /** Number of columns in the tower shop grid. */
     private static final int SHOP_COLUMNS = 2;
 
+    /** Target number of logic updates per second. */
     private static final double LOGIC_TICKS_PER_SECOND = 60.0;
+    /** Duration of a single logic step in seconds. */
     private static final double LOGIC_STEP_SECONDS = 1.0 / LOGIC_TICKS_PER_SECOND;
+    /** Multiplier for the game simulation speed. */
     private static final double LOGIC_SPEED_MULTIPLIER = 1.0;
+    /** Maximum number of logic steps to process in a single render frame to avoid spiraling. */
     private static final int MAX_LOGIC_STEPS_PER_FRAME = 6;
+    /** Maximum delta time allowed between frames in seconds. */
     private static final double MAX_DELTA_SECONDS = 0.1;
 
+    /** Font size for HUD elements. */
     private static final double HUD_FONT_SIZE = 36;
+    /** Font size for the overlay title text. */
     private static final double OVERLAY_TITLE_FONT_SIZE = 120;
+    /** Font size for the overlay subtitle text. */
     private static final double OVERLAY_SUBTITLE_FONT_SIZE = 50;
+    /** Font size for the shop title. */
     private static final double SHOP_TITLE_FONT_SIZE = 55;
+    /** Font size for tower names in the shop. */
     private static final double SHOP_NAME_FONT_SIZE = 26;
+    /** Font size for tower costs in the shop. */
     private static final double SHOP_COST_FONT_SIZE = 30;
+    /** Font size for the status panel title. */
     private static final double STATUS_TITLE_FONT_SIZE = 55;
+    /** Font size for tower names in the status panel. */
     private static final double STATUS_NAME_FONT_SIZE = 30;
+    /** Font size for tower information in the status panel. */
     private static final double STATUS_INFO_FONT_SIZE = 26;
+    /** Font size for buttons in the side panel. */
     private static final double BUTTON_FONT_SIZE = 20;
 
+    /** Text label for the main menu return button. */
     private static final String MAIN_MENU_BUTTON_TEXT = "RETURN TO MAIN MENU";
+    /** CSS style for side panels. */
     private static final String PANEL_STYLE = "-fx-background-color: rgba(40, 40, 40, 0.9);";
+    /** CSS style for the root scene background. */
     private static final String ROOT_STYLE = "-fx-background-color: #1a1a1a;";
+    /** CSS style for full-screen overlays. */
     private static final String OVERLAY_STYLE = "-fx-background-color: rgba(0, 0, 0, 0.8);";
+    /** CSS style for a default shop row. */
     private static final String SHOP_ROW_DEFAULT_STYLE = "-fx-background-color: rgba(255,255,255,0.1);";
+    /** CSS style for a selected shop row. */
     private static final String SHOP_ROW_SELECTED_STYLE = "-fx-background-color: rgba(255,215,0,0.3); -fx-border-color: gold; -fx-border-width: 3px;";
+    /** CSS base style for panel buttons. */
     private static final String PANEL_BUTTON_BASE_STYLE = "-fx-background-color: rgba(0, 0, 0, 0.75); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;";
+    /** CSS hover style for panel buttons. */
     private static final String PANEL_BUTTON_HOVER_STYLE = "-fx-background-color: rgba(50, 50, 50, 0.9); -fx-text-fill: white; -fx-font-family: 'CWEBS'; -fx-font-size: 20px; -fx-background-radius: 8px; -fx-border-color: white; -fx-border-width: 2px; -fx-border-radius: 8px; -fx-cursor: hand;";
 
+    /** Asset path for the first mushroom decoration. */
     private static final String MUSHROOM_1 = "Environment/Decoration/spr_mushroom_01.png";
+    /** Asset path for the second mushroom decoration. */
     private static final String MUSHROOM_2 = "Environment/Decoration/spr_mushroom_02.png";
+    /** Visual scale applied to map decorations. */
     private static final double DECOR_SCALE = 3.0;
+    /** Number of placement attempts for a decoration on a valid tile. */
     private static final int DECOR_ATTEMPTS_PER_TILE = 2;
+    /** Probability of a decoration spawning on a valid tile. */
     private static final double DECOR_SPAWN_CHANCE = 0.25;
+    /** Probability of spawning a mushroom next to a rock decoration. */
     private static final double ROCK_MUSHROOM_CHANCE = 0.3;
 
+    /** Pool of decoration sprites used in the autumn theme. */
     private static final String[] AUTUMN_DECOR_POOL = {
             "Environment/Decoration/spr_rock_01.png",
             "Environment/Decoration/spr_rock_02.png",
@@ -103,6 +140,7 @@ public class Main extends Application {
             MUSHROOM_2
     };
 
+    /** Pool of decoration sprites used in the spring theme. */
     private static final String[] SPRING_DECOR_POOL = {
             "Environment/Decoration/spr_rock_01.png",
             "Environment/Decoration/spr_rock_02.png",
@@ -119,6 +157,7 @@ public class Main extends Application {
             MUSHROOM_2
     };
 
+    /** Pool of decoration sprites used in the normal theme. */
     private static final String[] NORMAL_DECOR_POOL = {
             "Environment/Decoration/spr_rock_01.png",
             "Environment/Decoration/spr_rock_02.png",
@@ -143,27 +182,45 @@ public class Main extends Application {
     private record TowerInfo(String spritePath, String displayName, int fallbackCost) {
     }
 
+    /** Map of tower metadata used for the shop UI. */
     private static final Map<GameManager.TowerType, TowerInfo> TOWER_INFO = createTowerInfo();
 
     /**
      * Primary application window used for scene switches between menu and gameplay.
      */
     public static Stage primaryStage;
+    /** View component rendering the main game canvas. */
     private static GameView gameView;
+    /** The core game logic manager. */
     private static GameManager gameManager;
+    /** The animation timer handling the game loop. */
     private static AnimationTimer gameLoop;
+    /** The main menu controller. */
     private static MainMenu mainMenu;
+    /** The data structure representing the current game map and grid. */
     private static GameMap gameMap;
+    /** Container for all side panels (shop and status). */
     private static StackPane sidePanelContainer;
+    /** The UI panel displaying the tower shop. */
     private static VBox towerShopPanel;
+    /** The UI panel displaying stats and upgrade options for a selected tower. */
     private static VBox towerStatusPanel;
+    /** The overlay displayed upon defeat. */
     private static VBox gameOverOverlay;
+    /** The overlay displayed upon victory. */
     private static VBox victoryOverlay;
+    /** The custom font loaded for game UI elements. */
     private static Font gameUiFont;
 
+    /**
+     * Data holder class for HUD text elements.
+     */
     private static final class HudTexts {
+        /** Text component showing base health. */
         private Text hpText;
+        /** Text component showing player money. */
         private Text moneyText;
+        /** Text component showing remaining time. */
         private Text timerText;
     }
 
@@ -205,6 +262,9 @@ public class Main extends Application {
         SoundManager.playInGameBgm();
     }
 
+    /**
+     * Initializes the game map, generates a random path, and populates decorations.
+     */
     private static void initializeGame() {
         int[][] gridLayout = PathGenerator.generateRandomPath();
         Main.gameMap = new GameMap(gridLayout);
@@ -219,11 +279,23 @@ public class Main extends Application {
         gameMap.generatePath();
     }
 
+    /**
+     * Randomly selects a map theme.
+     *
+     * @param random the random number generator
+     * @return the selected {@link Theme}
+     */
     private static Theme pickRandomTheme(Random random) {
         Theme[] themes = Theme.values();
         return themes[random.nextInt(themes.length)];
     }
 
+    /**
+     * Retrieves the decoration sprite pool corresponding to a given theme.
+     *
+     * @param theme the map theme
+     * @return an array of sprite paths
+     */
     private static String[] getDecorPoolForTheme(Theme theme) {
         return switch (theme) {
             case AUTUMN -> AUTUMN_DECOR_POOL;
@@ -232,6 +304,14 @@ public class Main extends Application {
         };
     }
 
+    /**
+     * Populates the game map with random decorations based on the theme's pool.
+     *
+     * @param gridLayout the map grid layout
+     * @param map the game map instance
+     * @param decorPool the pool of decoration sprites
+     * @param random the random number generator
+     */
     private static void populateDecorations(int[][] gridLayout, GameMap map, String[] decorPool, Random random) {
         List<Decoration> decorations = map.getDecorations();
         for (int row = 0; row < gridLayout.length; row++) {
@@ -244,10 +324,28 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Checks if a specific tile is valid for placing decorations.
+     *
+     * @param gridLayout the map grid layout
+     * @param map the game map instance
+     * @param row the tile row
+     * @param col the tile column
+     * @return {@code true} if valid, {@code false} otherwise
+     */
     private static boolean isDecoratableTile(int[][] gridLayout, GameMap map, int row, int col) {
         return gridLayout[row][col] == 0 && !map.isInCastleClearanceZone(row, col);
     }
 
+    /**
+     * Attempts to place a decoration on a given tile based on spawn probabilities.
+     *
+     * @param decorations the list of map decorations
+     * @param decorPool the pool of available decoration sprites
+     * @param random the random number generator
+     * @param row the tile row
+     * @param col the tile column
+     */
     private static void tryPlaceDecoration(List<Decoration> decorations, String[] decorPool, Random random, int row, int col) {
         for (int attempt = 0; attempt < DECOR_ATTEMPTS_PER_TILE; attempt++) {
             if (random.nextDouble() >= DECOR_SPAWN_CHANCE) {
@@ -261,6 +359,15 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Occasionally spawns a mushroom decoration next to a rock decoration.
+     *
+     * @param decorations the list of map decorations
+     * @param random the random number generator
+     * @param row the tile row
+     * @param col the tile column
+     * @param decor the base decoration sprite path
+     */
     private static void maybeAddMushroomForRock(List<Decoration> decorations, Random random, int row, int col, String decor) {
         if (!decor.contains("rock") || random.nextDouble() >= ROCK_MUSHROOM_CHANCE) {
             return;
@@ -269,6 +376,9 @@ public class Main extends Application {
         decorations.add(new Decoration(mushroom, row, col, DECOR_SCALE));
     }
 
+    /**
+     * Bootstraps the main game loop, UI panels, overlays, and registers event handlers.
+     */
     private static void startGameLoop() {
         Main.gameView = new GameView(null);
         Main.gameManager = new GameManager(gameMap, gameView);
@@ -315,6 +425,13 @@ public class Main extends Application {
         Main.gameLoop.start();
     }
 
+    /**
+     * Creates a container for the side panels (shop and status).
+     *
+     * @param shopPanel the tower shop panel
+     * @param statusPanel the tower status panel
+     * @return a configured {@link StackPane}
+     */
     private static StackPane createSidePanelContainer(VBox shopPanel, VBox statusPanel) {
         StackPane container = new StackPane();
         container.setPrefWidth(SIDE_PANEL_WIDTH);
@@ -323,11 +440,21 @@ public class Main extends Application {
         return container;
     }
 
+    /**
+     * Configures a side panel's width to standard dimensions.
+     *
+     * @param panel the panel to configure
+     */
     private static void configureSidePanelWidth(VBox panel) {
         panel.setPrefWidth(Region.USE_COMPUTED_SIZE);
         panel.setMaxWidth(SIDE_PANEL_WIDTH);
     }
 
+    /**
+     * Adds a sound toggle button to the specified container.
+     *
+     * @param container the parent container
+     */
     private static void addSoundToggleButton(StackPane container) {
         Font soundButtonFont = Font.font("Verdana", 12);
         Button soundToggleButton = UIUtils.createSoundToggleButton(soundButtonFont, 120, 20);
@@ -336,12 +463,24 @@ public class Main extends Application {
         StackPane.setMargin(soundToggleButton, new Insets(10, 10, 0, 0));
     }
 
+    /**
+     * Combines the game view and top-left HUD into a single pane.
+     *
+     * @param topLeftHUD the HUD overlay
+     * @return a {@link StackPane} containing the game view and HUD
+     */
     private static StackPane createGameWithHud(HBox topLeftHUD) {
         StackPane gameWithHUD = new StackPane();
         gameWithHUD.getChildren().addAll(Main.gameView, topLeftHUD);
         return gameWithHUD;
     }
 
+    /**
+     * Builds the main gameplay scene.
+     *
+     * @param gameWithHUD the combined game and HUD pane
+     * @return the configured gameplay {@link Scene}
+     */
     private static Scene createGameScene(StackPane gameWithHUD) {
         HBox rootPane = new HBox();
         rootPane.setStyle(ROOT_STYLE);
@@ -351,6 +490,11 @@ public class Main extends Application {
         return scene;
     }
 
+    /**
+     * Sets the primary stage to display the game scene.
+     *
+     * @param scene the gameplay scene to display
+     */
     private static void showGameScene(Scene scene) {
         Main.primaryStage.setTitle(GAME_TITLE);
         Main.primaryStage.setScene(scene);
@@ -358,12 +502,22 @@ public class Main extends Application {
         Main.primaryStage.show();
     }
 
+    /**
+     * Attaches mouse event handlers to the game scene.
+     *
+     * @param scene the scene to configure
+     */
     private static void configureSceneInputHandlers(Scene scene) {
         scene.setOnMouseClicked(Main::handleSceneMouseClicked);
         scene.setOnMouseMoved(Main::handleSceneMouseMoved);
         scene.setOnMouseExited(e -> Main.gameView.updateHover(-1, -1));
     }
 
+    /**
+     * Handles mouse click events on the game scene for tower placement and selection.
+     *
+     * @param event the mouse event
+     */
     private static void handleSceneMouseClicked(MouseEvent event) {
         if (event.isConsumed() || isEventInsideSidePanel(event.getTarget())) {
             return;
@@ -388,6 +542,11 @@ public class Main extends Application {
         event.consume();
     }
 
+    /**
+     * Handles mouse move events for updating the hover indicator.
+     *
+     * @param event the mouse event
+     */
     private static void handleSceneMouseMoved(MouseEvent event) {
         if (event.getSceneX() >= GAME_CANVAS_WIDTH) {
             Main.gameView.updateHover(-1, -1);
@@ -398,16 +557,32 @@ public class Main extends Application {
         Main.gameView.updateHover(row, col);
     }
 
+    /**
+     * Converts a pixel coordinate to a grid index.
+     *
+     * @param coordinate the pixel coordinate
+     * @return the grid index
+     */
     private static int toGridIndex(double coordinate) {
         return (int) (coordinate / TILE_SIZE);
     }
 
+    /**
+     * Clears all tower selections and resets UI state.
+     */
     private static void clearTowerSelection() {
         Main.gameManager.setSelectedTowerType(null);
         Main.gameView.clearPlacedTowerSelection();
         Main.gameView.updateHover(-1, -1);
     }
 
+    /**
+     * Creates the fixed-step game loop animation timer.
+     *
+     * @param hudTexts references to the HUD text nodes
+     * @param shopRows references to the shop row nodes
+     * @return the configured {@link AnimationTimer}
+     */
     private static AnimationTimer createGameLoop(HudTexts hudTexts, HBox[] shopRows) {
         return new AnimationTimer() {
             private long lastTime = 0;
@@ -451,6 +626,12 @@ public class Main extends Application {
         };
     }
 
+    /**
+     * Checks for and handles game win/loss conditions.
+     *
+     * @param timer the animation timer to stop on game end
+     * @return {@code true} if the game has ended, {@code false} otherwise
+     */
     private static boolean handleTerminalState(AnimationTimer timer) {
         if (Main.gameManager == null) {
             return false;
@@ -472,14 +653,32 @@ public class Main extends Application {
         return false;
     }
 
+    /**
+     * Creates the overlay displayed when the base is destroyed.
+     *
+     * @return a {@link VBox} configured for the game over screen
+     */
     private static VBox createGameOverOverlay() {
         return createEndStateOverlay("GAME OVER", Color.RED, "Base Destroyed!");
     }
 
+    /**
+     * Creates the overlay displayed when the player wins.
+     *
+     * @return a {@link VBox} configured for the victory screen
+     */
     private static VBox createVictoryOverlay() {
         return createEndStateOverlay("VICTORY!", Color.GOLD, "You survived the siege!");
     }
 
+    /**
+     * Creates a generic end-state overlay with customizable text.
+     *
+     * @param title the main title text
+     * @param titleColor the color of the title
+     * @param subtitle the subtitle text
+     * @return a configured {@link VBox} overlay
+     */
     private static VBox createEndStateOverlay(String title, Color titleColor, String subtitle) {
         VBox overlay = new VBox(10);
         overlay.setAlignment(Pos.CENTER);
@@ -503,14 +702,25 @@ public class Main extends Application {
         return overlay;
     }
 
+    /**
+     * Displays the game over overlay and brings it to the front.
+     */
     private static void showGameOverOverlay() {
         showOverlay(Main.gameOverOverlay);
     }
 
+    /**
+     * Displays the victory overlay and brings it to the front.
+     */
     private static void showVictoryOverlay() {
         showOverlay(Main.victoryOverlay);
     }
 
+    /**
+     * Internal helper to make an overlay visible.
+     *
+     * @param overlay the overlay to show
+     */
     private static void showOverlay(VBox overlay) {
         if (overlay == null) {
             return;
@@ -519,6 +729,14 @@ public class Main extends Application {
         overlay.toFront();
     }
 
+    /**
+     * Creates the top-left HUD showing health, money, and time.
+     *
+     * @param manager the game manager
+     * @param customFont the font used for text
+     * @param hudTexts data holder to store text node references
+     * @return an {@link HBox} containing HUD elements
+     */
     private static HBox createTopLeftHUD(GameManager manager, Font customFont, HudTexts hudTexts) {
         HBox hud = new HBox(15);
         hud.setPadding(new Insets(10));
@@ -546,6 +764,12 @@ public class Main extends Application {
         return hud;
     }
 
+    /**
+     * Creates an image view for a HUD icon.
+     *
+     * @param resourcePath the path to the icon image
+     * @return the configured {@link ImageView}
+     */
     private static ImageView createHudIcon(String resourcePath) {
         ImageView icon = new ImageView(loadImageResource(resourcePath));
         icon.setFitWidth(HUD_FONT_SIZE);
@@ -553,12 +777,26 @@ public class Main extends Application {
         return icon;
     }
 
+    /**
+     * Updates the text values in the HUD based on the current game state.
+     *
+     * @param manager the game manager
+     * @param hudTexts the stored text node references
+     */
     private static void updateHUDTexts(GameManager manager, HudTexts hudTexts) {
         hudTexts.hpText.setText(String.valueOf(manager.getBaseHealth()));
         hudTexts.moneyText.setText(String.valueOf(manager.getPlayerMoney()));
         hudTexts.timerText.setText(manager.getFormattedTime());
     }
 
+    /**
+     * Creates the tower shop side panel.
+     *
+     * @param manager the game manager
+     * @param customFont the font to use
+     * @param shopRows array to store created shop row references
+     * @return a {@link VBox} containing the shop UI
+     */
     private static VBox createTowerShop(GameManager manager, Font customFont, HBox[] shopRows) {
         VBox shop = new VBox(10);
         shop.setPadding(new Insets(20));
@@ -583,6 +821,14 @@ public class Main extends Application {
         return shop;
     }
 
+    /**
+     * Creates the grid layout for tower shop items.
+     *
+     * @param manager the game manager
+     * @param customFont the font to use
+     * @param shopRows array to store created shop row references
+     * @return a {@link GridPane} of tower shop items
+     */
     private static GridPane createTowerGrid(GameManager manager, Font customFont, HBox[] shopRows) {
         GridPane towerGrid = new GridPane();
         towerGrid.setHgap(10);
@@ -612,6 +858,12 @@ public class Main extends Application {
         return towerGrid;
     }
 
+    /**
+     * Updates the visual style of shop rows based on the currently selected tower.
+     *
+     * @param manager the game manager
+     * @param shopRows array of shop row references
+     */
     private static void updateShopSelectionUI(GameManager manager, HBox[] shopRows) {
         GameManager.TowerType selectedType = manager.getSelectedTowerType();
         GameManager.TowerType[] towerTypes = GameManager.TowerType.values();
@@ -624,6 +876,14 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Creates the tower status panel displaying stats for a selected placed tower.
+     *
+     * @param tower the selected tower
+     * @param customFont the font to use
+     * @param onBack callback executed when the back button is clicked
+     * @return a {@link VBox} containing the tower status UI
+     */
     private static VBox createTowerStatusPanel(Tower tower, Font customFont, Runnable onBack) {
         VBox panel = new VBox(10);
         panel.setPadding(new Insets(20));
@@ -669,6 +929,13 @@ public class Main extends Application {
         return panel;
     }
 
+    /**
+     * Creates a card containing the text stats for a tower.
+     *
+     * @param tower the tower to display stats for
+     * @param customFont the font to use
+     * @return a {@link VBox} containing stat labels
+     */
     private static VBox createTowerStatsCard(Tower tower, Font customFont) {
         VBox statsCard = new VBox(8);
         statsCard.setPadding(new Insets(10));
@@ -690,6 +957,14 @@ public class Main extends Application {
         return statsCard;
     }
 
+    /**
+     * Helper to create styled text for the status panel.
+     *
+     * @param value the text content
+     * @param customFont the font family
+     * @param size the font size
+     * @return a configured {@link Text} node
+     */
     private static Text createStatusText(String value, Font customFont, double size) {
         Text text = new Text(value);
         text.setFont(Font.font(customFont.getFamily(), size));
@@ -697,6 +972,13 @@ public class Main extends Application {
         return text;
     }
 
+    /**
+     * Creates a styled action button for side panels.
+     *
+     * @param text the button label
+     * @param enabled whether the button is initially enabled
+     * @return a configured {@link Button}
+     */
     private static Button createPanelActionButton(String text, boolean enabled) {
         Button button = new Button(text);
         UIUtils.attachClickSfx(button);
@@ -712,10 +994,21 @@ public class Main extends Application {
         return button;
     }
 
+    /**
+     * Applies hover or base styling to a panel button.
+     *
+     * @param button the button to style
+     * @param hovered whether the mouse is currently hovering over it
+     */
     private static void applyPanelButtonStyle(Button button, boolean hovered) {
         button.setStyle(hovered ? PANEL_BUTTON_HOVER_STYLE : PANEL_BUTTON_BASE_STYLE);
     }
 
+    /**
+     * Attempts to upgrade a tower and updates the UI if successful.
+     *
+     * @param tower the tower to upgrade
+     */
     private static void tryUpgradeTower(Tower tower) {
         if (tower == null || Main.gameManager == null) {
             return;
@@ -730,6 +1023,12 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Creates a cleanly scaled sprite image view for the tower status panel.
+     *
+     * @param tower the tower whose sprite should be displayed
+     * @return a configured {@link ImageView}
+     */
     private static ImageView createCrispStatusTowerSprite(Tower tower) {
         ImageView spriteView = new ImageView();
         spriteView.setPreserveRatio(true);
@@ -772,6 +1071,11 @@ public class Main extends Application {
         return spriteView;
     }
 
+    /**
+     * Replaces the shop panel with the status panel for a specific tower.
+     *
+     * @param tower the selected tower
+     */
     private static void showTowerStatusPanel(Tower tower) {
         if (tower == null || sidePanelContainer == null || towerShopPanel == null) {
             return;
@@ -791,6 +1095,9 @@ public class Main extends Application {
         towerStatusPanel.toFront();
     }
 
+    /**
+     * Hides the status panel and shows the tower shop panel.
+     */
     private static void showTowerShopPanel() {
         if (towerShopPanel == null) {
             return;
@@ -801,11 +1108,20 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Sets visibility and layout management for a side panel.
+     *
+     * @param panel the panel to configure
+     * @param visible {@code true} to show, {@code false} to hide
+     */
     private static void setPanelVisible(VBox panel, boolean visible) {
         panel.setVisible(visible);
         panel.setManaged(visible);
     }
 
+    /**
+     * Callback for exiting the tower status mode back to the shop.
+     */
     private static void exitTowerStatusMode() {
         if (Main.gameView != null) {
             Main.gameView.clearPlacedTowerSelection();
@@ -813,6 +1129,14 @@ public class Main extends Application {
         showTowerShopPanel();
     }
 
+    /**
+     * Creates an individual row representing a tower in the shop grid.
+     *
+     * @param manager the game manager
+     * @param towerType the type of tower
+     * @param customFont the font to use
+     * @return an {@link HBox} containing the shop item UI
+     */
     private static HBox createTowerShopRow(GameManager manager, GameManager.TowerType towerType, Font customFont) {
         HBox row = new HBox(8);
         row.setPadding(new Insets(6));
@@ -854,18 +1178,43 @@ public class Main extends Application {
         return row;
     }
 
+    /**
+     * Helper to retrieve the sprite path for a tower type safely.
+     *
+     * @param towerType the tower type
+     * @return the sprite path
+     */
     private static String getTowerSpritePath(GameManager.TowerType towerType) {
         return getString(towerType);
     }
 
+    /**
+     * Package-private helper used by other UI components to get tower sprites.
+     *
+     * @param towerType the tower type
+     * @return the sprite path
+     */
     static String getString(GameManager.TowerType towerType) {
         return getTowerInfo(towerType).spritePath();
     }
 
+    /**
+     * Gets the user-facing display name for a tower type.
+     *
+     * @param towerType the tower type
+     * @return the display name
+     */
     private static String getTowerDisplayName(GameManager.TowerType towerType) {
         return getTowerInfo(towerType).displayName();
     }
 
+    /**
+     * Gets the current base cost of a tower type.
+     *
+     * @param manager the game manager
+     * @param towerType the tower type
+     * @return the tower cost
+     */
     private static int getTowerCost(GameManager manager, GameManager.TowerType towerType) {
         Tower tempTower = manager.createTowerFromType(towerType);
         if (tempTower != null) {
@@ -874,6 +1223,12 @@ public class Main extends Application {
         return getTowerInfo(towerType).fallbackCost();
     }
 
+    /**
+     * Looks up metadata for a tower type, providing a safe fallback if missing.
+     *
+     * @param towerType the tower type
+     * @return the corresponding {@link TowerInfo}
+     */
     private static TowerInfo getTowerInfo(GameManager.TowerType towerType) {
         TowerInfo fallback = TOWER_INFO.get(GameManager.TowerType.ARCHER);
         if (towerType == null) {
@@ -882,6 +1237,11 @@ public class Main extends Application {
         return TOWER_INFO.getOrDefault(towerType, fallback);
     }
 
+    /**
+     * Initializes the static tower metadata mapping.
+     *
+     * @return a map of tower types to metadata
+     */
     private static Map<GameManager.TowerType, TowerInfo> createTowerInfo() {
         EnumMap<GameManager.TowerType, TowerInfo> metadata = new EnumMap<>(GameManager.TowerType.class);
         metadata.put(
@@ -911,6 +1271,13 @@ public class Main extends Application {
         return Map.copyOf(metadata);
     }
 
+    /**
+     * Loads the custom game font at a specific size.
+     *
+     * @param size the font size
+     * @return the loaded {@link Font}
+     * @throws IllegalStateException if the font file cannot be loaded
+     */
     private static Font loadGameFont(double size) {
         Font font = Font.loadFont(Main.class.getResourceAsStream(GAME_FONT_RESOURCE), size);
         if (font == null) {
@@ -919,6 +1286,13 @@ public class Main extends Application {
         return font;
     }
 
+    /**
+     * Loads an image resource from the classpath.
+     *
+     * @param resourcePath the relative path to the image
+     * @return the loaded {@link Image}
+     * @throws IllegalStateException if the image file cannot be loaded
+     */
     private static Image loadImageResource(String resourcePath) {
         URL imageUrl = Main.class.getResource(resourcePath);
         if (imageUrl == null) {
@@ -927,6 +1301,9 @@ public class Main extends Application {
         return new Image(imageUrl.toExternalForm());
     }
 
+    /**
+     * Transitions from active gameplay back to the main menu.
+     */
     private static void returnToMenu() {
         stopGameLoop();
         SoundManager.stopInGameBgm();
@@ -938,6 +1315,9 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Stops the active game loop timer.
+     */
     private static void stopGameLoop() {
         if (gameLoop != null) {
             gameLoop.stop();
@@ -945,12 +1325,21 @@ public class Main extends Application {
         }
     }
 
+    /**
+     * Instructs the game manager to clear out runtime entities.
+     */
     private static void resetGameState() {
         if (gameManager != null) {
             gameManager.resetGameState();
         }
     }
 
+    /**
+     * Checks whether a JavaFX event target corresponds to an element within the side panel.
+     *
+     * @param target the event target
+     * @return {@code true} if inside the side panel, {@code false} otherwise
+     */
     private static boolean isEventInsideSidePanel(Object target) {
         if (sidePanelContainer == null || !(target instanceof Node node)) {
             return false;

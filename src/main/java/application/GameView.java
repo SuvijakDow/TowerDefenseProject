@@ -30,27 +30,46 @@ import static application.Main.getString;
  * JavaFX gameplay canvas that renders map entities and handles in-game pointer input.
  */
 public class GameView extends StackPane {
+    /** The main canvas on which all game visuals are rendered. */
     private Canvas canvas;
+    /** The graphics context used to draw shapes and images on the canvas. */
     private GraphicsContext gc;
+    /** The underlying game engine managing logic and state. */
     private GameManager gameManager;
+    /** The visual size (width and height) of a single map tile. */
     private static final int TILE_SIZE = 50;
+    /** The size of a tile source segment in the sprite sheet. */
     private static final int PATH_SOURCE_TILE_SIZE = 16;
+    /** The default coordinate used when sampling from the path sprite sheet. */
     private static final int PATH_SOURCE_DEFAULT_CORD = 16;
+    /** The scaling factor applied to enemy sprites when drawn. */
     private static final double ENEMY_SPRITE_DRAW_SCALE = 3.0;
+    /** The visual size (width and height) of projectile sprites. */
     private static final double PROJECTILE_DRAW_SIZE = 16.0;
     
     // Castle hit effect fields
+    /** Current horizontal displacement for the castle shake effect. */
     private double castleHitShakeX = 0;
+    /** Countdown timer for the castle shake effect. */
     private double castleHitShakeTimer = 0;
+    /** Flag indicating whether the castle is currently shaking from being hit. */
     private boolean castleIsHit = false;
+    /** The duration of the castle shake effect in seconds. */
     private static final double CASTLE_HIT_SHAKE_DURATION = 0.3;
+    /** The intensity (maximum displacement) of the castle shake effect. */
     private static final double CASTLE_HIT_SHAKE_INTENSITY = 8;
 
+    /** The row currently hovered by the mouse pointer. */
     private int hoverRow = -1;
+    /** The column currently hovered by the mouse pointer. */
     private int hoverCol = -1;
+    /** Whether a tower can validly be placed at the current hover location. */
     private boolean hoverValid = false;
+    /** The currently selected tower that has already been placed on the map. */
     private Tower selectedPlacedTower = null;
+    /** Listener invoked when the selected placed tower changes. */
     private Consumer<Tower> placedTowerSelectionListener;
+    /** The font used for rendering floating damage text. */
     private Font damageFont = null;
 
     /**
@@ -201,12 +220,22 @@ public class GameView extends StackPane {
         notifyPlacedTowerSelectionChanged();
     }
 
+    /**
+     * Notifies the registered listener that the selected placed tower has changed.
+     */
     private void notifyPlacedTowerSelectionChanged() {
         if (placedTowerSelectionListener != null) {
             placedTowerSelectionListener.accept(selectedPlacedTower);
         }
     }
 
+    /**
+     * Finds and returns a tower located at the specified tile coordinates.
+     *
+     * @param row the grid row index
+     * @param col the grid column index
+     * @return the {@link Tower} at the given location, or {@code null} if none exists
+     */
     private Tower findTowerAtTile(int row, int col) {
         if (gameManager == null) {
             return null;
@@ -407,11 +436,24 @@ public class GameView extends StackPane {
         drawDamageTexts(gc, assets);
     }
 
+    /**
+     * Draws a semi-transparent circular indicator denoting a tower's attack range.
+     *
+     * @param centerX the x-coordinate of the circle's center
+     * @param centerY the y-coordinate of the circle's center
+     * @param range the radius of the circle
+     */
     private void drawRangeIndicator(double centerX, double centerY, double range) {
         gc.setFill(Color.rgb(255, 255, 255, 0.15));
         gc.fillOval(centerX - range, centerY - range, range * 2, range * 2);
     }
 
+    /**
+     * Renders all active projectiles onto the given graphics context.
+     *
+     * @param gc the graphics context
+     * @param assets the asset manager used to retrieve projectile sprites
+     */
     private void drawProjectiles(GraphicsContext gc, AssetManager assets) {
         for (Projectile p : gameManager.getActiveProjectiles()) {
             Image img = assets.getImage(p.getSpriteName());
@@ -435,6 +477,13 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Renders a tower sprite on the canvas at its logical coordinates.
+     *
+     * @param gc the graphics context
+     * @param assets the asset manager
+     * @param tower the tower to draw
+     */
     private static void drawTower(GraphicsContext gc, AssetManager assets, Tower tower) {
         Image img = assets.getImage(tower.getSpriteName());
         if (img == null) {
@@ -453,6 +502,14 @@ public class GameView extends StackPane {
         gc.drawImage(img, 0, 0, iw, ih, drawX, drawY, destW, destH);
     }
 
+    /**
+     * Renders an enemy sprite with its current animation frame.
+     * Optionally draws a red overlay if the enemy is taking damage.
+     *
+     * @param gc the graphics context
+     * @param assets the asset manager
+     * @param enemy the enemy to draw
+     */
     private static void drawEnemy(GraphicsContext gc, AssetManager assets, Enemy enemy) {
         Image img = assets.getImage(enemy.getSpriteName());
         if (img == null) {
@@ -477,6 +534,14 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Renders the castle sprite, optionally applying a red hit flash and screen shake.
+     *
+     * @param gc the graphics context
+     * @param castle the castle image to draw
+     * @param dx the base x-coordinate
+     * @param dy the base y-coordinate
+     */
     private void drawCastleSprite(GraphicsContext gc, Image castle, double dx, double dy) {
         double frameWidth = castle.getWidth() / 4.0;
         double frameHeight = castle.getHeight();
@@ -501,6 +566,14 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Renders a semi-transparent preview of the currently selected tower type
+     * at the specified tile coordinates.
+     *
+     * @param gc the graphics context
+     * @param tileX the pixel x-coordinate of the tile
+     * @param tileY the pixel y-coordinate of the tile
+     */
     private void drawGhostTower(GraphicsContext gc, int tileX, int tileY) {
         String spritePath = getTowerSpritePath(gameManager.getSelectedTowerType());
         if (spritePath == null) {
@@ -533,6 +606,12 @@ public class GameView extends StackPane {
         gc.setGlobalAlpha(1.0);
     }
 
+    /**
+     * Renders all active floating damage text indicators.
+     *
+     * @param gc the graphics context
+     * @param assets the asset manager
+     */
     private void drawDamageTexts(GraphicsContext gc, AssetManager assets) {
         // Load font once and cache it
         if (damageFont == null) {
@@ -577,37 +656,99 @@ public class GameView extends StackPane {
         }
     }
 
+    /**
+     * Calculates the visual bottom edge Y-coordinate for a tower, used for depth sorting.
+     *
+     * @param tower the tower
+     * @return the bottom Y-coordinate
+     */
     private static double towerBottomY(Tower tower) {
         return tower.getY() + TILE_SIZE / 2.0;
     }
 
+    /**
+     * Calculates the visual bottom edge Y-coordinate for a decoration, used for depth sorting.
+     *
+     * @param dec the decoration
+     * @param assets the asset manager
+     * @return the bottom Y-coordinate
+     */
     private static double decorationBottomY(Decoration dec, AssetManager assets) {
         return dec.getY() + TILE_SIZE / 2.0;
     }
 
+    /**
+     * A record used to wrap map entities with their bottom Y-coordinate for depth sorting.
+     *
+     * @param bottomY the y-coordinate to sort by
+     * @param decoration the decoration reference, or {@code null}
+     * @param enemy the enemy reference, or {@code null}
+     * @param tower the tower reference, or {@code null}
+     */
     private record DepthSprite(double bottomY, Decoration decoration, Enemy enemy, Tower tower) {
 
+        /**
+         * Creates a depth sprite for a decoration.
+         *
+         * @param d the decoration
+         * @param bottomY its sorting coordinate
+         * @return a new DepthSprite
+         */
         static DepthSprite decoration(Decoration d, double bottomY) {
                 return new DepthSprite(bottomY, d, null, null);
             }
 
+            /**
+             * Creates a depth sprite for an enemy.
+             *
+             * @param e the enemy
+             * @param bottomY its sorting coordinate
+             * @return a new DepthSprite
+             */
             static DepthSprite enemy(Enemy e, double bottomY) {
                 return new DepthSprite(bottomY, null, e, null);
             }
 
+            /**
+             * Creates a depth sprite for a tower.
+             *
+             * @param t the tower
+             * @param bottomY its sorting coordinate
+             * @return a new DepthSprite
+             */
             static DepthSprite tower(Tower t, double bottomY) {
                 return new DepthSprite(bottomY, null, null, t);
             }
         }
 
+    /**
+     * Converts a pixel coordinate to a grid tile index.
+     *
+     * @param coordinate the pixel coordinate
+     * @return the corresponding tile index
+     */
     private static int toTileIndex(double coordinate) {
         return (int) (coordinate / TILE_SIZE);
     }
 
+    /**
+     * Checks if a specific row and column are within the bounds of a grid.
+     *
+     * @param row the row index
+     * @param col the column index
+     * @param grid the 2D grid array
+     * @return {@code true} if inside bounds, {@code false} otherwise
+     */
     private static boolean isInsideGrid(int row, int col, int[][] grid) {
         return row >= 0 && row < grid.length && col >= 0 && col < grid[0].length;
     }
 
+    /**
+     * Normalizes an asset key to remove leading slashes if present.
+     *
+     * @param spritePath the raw path string
+     * @return the normalized asset key
+     */
     private static String normalizeAssetKey(String spritePath) {
         if (spritePath.startsWith("/")) {
             return spritePath.substring(1);
@@ -615,6 +756,11 @@ public class GameView extends StackPane {
         return spritePath;
     }
 
+    /**
+     * Handles keyboard events to quickly select tower types for placement.
+     *
+     * @param e the key event
+     */
     private void handleKeyPress(KeyEvent e) {
         switch (e.getCode()) {
             case DIGIT1:
@@ -658,6 +804,12 @@ public class GameView extends StackPane {
         this.gameManager = gameManager;
     }
 
+    /**
+     * Maps a {@link logic.GameManager.TowerType} to its corresponding sprite asset path.
+     *
+     * @param towerType the tower type
+     * @return the sprite asset path, or {@code null} if type is null
+     */
     private String getTowerSpritePath(GameManager.TowerType towerType) {
         if (towerType == null) {
             return null;
@@ -665,6 +817,15 @@ public class GameView extends StackPane {
         return getString(towerType);
     }
 
+    /**
+     * Determines the correct source coordinates on the path sprite sheet for a path tile
+     * based on its neighboring path tiles (auto-tiling).
+     *
+     * @param r the row index of the tile
+     * @param c the column index of the tile
+     * @param grid the game map grid layout
+     * @return an integer array containing the x and y source coordinates respectively
+     */
     private int[] getPathTileSourceCoords(int r, int c, int[][] grid) {
         int rows = grid.length;
         int cols = grid[0].length;

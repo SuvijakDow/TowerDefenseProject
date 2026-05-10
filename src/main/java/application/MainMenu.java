@@ -23,15 +23,24 @@ import java.util.Objects;
  * Builds and controls the main menu scene shown before gameplay starts.
  */
 public class MainMenu {
+    /** Path to the main menu background image. */
     private static final String BACKGROUND_IMAGE_RESOURCE = "/Backgrounds/main_menu_bg.png";
+    /** Path to the custom font used for the title. */
     private static final String TITLE_FONT_RESOURCE = "/Fonts/CWEBS.TTF";
+    /** The width of the main menu scene. */
     private static final int SCENE_WIDTH = 1180;
+    /** The height of the main menu scene. */
     private static final int SCENE_HEIGHT = 600;
+    /** The font size of the title text. */
     private static final double TITLE_FONT_SIZE = 120;
+    /** The font size of the primary menu buttons. */
     private static final double BUTTON_FONT_SIZE = 30;
+    /** The font size of the sound toggle button. */
     private static final double SOUND_BUTTON_FONT_SIZE = 12;
 
+    /** The scene instance that represents the main menu. */
     private Scene mainMenuScene;
+    /** The button used to toggle global sound on and off. */
     private Button soundToggleButton;
 
     /**
@@ -64,6 +73,11 @@ public class MainMenu {
         mainMenuScene = new Scene(root, SCENE_WIDTH, SCENE_HEIGHT);
     }
 
+    /**
+     * Creates the root stack pane with the background image applied.
+     *
+     * @return a {@link StackPane} configured with the background
+     */
     private StackPane createRootWithBackground() {
         StackPane root = new StackPane();
         Image backgroundImage = new Image(Objects.requireNonNull(getClass().getResourceAsStream(BACKGROUND_IMAGE_RESOURCE)));
@@ -78,6 +92,11 @@ public class MainMenu {
         return root;
     }
 
+    /**
+     * Creates the VBox container that holds the title and menu buttons.
+     *
+     * @return a {@link VBox} configured for UI elements
+     */
     private VBox createUiContainer() {
         VBox uiContainer = new VBox(30);
         uiContainer.setAlignment(Pos.CENTER);
@@ -86,11 +105,17 @@ public class MainMenu {
         return uiContainer;
     }
 
+    /**
+     * Action handler to transition from the main menu to the actual game.
+     */
     private void startGame() {
         stopMenuBgm();
         Main.startGameFromMenu();
     }
 
+    /**
+     * Action handler to gracefully exit the application.
+     */
     private void exitGame() {
         stopMenuBgm();
         System.exit(0);

@@ -12,8 +12,10 @@ import java.util.Map;
  * Singleton image repository that preloads and serves game asset textures.
  */
 public final class AssetManager {
+    /** Prefix used to locate resources within the classpath. */
     private static final String RESOURCE_PREFIX = "/";
 
+    /** List of file paths for environment-related image assets. */
     private static final List<String> ENVIRONMENT_ASSETS = List.of(
             "Environment/Grass/spr_grass_01.png",
             "Environment/Grass/spr_grass_02.png",
@@ -33,6 +35,7 @@ public final class AssetManager {
             "Environment/Decoration/spr_mushroom_02.png"
     );
 
+    /** List of file paths for tower-related image assets. */
     private static final List<String> TOWER_ASSETS = List.of(
             "Towers/Castle/spr_castle_blue.png",
             "Towers/Castle/spr_castle_green.png",
@@ -45,6 +48,7 @@ public final class AssetManager {
             "Towers/Combat Towers/spr_tower_poison_wizard.png"
     );
 
+    /** List of file paths for projectile-related image assets. */
     private static final List<String> PROJECTILE_ASSETS = List.of(
             "Towers/Combat Towers Projectiles/spr_tower_archer_projectile.png",
             "Towers/Combat Towers Projectiles/spr_tower_cannon_projectile.png",
@@ -54,6 +58,7 @@ public final class AssetManager {
             "Towers/Combat Towers Projectiles/spr_tower_poison_wizard_projectile.png"
     );
 
+    /** List of file paths for enemy-related image assets. */
     private static final List<String> ENEMY_ASSETS = List.of(
             "Enemies/spr_big_slime.png",
             "Enemies/spr_normal_slime.png",
@@ -65,14 +70,22 @@ public final class AssetManager {
             "Enemies/spr_bat.png"
     );
 
+    /** A combined list of all predefined asset paths to be loaded. */
     private static final List<String> ALL_ASSETS = buildAssetList();
 
+    /** A map storing the preloaded {@link Image} instances, keyed by their relative path. */
     private final Map<String, Image> images = new HashMap<>();
 
+    /** Lazy initialization holder class for the singleton instance. */
     private static final class Holder {
+        /** The single instance of {@link AssetManager}. */
         private static final AssetManager INSTANCE = new AssetManager();
     }
 
+    /**
+     * Private constructor to enforce the Singleton pattern.
+     * Automatically triggers the loading of all predefined assets.
+     */
     private AssetManager() {
         loadAssets();
     }
@@ -86,12 +99,21 @@ public final class AssetManager {
         return Holder.INSTANCE;
     }
 
+    /**
+     * Iterates through the {@link #ALL_ASSETS} list and loads each asset.
+     */
     private void loadAssets() {
         for (String assetPath : ALL_ASSETS) {
             loadAsset(assetPath);
         }
     }
 
+    /**
+     * Loads a single image asset from the given path and stores it in the {@link #images} map.
+     * Prints an error to standard error stream if the resource is missing or invalid.
+     *
+     * @param assetPath The relative path of the image asset to load.
+     */
     private void loadAsset(String assetPath) {
         URL resourceUrl = AssetManager.class.getResource(RESOURCE_PREFIX + assetPath);
         if (resourceUrl == null) {
@@ -107,6 +129,11 @@ public final class AssetManager {
         images.put(assetPath, image);
     }
 
+    /**
+     * Helper method to build a unified list of all assets that need to be preloaded.
+     *
+     * @return An unmodifiable list containing all asset paths.
+     */
     private static List<String> buildAssetList() {
         List<String> allAssets = new ArrayList<>();
         allAssets.addAll(ENVIRONMENT_ASSETS);

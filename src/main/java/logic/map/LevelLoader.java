@@ -15,6 +15,7 @@ import java.util.List;
  * Invalid files return a 1x1 fallback grid containing {@code 0}.</p>
  */
 public final class LevelLoader {
+    /** Fallback 1x1 grid used when map loading fails. */
     private static final int[][] FALLBACK_GRID = {{0}};
 
     private LevelLoader() {
@@ -46,6 +47,14 @@ public final class LevelLoader {
         }
     }
 
+    /**
+     * Parses the grid from a BufferedReader.
+     *
+     * @param filePath the resource path being read
+     * @param reader the reader containing the file content
+     * @return the parsed 2D array, or a fallback grid on failure
+     * @throws IOException if an I/O error occurs
+     */
     private static int[][] parseGrid(String filePath, BufferedReader reader) throws IOException {
         List<int[]> rows = new ArrayList<>();
         String line;
@@ -84,6 +93,13 @@ public final class LevelLoader {
         return grid;
     }
 
+    /**
+     * Parses a single row of the grid.
+     *
+     * @param parts the string array of numeric tokens
+     * @param filePath the resource path being read (for error logging)
+     * @return the parsed integer array representing a row, or null on failure
+     */
     private static int[] parseRow(String[] parts, String filePath) {
         int[] row = new int[parts.length];
         for (int col = 0; col < parts.length; col++) {
@@ -97,6 +113,11 @@ public final class LevelLoader {
         return row;
     }
 
+    /**
+     * Creates and returns a copy of the fallback grid.
+     *
+     * @return a safe fallback grid array
+     */
     private static int[][] fallbackGrid() {
         return new int[][]{{FALLBACK_GRID[0][0]}};
     }

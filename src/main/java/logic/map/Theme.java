@@ -4,8 +4,11 @@ package logic.map;
  * Visual environment themes used to style the map.
  */
 public enum Theme {
+    /** Standard grass and trees theme. */
     NORMAL,
+    /** Orange/brown autumn-colored flora theme. */
     AUTUMN,
+    /** Pink cherry blossom and spring flora theme. */
     SPRING;
 
     /**

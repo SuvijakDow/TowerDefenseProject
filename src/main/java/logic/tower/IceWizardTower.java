@@ -8,11 +8,17 @@ import java.util.List;
  * Wizard tower variant with high range and slow firing cadence.
  */
 public final class IceWizardTower extends Tower {
+    /** Base damage of the ice wizard tower. */
     private static final int DAMAGE = 60;
+    /** Attack range of the ice wizard tower. */
     private static final double RANGE = 150.0;
+    /** Fire cooldown of the ice wizard tower in ticks. */
     private static final int FIRE_COOLDOWN = 120;
+    /** Placement cost of the ice wizard tower. */
     private static final int COST = 150;
+    /** Asset path for the ice wizard tower sprite. */
     private static final String SPRITE = "Towers/Combat Towers/spr_tower_ice_wizard.png";
+    /** Asset path for the ice projectile sprite. */
     private static final String ICE_PROJECTILE_SPRITE = "Towers/Combat Towers Projectiles/spr_tower_ice_wizard_projectile.png";
 
     /**

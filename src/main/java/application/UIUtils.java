@@ -8,9 +8,14 @@ import javafx.scene.text.Font;
  * Utility helpers for creating and updating commonly styled JavaFX UI controls.
  */
 public final class UIUtils {
+    /** Base background color style for buttons. */
     private static final String BASE_BUTTON_BG = "rgba(0, 0, 0, 0.75)";
+    /** Hover background color style for buttons. */
     private static final String HOVER_BUTTON_BG = "rgba(50, 50, 50, 0.9)";
 
+    /**
+     * Private constructor to prevent instantiation.
+     */
     private UIUtils() {
     }
 
@@ -106,10 +111,23 @@ public final class UIUtils {
         button.setText(getSoundToggleText());
     }
 
+    /**
+     * Gets the appropriate text for the sound toggle button based on the current mute state.
+     *
+     * @return the string label for the sound toggle button
+     */
     private static String getSoundToggleText() {
         return SoundManager.isMuted() ? "🔇 SOUND: OFF" : "🔊 SOUND: ON";
     }
 
+    /**
+     * Builds the CSS style string for buttons.
+     *
+     * @param fontFamily the font family to use
+     * @param fontSize the font size to use
+     * @param backgroundColor the background color to apply
+     * @return the combined CSS style string
+     */
     private static String buildButtonStyle(String fontFamily, double fontSize, String backgroundColor) {
         return "-fx-background-color: " + backgroundColor + "; " +
                 "-fx-text-fill: white; " +
