@@ -543,6 +543,7 @@ public class Main extends Application {
         hudTexts.timerText = timerText;
 
         hud.getChildren().addAll(heartIcon, hpText, coinIcon, moneyText, timerIcon, timerText);
+        hud.setPickOnBounds(false);
         return hud;
     }
 

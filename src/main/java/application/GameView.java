@@ -65,13 +65,13 @@ public class GameView extends StackPane {
         getChildren().add(canvas);
 
         canvas.setOnMouseClicked(e -> {
-            if (gameManager == null) {
+            if (this.gameManager == null) {
                 return;
             }
             int col = toTileIndex(e.getX());
             int row = toTileIndex(e.getY());
             if (e.getButton() == MouseButton.SECONDARY) {
-                gameManager.setSelectedTowerType(null);
+                this.gameManager.setSelectedTowerType(null);
                 clearPlacedTowerSelection();
                 updateHover(-1, -1);
                 e.consume();
@@ -81,7 +81,7 @@ public class GameView extends StackPane {
                 boolean towerClickHandled = togglePlacedTowerRangeAt(row, col);
                 if (!towerClickHandled) {
                     clearPlacedTowerSelection();
-                    gameManager.placeTower(row, col);
+                    this.gameManager.placeTower(row, col);
                 }
                 e.consume();
             }
